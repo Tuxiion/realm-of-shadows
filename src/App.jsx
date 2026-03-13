@@ -135,7 +135,7 @@ const CLASS_NAMES = {
 
 const CLASSES = {
     "Holy Knight": {
-        icon: "⚔️", color: "#f0c060", desc: "Sacred warrior. High defense, heals allies.",
+        icon: "⚔️", color: "#f0c060", desc: "Sacred warrior. High defense, healing properties.",
         stats: { hp: 120, maxHp: 120, mp: 40, maxMp: 40, atk: 18, def: 10, spd: 7, crit: 2, manaRegen: 5 },
         abilities: [
             { name: "Divine Strike", cost: 10, desc: "Sacred blade attack", damage: [18, 28], type: "atk" },
@@ -162,7 +162,7 @@ const CLASSES = {
         ]
     },
     "Ranged Assassin": {
-        icon: "🏹", color: "#60f0a0", desc: "Swift shadow hunter. Extreme speed and crit.",
+        icon: "🏹", color: "#60f0a0", desc: "Swift shadow hunter. Extreme crit and burst.",
         stats: { hp: 80, maxHp: 80, mp: 60, maxMp: 60, atk: 16, def: 3, spd: 15, crit: 20, manaRegen: 5 },
         abilities: [
             { name: "Snipe", cost: 14, desc: "Pinpoint lethal shot", damage: [28, 42], type: "atk" },
