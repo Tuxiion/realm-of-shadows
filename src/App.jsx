@@ -43,14 +43,13 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
     const cellW = meta.w / meta.cols;
     const cellH = meta.h / meta.rows;
 
-    // Scale factor: we want the displayed cell to be displaySize px
-    const scaleX = displaySize / cellW;
-    const scaleY = displaySize / cellH;
+    // Scale uniformly by width — crops height instead of squishing
+    const scale = displaySize / cellW;
 
-    const scaledSheetW = meta.w * scaleX;
-    const scaledSheetH = meta.h * scaleY;
+    const scaledSheetW = meta.w * scale;
+    const scaledSheetH = meta.h * scale;
     const bpx = -(col * displaySize);
-    const bpy = -(row * displaySize);
+    const bpy = -(row * (cellH * scale));
 
     return (
         <div style={{
@@ -61,8 +60,8 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
             ...style
         }}>
             <div style={{
-                width: displaySize,
-                height: displaySize,
+                width: scaledSheetW,
+                height: scaledSheetH,
                 backgroundImage: `url(${SHEETS[sheetKey]})`,
                 backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`,
                 backgroundPosition: `${bpx}px ${bpy}px`,
