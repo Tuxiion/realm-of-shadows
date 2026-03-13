@@ -955,38 +955,36 @@ export default function App() {
                                     })}
                                 </div>
                             )}
-                            
+                            {shopTab === "equipment" && (
+                                <div>
+                                    {[
+                                        { slot: "head", label: "🪖 Helmets" },
+                                        { slot: "weapon", label: "⚔️ Weapons" },
+                                        { slot: "body", label: "🥋 Body Armor" },
+                                        { slot: "ring", label: "💍 Rings" },
+                                    ].map(({ slot, label }) => (
+                                        <div key={slot} style={{ marginBottom: 8 }}>
+                                            <div style={{ color: "#555", fontSize: 9, fontWeight: "bold", letterSpacing: 1, marginBottom: 4, borderBottom: "1px solid #ffffff08", paddingBottom: 2 }}>{label}</div>
+                                            <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                                {EQUIPMENT.filter(e => e.slot === slot).map(item => {
+                                                    const owned = equipped[item.slot]?.id === item.id;
+                                                    return (
+                                                        <button key={item.id} onClick={() => buyEquipment(item)} disabled={gold < item.cost || owned}
+                                                            style={{ background: owned ? "#0d2e0d" : "#1a1a1a", border: `1px solid ${owned ? "#60f060" : "#555"}`, color: gold < item.cost || owned ? "#555" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || owned ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost ? 0.5 : 1 }}>
+                                                            <ItemPortrait itemId={item.id} size={26} />
+                                                            <span style={{ lineHeight: 1.3 }}>
+                                                                {item.name}<br />
+                                                                <span style={{ fontSize: 8, color: "#aaa" }}>{item.desc}</span><br />
+                                                                <span style={{ fontSize: 8, color: "#f0c060" }}>{item.cost}g{owned ? " ✓" : ""}</span>
+                                                            </span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
-{shopTab === "equipment" && (
-    <div>
-        {[
-            { slot: "head", label: "🪖 Helmets" },
-            { slot: "weapon", label: "⚔️ Weapons" },
-            { slot: "body", label: "🥋 Body Armor" },
-            { slot: "ring", label: "💍 Rings" },
-        ].map(({ slot, label }) => (
-            <div key={slot} style={{ marginBottom: 8 }}>
-                <div style={{ color: "#555", fontSize: 9, fontWeight: "bold", letterSpacing: 1, marginBottom: 4, borderBottom: "1px solid #ffffff08", paddingBottom: 2 }}>{label}</div>
-                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                    {EQUIPMENT.filter(e => e.slot === slot).map(item => {
-                        const owned = equipped[item.slot]?.id === item.id; return (
-                            <button key={item.id} onClick={() => buyEquipment(item)} disabled={gold < item.cost || owned}
-                                style={{ background: owned ? "#0d2e0d" : "#1a1a1a", border: `1px solid ${owned ? "#60f060" : "#555"}`, color: gold < item.cost || owned ? "#555" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || owned ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost ? 0.5 : 1 }}>
-                                <ItemPortrait itemId={item.id} size={26} />
-             <span style={{ lineHeight: 1.3 }}>
-    {item.name}<br />
-    <span style={{ fontSize: 8, color: "#aaa" }}>{item.desc}</span><br />
-    <span style={{ fontSize: 8, color: "#f0c060" }}>{item.cost}g{owned ? " ✓" : ""}</span>
-</span>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-    </div>
-                        )}
-                    </div>
-                )}
                     {/* Equipment panel */}
                     {showEquip && (
                         <div style={{ background: "#00000055", border: "1px solid #c060f022", borderRadius: 12, padding: 10, marginBottom: 5 }}>
