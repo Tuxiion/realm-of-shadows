@@ -11,13 +11,13 @@ const miss = () => rand(1, 100) <= 5;
 // For local dev (npm run dev) the paths below work as-is:
 
 const SHEETS = {
-    classes: "/assets/images/classes.png",    // 1024×1024 — 3 cols × 2 rows  → cell 341×512
-    zone1: "/assets/images/zone1.png",      // 1024×1024 — 3 cols × 2 rows  → cell 341×512
-    zone2: "/assets/images/zone2.png",      // 1024×1024 — 3 cols × 2 rows  → cell 341×512
-    zone3: "/assets/images/zone3.png",      // 1023×926  — 3 cols × 1 row   → cell 341×926
-    zone4: "/assets/images/zone4.png",      // 1024×1024 — 2 cols × 2 rows  → cell 512×512
-    equipment: "/assets/images/equipment.png",  // 1024×1024 — 6 cols × 5 rows  → cell ~170×204
-    extras: "/assets/images/extras.png",     // 1024×1024 — 2 cols × 2 rows  → cell 512×512
+    classes: "/realm-of-shadows/assets/images/classes.png",    // 1024×1024 — 3 cols × 2 rows  → cell 341×512
+    zone1: "/realm-of-shadows/assets/images/zone1.png",      // 1024×1024 — 3 cols × 2 rows  → cell 341×512
+    zone2: "/realm-of-shadows/assets/images/zone2.png",      // 1024×1024 — 3 cols × 2 rows  → cell 341×512
+    zone3: "/realm-of-shadows/assets/images/zone3.png",      // 1023×926  — 3 cols × 1 row   → cell 341×926
+    zone4: "/realm-of-shadows/assets/images/zone4.png",      // 1024×1024 — 2 cols × 2 rows  → cell 512×512
+    equipment: "/realm-of-shadows/assets/images/equipment.png",  // 1024×1024 — 6 cols × 5 rows  → cell ~170×204
+    extras: "/realm-of-shadows/assets/images/extras.png",     // 1024×1024 — 2 cols × 2 rows  → cell 512×512
     // col0 row0: Blood Vial
     // col1 row0: Veil of Shadows
     // col0 row1: Arcane Sliver
