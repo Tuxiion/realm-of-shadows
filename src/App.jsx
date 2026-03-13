@@ -42,15 +42,16 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
     if (!meta) return <div style={{ width: displaySize, height: displaySize, ...style }} />;
     const cellW = meta.w / meta.cols;
     const cellH = meta.h / meta.rows;
-    // Scale so the cell fills the display square exactly on both axes independently
-    const scaleX = displaySize / cellW;
-    const scaleY = displaySize / cellH;
-    const scaledSheetW = Math.round(meta.w * scaleX);
-    const scaledSheetH = Math.round(meta.h * scaleY);
+    const scale = displaySize / cellW;
+    const scaledSheetW = meta.w * scale;
+    const scaledSheetH = meta.h * scale;
+    const scaledCellH = cellH * scale;
     const bpx = -(col * displaySize);
-    const bpy = -(row * displaySize);
+    const bpy = -(row * scaledCellH);
     return (
-        <div style={{ width: displaySize, height: displaySize, borderRadius: radius, overflow: "hidden", flexShrink: 0, border: `2px solid ${glow}88`, boxShadow: `0 0 10px ${glow}55`, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`, backgroundPosition: `${bpx}px ${bpy}px`, backgroundRepeat: "no-repeat", ...style }} />
+        <div style={{ width: displaySize, height: displaySize, borderRadius: radius, overflow: "hidden", flexShrink: 0, border: `2px solid ${glow}88`, boxShadow: `0 0 10px ${glow}55`, ...style }}>
+            <div style={{ width: scaledSheetW, height: scaledSheetH, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`, backgroundPosition: `${bpx}px ${bpy}px`, backgroundRepeat: "no-repeat" }} />
+        </div>
     );
 }
 
@@ -986,7 +987,7 @@ export default function App() {
         <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 16, position: "relative", overflow: "hidden" }}>
             <style>{CSS}</style>
             <Particles />
-            <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 900 }}>
+            <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ fontSize: 48, animation: "pulse 2s infinite", filter: "drop-shadow(0 0 14px #f0c06099)" }}>⚔️</div>
                 <h1 style={{ fontSize: 26, margin: "6px 0 2px", animation: "glow 2.5s infinite", background: "linear-gradient(90deg,#f0c060,#fff8e0,#f0c060)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>Realm of Shadows</h1>
                 <p style={{ color: "#555", marginBottom: 10, fontSize: 10, letterSpacing: 2 }}>4 ZONES · 12 BATTLES · 6 CLASSES</p>
