@@ -552,7 +552,7 @@ export default function App() {
         if (fse.enemyBlind > 0) fse.enemyBlind--;
         if (hasP(eq, "reflect") && fnp.hp > 0) { const ref = Math.floor(Math.abs(np.hp - fnp.hp) * 0.1); if (ref > 0) { fne.hp -= ref; spawnFloat("enemy", `-${ref}👑`, "#f0f060"); addLog(`👑 Reflects ${ref}!`, "#f0f060"); } }
         fnb.enemy = fnb.enemy.map(b => ({ ...b, turns: b.turns - 1 })).filter(b => b.turns > 0);
-        fnb.player = fnb.player.map(b => { if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) fse.demonPactBonus = 0; return { ...b, turns: nt }; } return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
+        fnb.player = fnb.player.map(b => { if (b.tag === "holyShield" || b.tag === "darkSacrifice") return b; if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) fse.demonPactBonus = 0; return { ...b, turns: nt }; } return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
         setSavedEnemy({ ...fne });
         if (fne.hp <= 0) { resolveVictory(fnp, fne, fnb, inv, g, eq, fse, rl); return; }
         if (fnp.hp <= 0) { fnp.hp = 0; setPlayer(fnp); setFinalLog([...log]); setScreen("gameover"); return; }
