@@ -352,6 +352,8 @@ const initInv = () => [{ ...CONSUMABLES[0], qty: 2 }, { ...CONSUMABLES[2], qty: 
 const initEq = () => ({ head: null, weapon: null, body: null, ring: null, trinket: null });
 
 const CSS = `
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #000; overflow-x: hidden; }
     @keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
     @keyframes particleRise{0%{opacity:0;transform:translateY(0)}20%{opacity:1}80%{opacity:.6}100%{opacity:0;transform:translateY(-120px)}}
     @keyframes glow{0%,100%{text-shadow:0 0 10px #f0c06088,0 0 20px #f0c06044}50%{text-shadow:0 0 20px #f0c060cc,0 0 40px #f0c06088}}
