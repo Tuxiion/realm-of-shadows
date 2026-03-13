@@ -968,28 +968,31 @@ export default function App() {
                                     })}
                                 </div>
                             )}
-                            {shopTab === "sell" && (
-                                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                                    {inventory.filter(it => it.effect !== "revive").map((item, i) => (
-                                        <button key={i} onClick={() => sellItem(item, inventory.indexOf(item))}
-                                            style={{ background: "#2e1a0d", border: "1px solid #f0a06044", color: "#f0a060", borderRadius: 8, padding: "5px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
-                                            <ItemPortrait itemId={item.id} size={22} />{item.name}×{item.qty}<br /><span style={{ fontSize: 8 }}>Sell:{item.sellPrice || Math.floor(item.cost / 2)}g</span>
-                                        </button>
-                                    ))}
-                                    {Object.entries(equipped).filter(([, it]) => it).map(([slot, item]) => (
-                                        <button key={slot} onClick={() => sellEquipped(slot)}
-                                            style={{ background: "#2e1a0d", border: "1px solid #f0a06044", color: "#f0a060", borderRadius: 8, padding: "5px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
-                                            <ItemPortrait itemId={item.id} size={22} />{item.name}(eq)<br /><span style={{ fontSize: 8 }}>Sell:{item.sellPrice || Math.floor(item.cost / 2)}g</span>
-                                        </button>
-                                    ))}
-                                    {relics.map((r, i) => (
-                                        <button key={i} onClick={() => sellRelic(i)}
-                                            style={{ background: "#2e1e00", border: "1px solid #ffcc4444", color: "#ffcc44", borderRadius: 8, padding: "5px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
-                                            <ItemPortrait itemId={r.id} size={22} />{r.name}<br /><span style={{ fontSize: 8 }}>Sell:{r.sellPrice}g</span>
-                                        </button>
-                                    ))}
-                                    {!inventory.filter(it => it.effect !== "revive").length && !Object.values(equipped).some(v => v) && !relics.length && <span style={{ color: "#333", fontSize: 10 }}>Nothing to sell.</span>}
-                                </div>
+{shopTab === "equipment" && (
+    <div>
+        {[
+            { slot: "head", label: "🪖 Helmets" },
+            { slot: "weapon", label: "⚔️ Weapons" },
+            { slot: "body", label: "🥋 Body Armor" },
+            { slot: "ring", label: "💍 Rings" },
+        ].map(({ slot, label }) => (
+            <div key={slot} style={{ marginBottom: 8 }}>
+                <div style={{ color: "#555", fontSize: 9, fontWeight: "bold", letterSpacing: 1, marginBottom: 4, borderBottom: "1px solid #ffffff08", paddingBottom: 2 }}>{label}</div>
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                    {EQUIPMENT.filter(e => e.slot === slot).map(item => {
+                        const owned = equipped[item.slot]?.id === item.id; return (
+                            <button key={item.id} onClick={() => buyEquipment(item)} disabled={gold < item.cost || owned}
+                                style={{ background: owned ? "#0d2e0d" : "#1a1a1a", border: `1px solid ${owned ? "#60f060" : "#555"}`, color: gold < item.cost || owned ? "#555" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || owned ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost ? 0.5 : 1 }}>
+                                <ItemPortrait itemId={item.id} size={26} />
+                                <span style={{ lineHeight: 1.3 }}>{item.name}<br /><span style={{ fontSize: 8, color: "#888" }}>{item.cost}g{owned ? " ✓" : ""}</span></span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        ))}
+    </div>
+)}
                             )}
                         </div>
                     )}
@@ -1013,7 +1016,7 @@ export default function App() {
                                     ) : (
                                         slot === "trinket" ? <span style={{ color: "#333", fontSize: 9 }}>— drops from monsters only —</span> : (
                                             <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-                                                {EQUIPMENT.filter(e => e.slot === slot).slice(0, 3).map(item => (
+                                                {EQUIPMENT.filter(e => e.slot === slot).map(item => (
                                                     <button key={item.id} onClick={() => { if (gold >= item.cost) buyEquipment(item); else setShopMsg("Not enough gold!"); }} disabled={gold < item.cost}
                                                         style={{ background: "#1a1a1a", border: "1px solid #555", color: gold < item.cost ? "#444" : "#aaa", borderRadius: 6, padding: "3px 5px", cursor: gold < item.cost ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 9, display: "flex", alignItems: "center", gap: 3, opacity: gold < item.cost ? 0.5 : 1 }}>
                                                         <ItemPortrait itemId={item.id} size={18} />{item.name}({item.cost}g)
