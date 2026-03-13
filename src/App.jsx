@@ -53,8 +53,8 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
     const bpx = -(col * displaySize);
     const bpy = -(row * scaledCellH);
 
-    // For non-square cells, center the crop vertically
-    const verticalOffset = (scaledCellH - displaySize) / 2;
+    // For non-square cells: show top portion (faces) instead of center
+    const verticalOffset = 0;
 
     return (
         <div style={{
@@ -955,18 +955,7 @@ export default function App() {
                                     })}
                                 </div>
                             )}
-                            {shopTab === "equipment" && (
-                                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                                    {EQUIPMENT.map(item => {
-                                        const owned = equipped[item.slot]?.id === item.id; return (
-                                            <button key={item.id} onClick={() => buyEquipment(item)} disabled={gold < item.cost || owned}
-                                                style={{ background: owned ? "#0d2e0d" : "#1a1a1a", border: `1px solid ${owned ? "#60f060" : "#555"}`, color: gold < item.cost || owned ? "#555" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || owned ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost ? 0.5 : 1 }}>
-                                                <ItemPortrait itemId={item.id} size={26} />
-                                                <span style={{ lineHeight: 1.3 }}>{item.name}<br /><span style={{ fontSize: 8, color: "#888" }}>{item.cost}g{owned ? " ✓" : ""}</span></span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                            
                             )}
 {shopTab === "equipment" && (
     <div>
@@ -984,7 +973,11 @@ export default function App() {
                             <button key={item.id} onClick={() => buyEquipment(item)} disabled={gold < item.cost || owned}
                                 style={{ background: owned ? "#0d2e0d" : "#1a1a1a", border: `1px solid ${owned ? "#60f060" : "#555"}`, color: gold < item.cost || owned ? "#555" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || owned ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost ? 0.5 : 1 }}>
                                 <ItemPortrait itemId={item.id} size={26} />
-                                <span style={{ lineHeight: 1.3 }}>{item.name}<br /><span style={{ fontSize: 8, color: "#888" }}>{item.cost}g{owned ? " ✓" : ""}</span></span>
+             <span style={{ lineHeight: 1.3 }}>
+    {item.name}<br />
+    <span style={{ fontSize: 8, color: "#aaa" }}>{item.desc}</span><br />
+    <span style={{ fontSize: 8, color: "#f0c060" }}>{item.cost}g{owned ? " ✓" : ""}</span>
+</span>
                             </button>
                         );
                     })}
@@ -1014,15 +1007,9 @@ export default function App() {
                                             <Btn onClick={() => unequipSlot(slot)} border="#ff6060" bg="#2e0d0d" color="#ff6060" style={{ fontSize: 9, padding: "2px 6px" }}>Remove</Btn>
                                         </div>
                                     ) : (
-                                        slot === "trinket" ? <span style={{ color: "#333", fontSize: 9 }}>— drops from monsters only —</span> : (
-                                            <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-                                                {EQUIPMENT.filter(e => e.slot === slot).map(item => (
-                                                    <button key={item.id} onClick={() => { if (gold >= item.cost) buyEquipment(item); else setShopMsg("Not enough gold!"); }} disabled={gold < item.cost}
-                                                        style={{ background: "#1a1a1a", border: "1px solid #555", color: gold < item.cost ? "#444" : "#aaa", borderRadius: 6, padding: "3px 5px", cursor: gold < item.cost ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 9, display: "flex", alignItems: "center", gap: 3, opacity: gold < item.cost ? 0.5 : 1 }}>
-                                                        <ItemPortrait itemId={item.id} size={18} />{item.name}({item.cost}g)
-                                                    </button>
-                                                ))}
-                                            </div>)
+                                        <span style={{ color: "#333", fontSize: 9 }}>
+                                            {slot === "trinket" ? "— drops from monsters only —" : "— none equipped —"}
+                                        </span>
                                     )}
                                 </div>
                             ))}
