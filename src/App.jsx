@@ -43,13 +43,18 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
     const cellW = meta.w / meta.cols;
     const cellH = meta.h / meta.rows;
 
-    // Scale uniformly by width — crops height instead of squishing
+    // Scale uniformly by width
     const scale = displaySize / cellW;
 
     const scaledSheetW = meta.w * scale;
     const scaledSheetH = meta.h * scale;
+    const scaledCellH = cellH * scale;
+
     const bpx = -(col * displaySize);
-    const bpy = -(row * (cellH * scale));
+    const bpy = -(row * scaledCellH);
+
+    // For non-square cells, center the crop vertically
+    const verticalOffset = (scaledCellH - displaySize) / 2;
 
     return (
         <div style={{
@@ -64,7 +69,7 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
                 height: scaledSheetH,
                 backgroundImage: `url(${SHEETS[sheetKey]})`,
                 backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`,
-                backgroundPosition: `${bpx}px ${bpy}px`,
+                backgroundPosition: `${bpx}px ${bpy - verticalOffset}px`,
                 backgroundRepeat: "no-repeat",
             }} />
         </div>
