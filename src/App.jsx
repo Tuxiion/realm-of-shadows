@@ -140,7 +140,7 @@ const CLASSES = {
         stats: { hp: 85, maxHp: 85, mp: 100, maxMp: 100, atk: 10, def: 4, spd: 11, crit: 5, manaRegen: 5 },
         abilities: [
             { name: "Arcane Bolt", cost: 10, desc: "Blast of magical energy", damage: [20, 32], type: "atk" },
-            { name: "Arcane Surge", cost: 18, desc: "+20 SPD, +5 MP/turn for 4 turns", damage: [0, 0], type: "arcaneBoost" },
+            { name: "Arcane Surge", cost: 18, desc: "+14 SPD, +5 MP/turn for 3 turns", damage: [0, 0], type: "arcaneBoost" },
             { name: "Mana Burst", cost: 25, desc: "Massive magical explosion", damage: [35, 55], type: "atk" },
         ]
     },
@@ -260,7 +260,7 @@ const EQUIPMENT = [
     { id: "armor1", name: "Chain Armor", icon: "🥋", slot: "body", cost: 45, stats: { def: 6, maxHp: 20 }, desc: "+6 DEF, +20 HP" },
     { id: "armor2", name: "Soulbound Plate", icon: "🛡️", slot: "body", cost: 140, stats: { def: 12, maxHp: 40 }, desc: "+12 DEF, +40 HP, -2 DR", passive: "flatDR" },
     { id: "robe1", name: "Arcane Robe", icon: "👘", slot: "body", cost: 45, stats: { def: 3, maxMp: 30 }, desc: "+3 DEF, +30 MP" },
-    { id: "archArmor", name: "San'alath's Arch Armor", icon: "✨", slot: "body", cost: 180, stats: { def: 16, maxHp: 45 }, desc: "+16 DEF, +45 HP, magic DR", passive: "magicDR" },
+    { id: "archArmor", name: "San'alath's Arch Armor", icon: "✨", slot: "body", cost: 180, stats: { def: 16, maxHp: 45, spd: 6 }, desc: "+16 DEF, +45 HP, +6 SPD, -4 magic DR", passive: "magicDR" },
     { id: "cursedArmor", name: "Karthous's Cursed Armor", icon: "💀", slot: "body", cost: 160, stats: { def: 10, maxHp: 30, atk: 12 }, desc: "+10 DEF, +30 HP, +12 ATK, -3/turn", passive: "cursedPlate" },
     { id: "ring1", name: "Ring of Power", icon: "💍", slot: "ring", cost: 55, stats: { atk: 4, crit: 5 }, desc: "+4 ATK, +5% Crit" },
     { id: "ring2", name: "Ring of Vitality", icon: "💍", slot: "ring", cost: 55, stats: { maxHp: 30, manaRegen: 2 }, desc: "+30 HP, +2 MP/turn" },
@@ -500,7 +500,7 @@ export default function App() {
             else if (ab.type === "deathSuffering") { cse.enemyDot = 4; spawnFloat("enemy", "💀DoT", "#a0ffa0"); addLog("💀 Death's Suffering! 8% x 4!", "#a0ffa0"); }
             else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); spawnFloat("player", `+${h}`, "#60f0a0"); addLog(`💚 ${ab.name} +${h} HP`, "#60f0a0"); }
             else if (ab.type === "drain") { const raw = rand(ab.damage[0], ab.damage[1]); const dmg = calcDmg(Math.floor(raw * abilBonus * spdMult * demonMult), ne.def); if (!miss()) { ne.hp -= dmg; flash("enemy"); const heal = Math.floor(Math.floor(dmg / 2) * healMult); np.hp = clamp(np.hp + heal, 0, np.maxHp); spawnFloat("enemy", `-${dmg}`, "#c060f0"); spawnFloat("player", `+${heal}`, "#c060f0"); addLog(`🩸 Soul Drain ${dmg}!`, "#c060f0"); } else addLog("Soul Drain missed!", "#888"); }
-            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 20, turns: 4, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 4, tag: "arcaneBoost" }); spawnFloat("player", "🔮+20SPD", "#60c0f0"); addLog(`🔮 Arcane Surge! +20 SPD, +5 MP/turn x 4!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "arcaneBoost") return b; if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) cse.demonPactBonus = 0; return { ...b, turns: nt }; } return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 3, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 3, tag: "arcaneBoost" }); spawnFloat("player", "🔮+14SPD", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 3!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "arcaneBoost") return b; if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) cse.demonPactBonus = 0; return { ...b, turns: nt }; } return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
             else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
             else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]); const d = calcDmg(c ? Math.floor(raw * 1.5 * demonMult) : Math.floor(raw * demonMult), ne.def); ne.hp -= d; tot += d; } } flash("enemy"); spawnFloat("enemy", `-${tot}`, "#60f0a0"); addLog(`🏹 Lethal Volley ${hits}x: ${tot}!`, "#60f0a0"); }
@@ -782,7 +782,7 @@ export default function App() {
                         {hasP(equipped, "lifesteal2") && <span style={{ color: "#cc2222" }}>🩸LS8</span>}
                         {hasP(equipped, "reflect") && <span style={{ color: "#f0f060" }}>👑Ref</span>}
                         {hasP(equipped, "flatDR") && <span style={{ color: "#60a0ff" }}>🛡-2DR</span>}
-                        {hasP(equipped, "magicDR") && <span style={{ color: "#88ccff" }}>✨-4mDR</span>}
+                        {hasP(equipped, "magicDR") && <span style={{ color: "#88ccff" }}>✨-4 magic DR</span>}
                         {hasP(equipped, "abilityBonus") && <span style={{ color: "#ffa060" }}>🌟+Abil</span>}
                         {hasP(equipped, "holyAura") && <span style={{ color: "#ffe0a0" }}>✨+2/t</span>}
                         {hasP(equipped, "cursedPlate") && <span style={{ color: "#cc2222" }}>💀-3/t</span>}
