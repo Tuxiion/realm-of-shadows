@@ -1,0 +1,1043 @@
+﻿import { useState, useRef, useEffect } from "react";
+
+const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const clamp = (v, mn, mx) => Math.max(mn, Math.min(mx, v));
+const miss = () => rand(1, 100) <= 5;
+
+// ── PORTRAIT SYSTEM ───────────────────────────────────────────────────────────
+// Sprite sheets live in /public/assets/images/ — served as static files by Vite.
+// GitHub raw URL format (after you push):
+//   https://raw.githubusercontent.com/YOUR_USERNAME/realm-of-shadows/main/public/assets/images/classes.png
+// For local dev (npm run dev) the paths below work as-is:
+
+const SHEETS = {
+    classes: "/assets/images/classes.png",    // 1024×1024 — 3 cols × 2 rows  → cell 341×512
+    zone1: "/assets/images/zone1.png",      // 1024×1024 — 3 cols × 2 rows  → cell 341×512
+    zone2: "/assets/images/zone2.png",      // 1024×1024 — 3 cols × 2 rows  → cell 341×512
+    zone3: "/assets/images/zone3.png",      // 1023×926  — 3 cols × 1 row   → cell 341×926
+    zone4: "/assets/images/zone4.png",      // 1024×1024 — 2 cols × 2 rows  → cell 512×512
+    equipment: "/assets/images/equipment.png",  // 1024×1024 — 6 cols × 5 rows  → cell ~170×204
+    extras: "/assets/images/extras.png",     // 1024×1024 — 2 cols × 2 rows  → cell 512×512
+    // col0 row0: Blood Vial
+    // col1 row0: Veil of Shadows
+    // col0 row1: Arcane Sliver
+    // col1 row1: Heart of the Fallen
+};
+
+// Cell pixel dimensions per sheet
+const SHEET_META = {
+    classes: { cols: 3, rows: 2, w: 1024, h: 1024 },
+    zone1: { cols: 3, rows: 2, w: 1024, h: 1024 },
+    zone2: { cols: 3, rows: 2, w: 1024, h: 1024 },
+    zone3: { cols: 3, rows: 1, w: 1023, h: 926 },
+    zone4: { cols: 2, rows: 2, w: 1024, h: 1024 },
+    equipment: { cols: 6, rows: 5, w: 1024, h: 1024 },
+    extras: { cols: 2, rows: 2, w: 1024, h: 1024 },
+};
+
+// Portrait component — crops a cell from a sprite sheet using background-position
+function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888" }) {
+    const meta = SHEET_META[sheetKey];
+    if (!meta) return <div style={{ width: displaySize, height: displaySize, ...style }} />;
+
+    const cellW = meta.w / meta.cols;
+    const cellH = meta.h / meta.rows;
+
+    // Scale factor: we want the displayed cell to be displaySize px
+    const scaleX = displaySize / cellW;
+    const scaleY = displaySize / cellH;
+
+    const scaledSheetW = meta.w * scaleX;
+    const scaledSheetH = meta.h * scaleY;
+    const bpx = -(col * displaySize);
+    const bpy = -(row * displaySize);
+
+    return (
+        <div style={{
+            width: displaySize, height: displaySize, borderRadius: radius,
+            overflow: "hidden", flexShrink: 0,
+            border: `2px solid ${glow}88`,
+            boxShadow: `0 0 10px ${glow}55`,
+            ...style
+        }}>
+            <div style={{
+                width: displaySize,
+                height: displaySize,
+                backgroundImage: `url(${SHEETS[sheetKey]})`,
+                backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`,
+                backgroundPosition: `${bpx}px ${bpy}px`,
+                backgroundRepeat: "no-repeat",
+            }} />
+        </div>
+    );
+}
+
+// Class portrait helper
+function ClassPortrait({ className, size = 56, style = {} }) {
+    const MAP = {
+        "Holy Knight": { sheetKey: "classes", col: 0, row: 0 },
+        "Demonic Beast": { sheetKey: "classes", col: 1, row: 0 },
+        "Arcane Magician": { sheetKey: "classes", col: 2, row: 0 },
+        "Ranged Assassin": { sheetKey: "classes", col: 0, row: 1 },
+        "Arch Angel": { sheetKey: "classes", col: 1, row: 1 },
+        "Death Knight": { sheetKey: "classes", col: 2, row: 1 },
+    };
+    const p = MAP[className];
+    if (!p) return <div style={{ width: size, height: size, ...style }} />;
+    const color = CLASSES[className]?.color || "#888";
+    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} glow={color} style={style} />;
+}
+
+// Enemy portrait helper
+function EnemyPortrait({ enemyId, size = 56, style = {} }) {
+    const MAP = {
+        // Zone 1 — zone1.png — 3×2
+        "forest_wraith": { sheetKey: "zone1", col: 0, row: 0 },
+        "dark_treant": { sheetKey: "zone1", col: 1, row: 0 },
+        "shadow_wolf": { sheetKey: "zone1", col: 2, row: 0 },
+        "bog_lurker": { sheetKey: "zone1", col: 0, row: 1 },
+        "venomfang_spider": { sheetKey: "zone1", col: 1, row: 1 },
+        "cursed_scarecrow": { sheetKey: "zone1", col: 2, row: 1 },
+        // Zone 2 — zone2.png — 3×2
+        "dungeon_troll": { sheetKey: "zone2", col: 0, row: 0 },
+        "skeleton_mage": { sheetKey: "zone2", col: 1, row: 0 },
+        "cursed_knight": { sheetKey: "zone2", col: 2, row: 0 },
+        "stone_golem": { sheetKey: "zone2", col: 0, row: 1 },
+        "shadow_assassin": { sheetKey: "zone2", col: 1, row: 1 },
+        "plague_priest": { sheetKey: "zone2", col: 2, row: 1 },
+        // Zone 3 — zone3.png — 3×1
+        "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0 },
+        "xaroon_dragon": { sheetKey: "zone3", col: 1, row: 0 },
+        "veltharion": { sheetKey: "zone3", col: 2, row: 0 },
+        // Zone 4 — zone4.png — 2×2
+        "infernal_behemoth": { sheetKey: "zone4", col: 0, row: 0 },
+        "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
+        "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
+        "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
+    };
+    const p = MAP[enemyId];
+    if (!p) return <div style={{ width: size, height: size, ...style }} />;
+    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} radius="12px" glow="#cc4444" style={style} />;
+}
+
+// Equipment portrait helper — equipment.png 6×5
+function ItemPortrait({ itemId, size = 32, style = {} }) {
+    const MAP = {
+        // Row 0 — Helmets (6 cols)
+        "helmet1": { col: 0, row: 0 },
+        "helmet2": { col: 1, row: 0 },
+        "helmet3": { col: 2, row: 0 },
+        "wizHat": { col: 3, row: 0 },
+        "orbHelm": { col: 4, row: 0 },
+        // Row 1 — Weapons
+        "blade1": { col: 0, row: 1 },
+        "blade2": { col: 1, row: 1 },
+        "axe1": { col: 2, row: 1 },
+        "sword1": { col: 3, row: 1 },
+        "staff1": { col: 4, row: 1 },
+        "staff2": { col: 5, row: 1 },
+        // Row 2 — Body armor
+        "armor1": { col: 0, row: 2 },
+        "armor2": { col: 1, row: 2 },
+        "robe1": { col: 2, row: 2 },
+        "archArmor": { col: 3, row: 2 },
+        "cursedArmor": { col: 4, row: 2 },
+        // Row 3 — Rings + Consumables
+        "ring1": { col: 0, row: 3 },
+        "ring2": { col: 1, row: 3 },
+        "ring3": { col: 2, row: 3 },
+        "ring4": { col: 3, row: 3 },
+        "hpot": { col: 4, row: 3 },
+        "revive": { col: 5, row: 3 },
+        // Row 4 — Relics + Potions
+        "boneFrag": { col: 0, row: 4 },
+        "cursedRoot": { col: 1, row: 4 },
+        "shadowEss": { col: 2, row: 4 },
+        "voidShard": { col: 3, row: 4 },
+        "mpot": { col: 4, row: 4 },
+        "gpot": { col: 5, row: 4 },
+        // extras.png — 2x2 grid (Blood Vial, Veil of Shadows, Arcane Sliver, Heart of the Fallen)
+        "bloodVial": { col: 0, row: 0, sheetKey: "extras" },
+        "veilShadows": { col: 1, row: 0, sheetKey: "extras" },
+        "arcaneSliver": { col: 0, row: 1, sheetKey: "extras" },
+        "heartFallen": { col: 1, row: 1, sheetKey: "extras" },
+    };
+    const p = MAP[itemId];
+    if (!p) return null;
+    const sheet = p.sheetKey || "equipment";
+    return <Portrait sheetKey={sheet} col={p.col} row={p.row} displaySize={size} radius="6px" glow="#f0c060" style={style} />;
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const CLASS_NAMES = {
+    "Holy Knight": ["Valdris", "Seraphon", "Aurelion", "Belthar", "Dawnsworn", "Kaelthas", "Solarius", "Brightmere", "Aldric", "Luminar"],
+    "Demonic Beast": ["Malachar", "Vexaroth", "Duskbane", "Zyr'ak", "Noctiver", "Hexulon", "Draeven", "Voidcaller", "Grimthar", "Soulrend"],
+    "Arcane Magician": ["Syndrel", "Evorath", "Lumivex", "Aetherion", "Zylindra", "Mystvar", "Coravex", "Arcanis", "Velindra", "Runewick"],
+    "Ranged Assassin": ["Tharix", "Veylan", "Shadowfen", "Nyxara", "Quilrath", "Slivren", "Duskwhisper", "Caeldris", "Wraithe", "Silentmark"],
+    "Arch Angel": ["Seraphiel", "Auranthos", "Luminex", "Celestara", "Dawnwing", "Solveran", "Radiantus", "Auriel", "Skywarden", "Exaltis"],
+    "Death Knight": ["Morthis", "Gravenbane", "Duskravel", "Soulcleave", "Vorn", "Ashgrasp", "Necrath", "Dreadmaw", "Korvel", "Bonesworn"],
+};
+
+const CLASSES = {
+    "Holy Knight": {
+        icon: "⚔️", color: "#f0c060", desc: "Sacred warrior. High defense, heals allies.", stats: { hp: 120, maxHp: 120, mp: 40, maxMp: 40, atk: 18, def: 10, spd: 7, crit: 2, manaRegen: 5 }, abilities: [
+            { name: "Divine Strike", cost: 10, desc: "Sacred blade attack", damage: [18, 28], type: "atk" },
+            { name: "Holy Shield", cost: 8, desc: "+50% DEF for 3 turns", damage: [0, 0], type: "holyShield" },
+            { name: "Lay on Hands", cost: 15, desc: "Heal 30–45 HP", damage: [-45, -30], type: "heal" },
+        ]
+    },
+    "Demonic Beast": {
+        icon: "👹", color: "#c060f0", desc: "Dark pact-maker. High attack, fragile.", stats: { hp: 90, maxHp: 90, mp: 70, maxMp: 70, atk: 18, def: 5, spd: 9, crit: 5, manaRegen: 5 }, abilities: [
+            { name: "Hellfire", cost: 15, desc: "Flames of the abyss", damage: [22, 35], type: "atk" },
+            { name: "Soul Drain", cost: 12, desc: "Steal HP from enemy", damage: [15, 25], type: "drain" },
+            { name: "Demon Pact", cost: 20, desc: "+30% dmg for 4 turns", damage: [0, 0], type: "demonPact" },
+        ]
+    },
+    "Arcane Magician": {
+        icon: "🔮", color: "#60c0f0", desc: "Master of arcane arts. High magic, low defense.", stats: { hp: 85, maxHp: 85, mp: 100, maxMp: 100, atk: 10, def: 4, spd: 11, crit: 5, manaRegen: 5 }, abilities: [
+            { name: "Arcane Bolt", cost: 10, desc: "Blast of magical energy", damage: [20, 32], type: "atk" },
+            { name: "Time Warp", cost: 18, desc: "+15 SPD for 1 turn", damage: [0, 0], type: "buff", buff: { stat: "spd", amount: 15, turns: 1 } },
+            { name: "Mana Burst", cost: 25, desc: "Massive magical explosion", damage: [35, 55], type: "atk" },
+        ]
+    },
+    "Ranged Assassin": {
+        icon: "🏹", color: "#60f0a0", desc: "Swift shadow hunter. Extreme speed and crit.", stats: { hp: 80, maxHp: 80, mp: 60, maxMp: 60, atk: 16, def: 3, spd: 15, crit: 20, manaRegen: 5 }, abilities: [
+            { name: "Snipe", cost: 14, desc: "Pinpoint lethal shot", damage: [28, 42], type: "atk" },
+            { name: "Smoke Bomb", cost: 10, desc: "Reduce enemy ATK 4 turns", damage: [0, 0], type: "debuff", debuff: { stat: "atk", amount: -8, turns: 4 } },
+            { name: "Lethal Volley", cost: 20, desc: "Hit 2–3 times", damage: [12, 20], type: "multi" },
+        ]
+    },
+    "Arch Angel": {
+        icon: "😇", color: "#e8e0ff", desc: "Radiant celestial warrior. High HP and DEF.", stats: { hp: 130, maxHp: 130, mp: 70, maxMp: 70, atk: 12, def: 12, spd: 8, crit: 8, manaRegen: 6 }, abilities: [
+            { name: "Divine Wrath", cost: 18, desc: "Deals 20% Max HP as damage", damage: [0, 0], type: "divineWrath" },
+            { name: "Take Flight", cost: 30, desc: "Dodge next attack + bonus dmg 2 turns", damage: [0, 0], type: "takeFlight" },
+            { name: "Celestial Heal", cost: 20, desc: "Heal 40–60 HP + 10 MP", damage: [-60, -40], type: "celestialHeal" },
+        ]
+    },
+    "Death Knight": {
+        icon: "☠️", color: "#cc2222", desc: "Dark warrior who trades life for power.", stats: { hp: 115, maxHp: 115, mp: 50, maxMp: 50, atk: 20, def: 6, spd: 8, crit: 8, manaRegen: 4 }, abilities: [
+            { name: "Dark Sacrifice", cost: 0, desc: "Cost 20% HP: +50% ATK & DEF 3 turns", damage: [0, 0], type: "darkSacrifice" },
+            { name: "Soul Rend", cost: 15, desc: "Heavy strike, ignore 30% DEF", damage: [25, 38], type: "soulRend" },
+            { name: "Death's Suffering", cost: 18, desc: "DoT: 8% Max HP × 4 turns", damage: [0, 0], type: "deathSuffering" },
+        ]
+    },
+};
+
+const ZONES = [
+    { name: "Whispering Forest", bg: "linear-gradient(160deg,#0d1f0d 0%,#1a2e1a 60%,#0d1a0d 100%)", accent: "#3de060" },
+    { name: "Shadow Dungeon", bg: "linear-gradient(160deg,#0d0d1f 0%,#1a1a2e 60%,#0d0d1a 100%)", accent: "#6060f0" },
+    { name: "Demon's Castle", bg: "linear-gradient(160deg,#1f0d0d 0%,#2e1a1a 60%,#1a0d0d 100%)", accent: "#f06060" },
+    { name: "Abyssal Inferno", bg: "linear-gradient(160deg,#1a0000 0%,#2e0800 60%,#0d0000 100%)", accent: "#ff4400" },
+];
+
+const MINOR_SUFFIXES = {
+    venomous: { label: "🐍 Venomous", desc: "Poisons on hit (3 dmg/turn, 2 turns)", color: "#80ff80" },
+    frenzied: { label: "😡 Frenzied", desc: "ATK +8 below 50% HP", color: "#ff8844" },
+    thorned: { label: "🌵 Thorned", desc: "Reflects 15% melee damage", color: "#88ff44" },
+    armored: { label: "🛡️ Armored", desc: "Extra +6 DEF", color: "#88aaff" },
+    cursed: { label: "☠️ Cursed", desc: "Your heals are 30% less effective", color: "#cc44ff" },
+    shadowed: { label: "🌑 Shadowed", desc: "20% chance to dodge your attacks", color: "#8888ff" },
+};
+
+const AFFIX_LABELS = {
+    burn: "🔥 Hellbound", defBypass: "🐉 Dragonfire", atkCurse: "💀 Undying Curse",
+    infernalRage: "😤 Infernal Rage", soulStun: "💀 Soul Stun", voidRupture: "👁️ Void Rupture", deathMark: "💀 Death Mark",
+};
+
+const ENEMIES_BY_ZONE = [
+    [
+        { name: "Forest Wraith", id: "forest_wraith", icon: "👻", hp: 50, maxHp: 50, atk: 12, def: 3, xp: 20, gold: 10, style: "aggressive", crit: 5 },
+        { name: "Dark Treant", id: "dark_treant", icon: "🌲", hp: 72, maxHp: 72, atk: 10, def: 9, xp: 30, gold: 15, style: "defensive", crit: 5 },
+        { name: "Shadow Wolf", id: "shadow_wolf", icon: "🐺", hp: 55, maxHp: 55, atk: 16, def: 4, xp: 25, gold: 12, style: "aggressive", crit: 5 },
+        { name: "Bog Lurker", id: "bog_lurker", icon: "🐸", hp: 60, maxHp: 60, atk: 13, def: 5, xp: 22, gold: 11, style: "defensive", crit: 5, minorSuffix: "venomous" },
+        { name: "Venomfang Spider", id: "venomfang_spider", icon: "🕷️", hp: 44, maxHp: 44, atk: 17, def: 2, xp: 24, gold: 13, style: "aggressive", crit: 8, minorSuffix: "venomous" },
+        { name: "Cursed Scarecrow", id: "cursed_scarecrow", icon: "🎃", hp: 65, maxHp: 65, atk: 11, def: 7, xp: 28, gold: 14, style: "magic", crit: 5, minorSuffix: "thorned" },
+    ],
+    [
+        { name: "Dungeon Troll", id: "dungeon_troll", icon: "👾", hp: 90, maxHp: 90, atk: 18, def: 11, xp: 45, gold: 25, style: "defensive", crit: 5 },
+        { name: "Skeleton Mage", id: "skeleton_mage", icon: "💀", hp: 68, maxHp: 68, atk: 23, def: 4, xp: 50, gold: 30, style: "magic", crit: 5 },
+        { name: "Cursed Knight", id: "cursed_knight", icon: "🗡️", hp: 82, maxHp: 82, atk: 21, def: 9, xp: 55, gold: 28, style: "aggressive", crit: 5 },
+        { name: "Stone Golem", id: "stone_golem", icon: "🪨", hp: 110, maxHp: 110, atk: 16, def: 16, xp: 48, gold: 27, style: "defensive", crit: 5, minorSuffix: "armored" },
+        { name: "Shadow Assassin", id: "shadow_assassin", icon: "🌑", hp: 65, maxHp: 65, atk: 26, def: 3, xp: 52, gold: 32, style: "aggressive", crit: 12, minorSuffix: "shadowed" },
+        { name: "Plague Priest", id: "plague_priest", icon: "☣️", hp: 75, maxHp: 75, atk: 20, def: 6, xp: 55, gold: 30, style: "plague", crit: 5, minorSuffix: "cursed" },
+    ],
+    [
+        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", hp: 144, maxHp: 144, atk: 25, def: 17, xp: 100, gold: 60, style: "magic", crit: 5, affix: "burn", elite: true },
+        { name: "Xaroon the Dragon", id: "xaroon_dragon", hp: 180, maxHp: 180, atk: 29, def: 20, xp: 120, gold: 80, style: "aggressive", crit: 5, affix: "defBypass", elite: true },
+        { name: "Veltharion the Undying", id: "veltharion", hp: 120, maxHp: 120, atk: 32, def: 13, xp: 110, gold: 70, style: "magic", crit: 5, affix: "atkCurse", elite: true },
+    ],
+    [
+        { name: "Infernal Behemoth", id: "infernal_behemoth", hp: 180, maxHp: 180, atk: 30, def: 14, xp: 150, gold: 90, style: "aggressive", crit: 5, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
+        { name: "The Abyssal Overlord", id: "abyssal_overlord", hp: 220, maxHp: 220, atk: 38, def: 18, xp: 200, gold: 130, style: "magic", crit: 5, affix: "voidRupture", unique: true, uniqueId: "ao" },
+        { name: "Doomreaper, the Eternal", id: "doomreaper", hp: 320, maxHp: 320, atk: 44, def: 16, xp: 300, gold: 200, style: "magic", crit: 10, affix: "soulStun", affix2: "deathMark", unique: true, uniqueId: "dr", deathMarked: false },
+    ],
+];
+
+const CONSUMABLES = [
+    { id: "hpot", name: "Health Potion", icon: "🧪", cost: 15, effect: "heal", amount: 40, desc: "Restore 40 HP" },
+    { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 45, effect: "heal", amount: 100, desc: "Restore 100 HP" },
+    { id: "mpot", name: "Mana Elixir", icon: "💧", cost: 15, effect: "mp", amount: 30, desc: "Restore 30 MP" },
+    { id: "revive", name: "Revive Gem", icon: "💎", cost: 60, effect: "revive", amount: 100, desc: "Revive: +100 HP, +30 MP" },
+];
+
+const MONSTER_RELICS = [
+    { id: "boneFrag", name: "Bone Fragment", icon: "🦴", cost: 0, sellPrice: 12, stats: { atk: 3 }, desc: "+3 ATK", slot: "relic", type: "passive" },
+    { id: "cursedRoot", name: "Cursed Root", icon: "🌿", cost: 0, sellPrice: 10, stats: { maxHp: 10 }, desc: "+10 Max HP", slot: "relic", type: "passive" },
+    { id: "shadowEss", name: "Shadow Essence", icon: "💠", cost: 0, sellPrice: 15, stats: { crit: 4 }, desc: "+4% Crit", slot: "relic", type: "passive" },
+    { id: "bloodVial", name: "Blood Vial", icon: "🩸", cost: 0, sellPrice: 18, stats: {}, desc: "Use: heal 25 HP", slot: "relic", type: "consumable", effect: "heal", amount: 25 },
+    { id: "thornSpike", name: "Thorn Spike", icon: "🌵", cost: 0, sellPrice: 14, stats: { def: 2, atk: 2 }, desc: "+2 ATK, +2 DEF", slot: "relic", type: "passive" },
+    { id: "voidShard", name: "Void Shard", icon: "🔷", cost: 0, sellPrice: 20, stats: { atk: 4, crit: 3 }, desc: "+4 ATK, +3% Crit", slot: "relic", type: "passive" },
+];
+
+const TRINKETS = [
+    { id: "veilShadows", name: "Veil of Shadows", icon: "🌑", cost: 0, sellPrice: 35, stats: { crit: 5 }, desc: "Passive: +5% Crit. Active: Enemy 25% miss 2 turns", activeName: "Blind", activeDesc: "Enemy misses 25% for 2 turns", activeType: "blind" },
+    { id: "arcaneSliver", name: "Arcane Sliver", icon: "🔮", cost: 0, sellPrice: 30, stats: { manaRegen: 3 }, desc: "Passive: +3 MP/turn. Active: +25 MP instantly", activeName: "Surge", activeDesc: "Instantly restore 25 MP", activeType: "mpSurge" },
+    { id: "heartFallen", name: "Heart of the Fallen", icon: "❤️", cost: 0, sellPrice: 32, stats: { maxHp: 15 }, desc: "Passive: +15 Max HP. Active: Heal 35 HP", activeName: "Mend", activeDesc: "Heal 35 HP", activeType: "mend" },
+];
+
+const EQUIPMENT = [
+    { id: "helmet1", name: "Iron Helmet", icon: "🪖", slot: "head", cost: 40, stats: { def: 4, maxHp: 15 }, desc: "+4 DEF, +15 HP" },
+    { id: "helmet2", name: "Mithril Helm", icon: "🪖", slot: "head", cost: 90, stats: { def: 8, maxHp: 25 }, desc: "+8 DEF, +25 HP" },
+    { id: "helmet3", name: "Crown of the Fallen", icon: "👑", slot: "head", cost: 140, stats: { def: 10, maxHp: 30 }, desc: "+10 DEF, +30 HP, reflect", passive: "reflect" },
+    { id: "wizHat", name: "Wizard's Peaked Hat", icon: "🧙", slot: "head", cost: 80, stats: { maxMp: 35, manaRegen: 4 }, desc: "+35 MP, +4 MP/turn" },
+    { id: "orbHelm", name: "Orbim's Blessed Helm", icon: "🛡️", slot: "head", cost: 160, stats: { def: 14, maxHp: 40 }, desc: "+14 DEF, +40 HP, +2 HP/turn", passive: "holyAura" },
+    { id: "blade1", name: "Shadow Blade", icon: "🗡️", slot: "weapon", cost: 50, stats: { atk: 6 }, desc: "+6 ATK" },
+    { id: "blade2", name: "Blade of Saxav", icon: "🩸", slot: "weapon", cost: 130, stats: { atk: 10 }, desc: "+10 ATK, steals 5 HP", passive: "lifesteal" },
+    { id: "axe1", name: "Graveborn Cleaver", icon: "🪓", slot: "weapon", cost: 140, stats: { atk: 14 }, desc: "+14 ATK, steals 8 HP", passive: "lifesteal2" },
+    { id: "sword1", name: "Valdris's Judgement", icon: "⚔️", slot: "weapon", cost: 120, stats: { atk: 8, crit: 6 }, desc: "+8 ATK, +6% Crit, +ability dmg", passive: "abilityBonus" },
+    { id: "staff1", name: "Arcane Staff", icon: "🔮", slot: "weapon", cost: 50, stats: { atk: 5, maxMp: 20 }, desc: "+5 ATK, +20 MP" },
+    { id: "staff2", name: "Orb of Eternal Flame", icon: "🌟", slot: "weapon", cost: 130, stats: { atk: 8 }, desc: "+8 ATK, +ability dmg", passive: "abilityBonus" },
+    { id: "armor1", name: "Chain Armor", icon: "🥋", slot: "body", cost: 45, stats: { def: 6, maxHp: 20 }, desc: "+6 DEF, +20 HP" },
+    { id: "armor2", name: "Soulbound Plate", icon: "🛡️", slot: "body", cost: 140, stats: { def: 12, maxHp: 40 }, desc: "+12 DEF, +40 HP, -2 DR", passive: "flatDR" },
+    { id: "robe1", name: "Arcane Robe", icon: "👘", slot: "body", cost: 45, stats: { def: 3, maxMp: 30 }, desc: "+3 DEF, +30 MP" },
+    { id: "archArmor", name: "San'alath's Arch Armor", icon: "✨", slot: "body", cost: 180, stats: { def: 16, maxHp: 45 }, desc: "+16 DEF, +45 HP, magic DR", passive: "magicDR" },
+    { id: "cursedArmor", name: "Karthous's Cursed Armor", icon: "💀", slot: "body", cost: 160, stats: { def: 10, maxHp: 30, atk: 12 }, desc: "+10 DEF, +30 HP, +12 ATK, -3/turn", passive: "cursedPlate" },
+    { id: "ring1", name: "Ring of Power", icon: "💍", slot: "ring", cost: 55, stats: { atk: 4, crit: 5 }, desc: "+4 ATK, +5% Crit" },
+    { id: "ring2", name: "Ring of Vitality", icon: "💍", slot: "ring", cost: 55, stats: { maxHp: 30, manaRegen: 2 }, desc: "+30 HP, +2 MP/turn" },
+    { id: "ring3", name: "Ring of Arcana", icon: "💍", slot: "ring", cost: 55, stats: { maxMp: 25, manaRegen: 3 }, desc: "+25 MP, +3 MP/turn" },
+    { id: "ring4", name: "Ring of the Abyss", icon: "🖤", slot: "ring", cost: 120, stats: { atk: 6, crit: 6, manaRegen: 3 }, desc: "+6 ATK, +6% Crit, +3 MP/turn" },
+];
+
+const MONSTER_LOOT = [{ type: "relic", id: "boneFrag", tier: 0, chance: 20 }, { type: "relic", id: "cursedRoot", tier: 0, chance: 20 }, { type: "relic", id: "shadowEss", tier: 1, chance: 15 }, { type: "relic", id: "thornSpike", tier: 1, chance: 15 }, { type: "relic", id: "bloodVial", tier: 0, chance: 10 }, { type: "relic", id: "voidShard", tier: 2, chance: 10 }, { type: "trinket", id: "veilShadows", tier: 1, chance: 8 }, { type: "trinket", id: "arcaneSliver", tier: 1, chance: 8 }, { type: "trinket", id: "heartFallen", tier: 1, chance: 8 }, { type: "equipment", id: "orbHelm", tier: 2, chance: 6 }, { type: "equipment", id: "axe1", tier: 2, chance: 6 }, { type: "equipment", id: "sword1", tier: 2, chance: 6 }, { type: "equipment", id: "archArmor", tier: 3, chance: 5 }, { type: "equipment", id: "cursedArmor", tier: 3, chance: 5 }];
+const LOOT_TABLES = [
+    [{ type: "consumable", id: "hpot", chance: 40 }, { type: "consumable", id: "mpot", chance: 30 }, { type: "equipment", id: "helmet1", chance: 10 }, { type: "equipment", id: "blade1", chance: 8 }, { type: "gold", amount: [8, 18], chance: 5 }, { type: "monsterLoot", tier: 0, chance: 7 }],
+    [{ type: "consumable", id: "hpot", chance: 18 }, { type: "consumable", id: "gpot", chance: 8 }, { type: "consumable", id: "mpot", chance: 14 }, { type: "equipment", id: "helmet2", chance: 10 }, { type: "equipment", id: "armor1", chance: 10 }, { type: "equipment", id: "ring1", chance: 10 }, { type: "equipment", id: "staff1", chance: 8 }, { type: "gold", amount: [20, 40], chance: 8 }, { type: "monsterLoot", tier: 1, chance: 14 }],
+    [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 8 }, { type: "equipment", id: "helmet3", chance: 10 }, { type: "equipment", id: "blade2", chance: 10 }, { type: "equipment", id: "staff2", chance: 10 }, { type: "equipment", id: "armor2", chance: 10 }, { type: "equipment", id: "ring4", chance: 10 }, { type: "gold", amount: [40, 70], chance: 10 }, { type: "monsterLoot", tier: 2, chance: 20 }],
+    [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 15 }, { type: "equipment", id: "blade2", chance: 12 }, { type: "equipment", id: "staff2", chance: 12 }, { type: "equipment", id: "armor2", chance: 10 }, { type: "equipment", id: "ring4", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 31 }],
+];
+const UPGRADES = [
+    { id: "hp", label: "❤️ Health", desc: "+15 Max HP", apply: p => ({ ...p, maxHp: p.maxHp + 15, hp: Math.min(p.hp + 15, p.maxHp + 15) }) },
+    { id: "mp", label: "💧 Mana", desc: "+20 Max MP", apply: p => ({ ...p, maxMp: p.maxMp + 20, mp: Math.min(p.mp + 20, p.maxMp + 20) }) },
+    { id: "reg", label: "✨ Mana Regen", desc: "+2 per turn", apply: p => ({ ...p, manaRegen: p.manaRegen + 2 }) },
+    { id: "atk", label: "⚔️ Attack", desc: "+4 Attack", apply: p => ({ ...p, atk: p.atk + 4 }) },
+    { id: "crit", label: "🎯 Critical Strike", desc: "+8% Crit Chance", apply: p => ({ ...p, crit: p.crit + 8 }) },
+];
+
+const getBonus = eq => { const b = { atk: 0, def: 0, maxHp: 0, maxMp: 0, crit: 0, manaRegen: 0 }; Object.values(eq).forEach(it => { if (it && it.stats) Object.entries(it.stats).forEach(([k, v]) => { b[k] = (b[k] || 0) + v; }); }); return b; };
+const hasP = (eq, p) => Object.values(eq).some(it => it?.passive === p);
+const effStats = (p, eq) => { const b = getBonus(eq); return { ...p, atk: p.atk + b.atk, def: p.def + b.def, crit: (p.crit || 2) + b.crit, manaRegen: (p.manaRegen || 5) + b.manaRegen }; };
+const doEquip = (item, eq, p) => { let np = { ...p }; const old = eq[item.slot]; if (old) { if (old.stats.maxHp) { np.maxHp -= old.stats.maxHp; np.hp = clamp(np.hp - old.stats.maxHp, 1, np.maxHp); } if (old.stats.maxMp) { np.maxMp -= old.stats.maxMp; np.mp = clamp(np.mp - old.stats.maxMp, 0, np.maxMp); } } if (item.stats.maxHp) { np.maxHp += item.stats.maxHp; np.hp = clamp(np.hp + item.stats.maxHp, 1, np.maxHp); } if (item.stats.maxMp) { np.maxMp += item.stats.maxMp; np.mp = clamp(np.mp + item.stats.maxMp, 0, np.maxMp); } return { np, newEq: { ...eq, [item.slot]: item } }; };
+const doUnequip = (slot, eq, p) => { const old = eq[slot]; if (!old) return { np: p, newEq: eq }; let np = { ...p }; if (old.stats.maxHp) { np.maxHp -= old.stats.maxHp; np.hp = clamp(np.hp - old.stats.maxHp, 1, np.maxHp); } if (old.stats.maxMp) { np.maxMp -= old.stats.maxMp; np.mp = clamp(np.mp - old.stats.maxMp, 0, np.maxMp); } return { np, newEq: { ...eq, [slot]: null } }; };
+
+// ── UI COMPONENTS ─────────────────────────────────────────────────────────────
+function AnimatedBar({ val, max, color, label, floats = [] }) {
+    const [disp, setDisp] = useState(val); const [ghost, setGhost] = useState(val); const gt = useRef(null);
+    useEffect(() => { if (val < disp) { setGhost(disp); clearTimeout(gt.current); gt.current = setTimeout(() => setGhost(val), 600); } setDisp(val); }, [val]);
+    const pct = w => `${clamp((w / max) * 100, 0, 100)}%`;
+    return (
+        <div style={{ marginBottom: 5, position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#aaa", marginBottom: 2 }}>
+                <span style={{ fontWeight: "bold" }}>{label}</span><span>{Math.max(0, val)}/{max}</span>
+            </div>
+            <div style={{ background: "#111", borderRadius: 6, height: 10, overflow: "visible", position: "relative", boxShadow: "inset 0 1px 3px #00000080" }}>
+                <div style={{ position: "absolute", left: 0, top: 0, width: pct(Math.max(ghost, disp)), background: "rgba(255,255,255,0.18)", height: "100%", borderRadius: 6, transition: "width 0.05s" }} />
+                <div style={{ position: "absolute", left: 0, top: 0, width: pct(val), background: color, height: "100%", borderRadius: 6, transition: "width 0.55s ease-out", boxShadow: `0 0 6px ${color}99` }} />
+            </div>
+            {floats.map(f => <div key={f.id} style={{ position: "absolute", right: 4, top: -6, fontSize: 13, fontWeight: "bold", color: f.color, pointerEvents: "none", animation: "floatUp 1.2s ease-out forwards", zIndex: 50 }}>{f.text}</div>)}
+        </div>
+    );
+}
+
+function StatusPill({ label, color }) {
+    return <span style={{ background: color + "22", border: `1px solid ${color}66`, color, borderRadius: 99, padding: "1px 7px", fontSize: 9, fontWeight: "bold", whiteSpace: "nowrap" }}>{label}</span>;
+}
+
+function Particles() {
+    const pts = Array.from({ length: 18 }, (_, i) => ({ id: i, x: rand(5, 95), delay: rand(0, 4000), dur: rand(3000, 7000), size: rand(2, 5), opacity: rand(20, 60) / 100 }));
+    return (
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+            {pts.map(p => <div key={p.id} style={{ position: "absolute", left: `${p.x}%`, bottom: "-10px", width: p.size, height: p.size, borderRadius: "50%", background: `rgba(240,192,96,${p.opacity})`, animation: `particleRise ${p.dur}ms ${p.delay}ms infinite ease-in`, boxShadow: `0 0 ${p.size * 2}px rgba(240,192,96,0.8)` }} />)}
+        </div>
+    );
+}
+
+const initInv = () => [{ ...CONSUMABLES[0], qty: 2 }, { ...CONSUMABLES[2], qty: 1 }];
+const initEq = () => ({ head: null, weapon: null, body: null, ring: null, trinket: null });
+
+// ── APP ───────────────────────────────────────────────────────────────────────
+export default function App() {
+    const [screen, setScreen] = useState("title");
+    const [pendingCls, setPendingCls] = useState(null);
+    const [charName, setCharName] = useState("");
+    const [playerClass, setPlayerClass] = useState(null);
+    const [playerTitle, setPlayerTitle] = useState("");
+    const [player, setPlayer] = useState(null);
+    const [enemy, setEnemy] = useState(null);
+    const [savedEnemy, setSavedEnemy] = useState(null);
+    const [zone, setZone] = useState(0);
+    const [log, setLog] = useState([]);
+    const [finalLog, setFinalLog] = useState([]);
+    const [turn, setTurn] = useState("player");
+    const [combat, setCombat] = useState(false);
+    const [inventory, setInventory] = useState(initInv());
+    const [equipped, setEquipped] = useState(initEq());
+    const [relics, setRelics] = useState([]);
+    const [gold, setGold] = useState(50);
+    const [xp, setXp] = useState(0);
+    const [level, setLevel] = useState(1);
+    const [buffs, setBuffs] = useState({ player: [], enemy: [] });
+    const [se, setSe] = useState({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false });
+    const [encounters, setEncounters] = useState(0);
+    const [defeatedUniques, setDefeatedUniques] = useState([]);
+    const [showShop, setShowShop] = useState(false);
+    const [shopTab, setShopTab] = useState("consumables");
+    const [showEquip, setShowEquip] = useState(false);
+    const [lvlUp, setLvlUp] = useState(false);
+    const [lootNotif, setLootNotif] = useState(null);
+    const [shopMsg, setShopMsg] = useState("");
+    const [playerFloats, setPlayerFloats] = useState([]);
+    const [enemyFloats, setEnemyFloats] = useState([]);
+    const [trinketUsed, setTrinketUsed] = useState(false);
+    const [hitFlash, setHitFlash] = useState(null);
+    const floatId = useRef(0);
+    const logRef = useRef(null);
+
+    const addLog = (msg, color = "#ccc") => setLog(l => [...l, { msg, color }]);
+    useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [log]);
+    const spawnFloat = (t, text, color) => { const id = floatId.current++; const s = t === "player" ? setPlayerFloats : setEnemyFloats; s(f => [...f, { id, text, color }]); setTimeout(() => s(f => f.filter(x => x.id !== id)), 1300); };
+    const flash = t => { setHitFlash(t); setTimeout(() => setHitFlash(null), 300); };
+    const notify = msg => { setLootNotif(msg); setTimeout(() => setLootNotif(null), 2500); };
+
+    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setShopMsg(""); setShowShop(false); setShowEquip(false); setPlayerFloats([]); setEnemyFloats([]); setTrinketUsed(false); setHitFlash(null); };
+
+    const selectClass = cls => { setPendingCls(cls); setCharName(""); setScreen("naming"); };
+    const randomName = () => { const n = CLASS_NAMES[pendingCls]; setCharName(n[rand(0, n.length - 1)]); };
+    const confirmName = () => { const name = charName.trim() || CLASS_NAMES[pendingCls][rand(0, 9)]; const title = `${name}, the ${pendingCls}`; setPlayerTitle(title); setPlayerClass(pendingCls); setPlayer({ ...CLASSES[pendingCls].stats }); setLog([{ msg: `${title} enters the Whispering Forest...`, color: "#f0c060" }]); setScreen("explore"); };
+
+    const unequipSlot = slot => { const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); addLog(`Unequipped ${equipped[slot]?.name}.`, "#aaa"); };
+    const getRelicBonus = () => { const b = { atk: 0, def: 0, maxHp: 0, maxMp: 0, crit: 0, manaRegen: 0 }; relics.forEach(r => { if (r.stats) Object.entries(r.stats).forEach(([k, v]) => { b[k] = (b[k] || 0) + v; }); }); return b; };
+
+    const applyLoot = (loot, np, eq, inv, g, rl) => {
+        if (!loot) return { np, inv, g, rl };
+        if (loot.type === "gold") { const amt = rand(loot.amount[0], loot.amount[1]); addLog(`✨ +${amt} Gold!`, "#f0c060"); notify(`💰 +${amt} Gold`); return { np, inv, g: g + amt, rl }; }
+        if (loot.type === "monsterLoot") {
+            const pool = MONSTER_LOOT.filter(m => m.tier <= zone); if (!pool.length) return { np, inv, g, rl }; if (rand(1, 100) > 40) return { np, inv, g, rl };
+            const ml = pool[rand(0, pool.length - 1)];
+            const rItem = [...MONSTER_RELICS, ...TRINKETS].find(x => x.id === ml.id);
+            if (!rItem) return { np, inv, g, rl };
+            if (ml.type === "trinket" && !eq.trinket) { const { np: nnp, newEq } = doEquip({ ...rItem, slot: "trinket" }, eq, np); setEquipped(newEq); addLog(`✨ Trinket: ${rItem.icon} ${rItem.name} (Equipped!)`, "#ff88ff"); notify(`${rItem.icon} ${rItem.name}`); return { np: nnp, inv, g, rl }; }
+            if (ml.type === "relic" && rItem.type === "consumable") { addLog(`✨ Loot: ${rItem.icon} ${rItem.name}!`, "#60f0a0"); notify(`${rItem.icon} ${rItem.name}`); const ex = inv.find(i => i.id === rItem.id); return { np, inv: ex ? inv.map(i => i.id === rItem.id ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...rItem, qty: 1 }], g, rl }; }
+            if (ml.type === "relic" && rItem.type === "passive") { addLog(`✨ Relic: ${rItem.icon} ${rItem.name}!`, "#ffcc44"); notify(`${rItem.icon} ${rItem.name}`); return { np, inv, g, rl: [...rl, rItem] }; }
+            if (ml.type === "trinket") { addLog(`✨ Trinket: ${rItem.icon} ${rItem.name}!`, "#ff88ff"); notify(`${rItem.icon} ${rItem.name}`); const ex = inv.find(i => i.id === rItem.id); return { np, inv: ex ? inv.map(i => i.id === rItem.id ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...rItem, qty: 1 }], g, rl }; }
+            return { np, inv, g, rl };
+        }
+        if (loot.type === "consumable") { const item = CONSUMABLES.find(c => c.id === loot.id); if (!item) return { np, inv, g, rl }; if (item.id === "revive" && inv.some(i => i.id === "revive" && i.qty > 0)) return { np, inv, g, rl }; addLog(`✨ Loot: ${item.icon} ${item.name}!`, "#60f0a0"); notify(`${item.icon} ${item.name}`); const ex = inv.find(i => i.id === item.id && !i.isGear); return { np, inv: ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }], g, rl }; }
+        if (loot.type === "equipment") { const item = EQUIPMENT.find(e => e.id === loot.id); if (!item) return { np, inv, g, rl }; if (!eq[item.slot]) { const { np: nnp, newEq } = doEquip(item, eq, np); setEquipped(newEq); addLog(`✨ Loot: ${item.icon} ${item.name} (Auto-equipped!)`, "#c060f0"); notify(`${item.icon} ${item.name}`); return { np: nnp, inv, g, rl }; } addLog(`✨ Loot: ${item.icon} ${item.name}!`, "#c060f0"); notify(`${item.icon} ${item.name}`); return { np, inv, g, rl }; }
+        return { np, inv, g, rl };
+    };
+
+    const getNextEnemy = (z, du) => {
+        if (z === 3) { const next = ENEMIES_BY_ZONE[3].find(e => !du.includes(e.uniqueId)); return next ? { ...next, raged: false, deathMarked: false } : null; }
+        const pool = ENEMIES_BY_ZONE[z]; return { ...pool[rand(0, pool.length - 1)] };
+    };
+
+    const startCombat = () => {
+        if (lvlUp) return;
+        const e = getNextEnemy(zone, defeatedUniques); if (!e) return;
+        let ef = { ...e }; if (ef.minorSuffix === "armored") ef = { ...ef, def: ef.def + 6 };
+        setEnemy(ef); setSavedEnemy({ ...ef }); setCombat(true); setBuffs({ player: [], enemy: [] });
+        setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate") });
+        setTurn("player"); setPlayerFloats([]); setEnemyFloats([]); setTrinketUsed(false);
+        const tags = [e.unique ? "💠 UNIQUE" : "", e.elite ? "⚡ ELITE" : "", e.affix ? `[${AFFIX_LABELS[e.affix]}]` : "", e.affix2 ? `[${AFFIX_LABELS[e.affix2]}]` : "", e.minorSuffix ? `[${MINOR_SUFFIXES[e.minorSuffix].label}]` : ""].filter(Boolean).join(" ");
+        addLog(`⚔️ ${ef.name} appears! ${tags}`, e.unique ? "#ff8844" : e.elite ? "#ffaa00" : "#ff6060");
+    };
+
+    const calcDmg = (raw, def) => Math.max(1, raw - Math.floor(def / 2));
+    const isCrit = pct => rand(1, 100) <= pct;
+
+    const resolveVictory = (np, ne, nb, inv, g, eq, cse, rl) => {
+        addLog(`🏆 ${ne.name} defeated! +${ne.xp} XP, +${ne.gold} Gold`, "#f0c060");
+        const hpRec = Math.floor(np.maxHp * (rand(15, 20) / 100)); const mpRec = Math.floor(np.maxMp * (rand(15, 20) / 100));
+        np.hp = clamp(np.hp + hpRec, 0, np.maxHp); np.mp = clamp(np.mp + mpRec, 0, np.maxMp);
+        addLog(`💫 Recovered ${hpRec} HP, ${mpRec} MP.`, "#a0f0c0");
+        const earnedXp = xp + ne.xp, earnedGold = g + ne.gold;
+        let newDU = [...defeatedUniques]; if (ne.unique) newDU = [...newDU, ne.uniqueId]; setDefeatedUniques(newDU);
+        const loot = rand(1, 100) <= 65 ? LOOT_TABLES[zone][rand(0, LOOT_TABLES[zone].length - 1)] : null;
+        const { np: fnp, inv: finv, g: fg, rl: frl } = applyLoot(loot, np, eq, inv, earnedGold, rl);
+        const newEnc = encounters + 1; setEncounters(newEnc); setXp(earnedXp); setGold(fg); setInventory(finv); setRelics(frl);
+        setCombat(false); setEnemy(null); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false });
+        setFinalLog(l => l.length ? l : [...log]);
+        if (earnedXp >= level * 60) { setPlayer(fnp); setBuffs(nb); setLvlUp(true); return; }
+        if (newEnc >= 12) { setPlayer(fnp); setScreen("victory"); return; }
+        if (newEnc % 3 === 0) { const nz = Math.min(3, zone + 1); setZone(nz); addLog(`🗺️ Descending into ${ZONES[nz].name}...`, nz === 3 ? "#ff4400" : "#60c0f0"); }
+        setPlayer(fnp); setBuffs(nb);
+    };
+
+    const useTrinket = () => {
+        if (trinketUsed || !equipped.trinket) return;
+        const t = equipped.trinket; let np = { ...player };
+        if (t.activeType === "blind") { setSe(s => ({ ...s, enemyBlind: 2 })); addLog(`${t.icon} ${t.activeName}! Enemy 25% miss × 2!`, "#ff88ff"); }
+        else if (t.activeType === "mpSurge") { np.mp = clamp(np.mp + 25, 0, np.maxMp); spawnFloat("player", "+25💧", "#60c0ff"); addLog(`${t.icon} ${t.activeName}! +25 MP!`, "#60c0ff"); }
+        else if (t.activeType === "mend") { np.hp = clamp(np.hp + 35, 0, np.maxHp); spawnFloat("player", "+35❤️", "#ff6090"); addLog(`${t.icon} ${t.activeName}! +35 HP!`, "#ff6090"); }
+        setPlayer(np); setTrinketUsed(true);
+    };
+
+    const playerAction = (type, payload) => {
+        if (turn !== "player" || !combat) return;
+        if (se.stunned) { addLog("💀 Stunned — turn lost!", "#ff4444"); setSe(s => ({ ...s, stunned: false })); setTurn("enemy"); setTimeout(() => enemyTurn({ ...player }, { ...enemy }, { player: [...buffs.player], enemy: [...buffs.enemy] }, [...inventory], gold, { ...equipped }, { ...se, stunned: false }, [...relics]), 900); return; }
+        let np = { ...player }, ne = { ...enemy }, nb = { player: [...buffs.player], enemy: [...buffs.enemy] };
+        let inv = [...inventory], g = gold, eq = { ...equipped }, cse = { ...se }, rl = [...relics];
+        const ep = effStats(np, eq); const rb = getRelicBonus();
+        const totalAtk = ep.atk + rb.atk + nb.player.filter(b => b.stat === "atk" && b.amount > 0).reduce((s, b) => s + b.amount, 0);
+        const totalDef = ep.def + rb.def + nb.player.filter(b => b.stat === "def" && b.amount > 0).reduce((s, b) => s + b.amount, 0);
+        const totalCrit = (ep.crit || 2) + rb.crit;
+        if (hasP(eq, "holyAura")) { np.hp = clamp(np.hp + 2, 0, np.maxHp); spawnFloat("player", "+2✨", "#f0f060"); }
+        if (cse.cursedPlateOn) { np.hp = clamp(np.hp - 3, 0, np.maxHp); spawnFloat("player", "-3💀", "#cc2222"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
+        if (cse.burn > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.burn--; spawnFloat("player", "-3🔥", "#ff6030"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
+        if (cse.playerPoison > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.playerPoison--; spawnFloat("player", "-3🐍", "#80ff80"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
+        if (cse.plagueDot > 0) { const pd = Math.max(1, Math.floor(np.maxHp * 0.15)); np.hp = clamp(np.hp - pd, 0, np.maxHp); cse.plagueDot--; spawnFloat("player", `-${pd}☣️`, "#cc44ff"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
+        if (cse.enemyDot > 0 && ne.hp > 0) { const dd = Math.max(1, Math.floor(ne.maxHp * 0.08)); ne.hp -= dd; cse.enemyDot--; spawnFloat("enemy", `-${dd}💀`, "#a0ffa0"); if (ne.hp <= 0) { resolveVictory(np, ne, nb, inv, g, eq, cse, rl); return; } }
+        const regen = (ep.manaRegen || 5) + rb.manaRegen; np.mp = clamp(np.mp + regen, 0, np.maxMp);
+        const abilBonus = hasP(eq, "abilityBonus") ? 1.15 : 1.0;
+        const healMult = ne.minorSuffix === "cursed" ? 0.7 : 1.0;
+        const demonMult = 1 + (cse.demonPactBonus || 0);
+
+        const dealDmg = (dmg, label, critHit) => {
+            if (ne.minorSuffix === "shadowed" && isCrit(20)) { spawnFloat("enemy", "DODGE!", "#8888ff"); addLog(`🌑 ${ne.name} dodges!`, "#8888ff"); return 0; }
+            if (miss()) { spawnFloat("player", "MISS!", "#888"); addLog(`You missed!`, "#888"); return 0; }
+            ne.hp -= dmg; flash("enemy"); spawnFloat("enemy", `-${dmg}`, critHit ? "#ffdd00" : "#ff4444");
+            addLog(`${label}${critHit ? " 🎯 CRIT!" : ""} — ${dmg} dmg`, critHit ? "#ffdd00" : "#60f060"); return dmg;
+        };
+
+        if (type === "attack") {
+            const c = isCrit(totalCrit); const raw = rand(totalAtk - 2, totalAtk + 5);
+            const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0;
+            const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * demonMult) : (raw + fb) * demonMult | 0, ne.def);
+            dealDmg(dmg, "⚔️ Attack", c); if (cse.flightBonus > 0) cse.flightBonus--;
+            if (hasP(eq, "lifesteal")) { np.hp = clamp(np.hp + 5, 0, np.maxHp); spawnFloat("player", "+5🩸", "#ff6090"); }
+            if (hasP(eq, "lifesteal2")) { np.hp = clamp(np.hp + 8, 0, np.maxHp); spawnFloat("player", "+8🩸", "#cc2222"); }
+            if (ne.minorSuffix === "thorned") { const ref = Math.max(1, Math.floor(dmg * 0.15)); np.hp = clamp(np.hp - ref, 0, np.maxHp); spawnFloat("player", `-${ref}🌵`, "#88ff44"); }
+        } else if (type === "ability") {
+            const ab = payload;
+            if (ab.type === "holyShield") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; } np.mp -= ab.cost; const db = Math.max(1, Math.floor(totalDef * 0.5)); nb.player.push({ stat: "def", amount: db, turns: 3, tag: "holyShield" }); spawnFloat("player", `🛡️+${db}`, "#f0c060"); addLog(`⚔️ Holy Shield! +${db} DEF for 3 turns!`, "#f0c060"); setPlayer(np); setBuffs(nb); return; }
+            if (ab.type === "darkSacrifice") { const hc = Math.floor(np.hp * 0.20); if (np.hp - hc <= 0) { addLog("⚠️ Not enough HP!", "#ff6060"); setPlayer(np); return; } np.hp -= hc; spawnFloat("player", `-${hc}💀`, "#cc2222"); const ab2 = Math.floor(totalAtk * 0.5); const db2 = Math.floor(totalDef * 0.5); nb.player.push({ stat: "atk", amount: ab2, turns: 3 }); nb.player.push({ stat: "def", amount: db2, turns: 3 }); addLog(`💀 Dark Sacrifice! -${hc} HP → ATK+${ab2}, DEF+${db2} × 3!`, "#cc2222"); setPlayer(np); setBuffs(nb); return; }
+            if (ab.type === "demonPact") { np.mp -= ab.cost; cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 4, tag: "demonPact" }); addLog(`👹 Demon Pact! +30% dmg × 4!`, "#c060f0"); setPlayer(np); setSe(cse); setBuffs(nb); return; }
+            if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; }
+            np.mp -= ab.cost;
+            if (ab.type === "atk") { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]); const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0; const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * abilBonus * demonMult) : Math.floor((raw + fb) * abilBonus * demonMult), ne.def); dealDmg(dmg, `✨ ${ab.name}`, c); if (cse.flightBonus > 0) cse.flightBonus--; }
+            else if (ab.type === "soulRend") { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]); const dmg = calcDmg(c ? Math.floor(raw * 1.5 * demonMult) : Math.floor(raw * demonMult), Math.floor(ne.def * 0.7)); dealDmg(dmg, "💀 Soul Rend", c); }
+            else if (ab.type === "deathSuffering") { cse.enemyDot = 4; spawnFloat("enemy", "💀DoT", "#a0ffa0"); addLog("💀 Death's Suffering! 8% × 4!", "#a0ffa0"); }
+            else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); spawnFloat("player", `+${h}`, "#60f0a0"); addLog(`💚 ${ab.name} +${h} HP`, "#60f0a0"); }
+            else if (ab.type === "drain") { const raw = rand(ab.damage[0], ab.damage[1]); const dmg = calcDmg(Math.floor(raw * abilBonus * demonMult), ne.def); if (!miss()) { ne.hp -= dmg; flash("enemy"); const heal = Math.floor(Math.floor(dmg / 2) * healMult); np.hp = clamp(np.hp + heal, 0, np.maxHp); spawnFloat("enemy", `-${dmg}`, "#c060f0"); spawnFloat("player", `+${heal}`, "#c060f0"); addLog(`🩸 Soul Drain ${dmg}!`, "#c060f0"); } else addLog("Soul Drain missed!", "#888"); }
+            else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
+            else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
+            else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]); const d = calcDmg(c ? Math.floor(raw * 1.5 * demonMult) : Math.floor(raw * demonMult), ne.def); ne.hp -= d; tot += d; } } flash("enemy"); spawnFloat("enemy", `-${tot}`, "#60f0a0"); addLog(`🏹 Lethal Volley ${hits}x: ${tot}!`, "#60f0a0"); }
+            else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * demonMult) : Math.floor(base * demonMult), ne.def); dealDmg(dmg, "😇 Divine Wrath", c); }
+            else if (ab.type === "takeFlight") { cse.dodgeReady = true; cse.flightBonus = 2; addLog("😇 Take Flight! Dodge + +30% dmg!", "#e8e0ff"); }
+            else if (ab.type === "celestialHeal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); np.mp = clamp(np.mp + 10, 0, np.maxMp); spawnFloat("player", `+${h}`, "#e8e0ff"); addLog(`😇 Celestial Heal +${h} HP, +10 MP`, "#e8e0ff"); }
+        } else if (type === "item") {
+            const item = inventory[payload]; if (!item || item.qty <= 0) return;
+            if (item.effect === "heal") { const h = Math.floor(item.amount * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); spawnFloat("player", `+${h}`, "#60f0a0"); addLog(`${item.icon} +${h} HP`, "#60f0a0"); }
+            else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); addLog(`${item.icon} +${item.amount} MP`, "#60c0f0"); }
+            inv = inventory.map((it, i) => i === payload ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0); setInventory(inv);
+        } else if (type === "flee") {
+            if (rand(1, 100) > 40) { addLog("🏃 Fled!", "#f0c060"); setCombat(false); setEnemy(null); setPlayer(np); return; }
+            else addLog("Couldn't escape!", "#ff6060");
+        }
+        nb.player = nb.player.map(b => { if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) cse.demonPactBonus = 0; return { ...b, turns: nt }; } return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
+        setSe(cse); setSavedEnemy({ ...ne });
+        if (ne.hp <= 0) { resolveVictory(np, ne, nb, inv, g, eq, cse, rl); return; }
+        setPlayer(np); setEnemy(ne); setBuffs(nb); setTurn("enemy");
+        setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900);
+    };
+
+    const enemyTurn = (np, ne, nb, inv, g, eq, cse, rl) => {
+        let fnp = { ...np }, fne = { ...ne }, fnb = { player: [...nb.player], enemy: [...nb.enemy] }, fse = { ...cse };
+        const ep = effStats(fnp, eq); const rb = getRelicBonus();
+        const pDef = ep.def + rb.def + fnb.player.filter(b => b.stat === "def").reduce((s, b) => s + b.amount, 0);
+        const flatDR = hasP(eq, "flatDR") ? 2 : 0; const magicDR = hasP(eq, "magicDR") ? 4 : 0;
+        const eAtkMod = fnb.enemy.filter(b => b.stat === "atk").reduce((s, b) => s + b.amount, 0);
+        let eAtk = fne.atk + eAtkMod;
+        if (fne.affix === "infernalRage" && !fne.raged && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, atk: fne.atk + 5, raged: true }; eAtk += 5; addLog(`🔥 Infernal Behemoth RAGES! +5 ATK!`, "#ff4400"); }
+        if (fne.affix2 === "deathMark" && !fne.deathMarked && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, deathMarked: true }; fnb.player.push({ stat: "atk", amount: -6, turns: 99 }); addLog(`💀 DEATH MARK! ATK -6 permanently!`, "#880000"); }
+        if (fne.minorSuffix === "frenzied" && fne.hp <= (fne.maxHp * 0.5)) eAtk += 8;
+        const doHit = (atkVal, defVal, bypassDef = false, isMagic = false) => {
+            if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges!`, "#e8e0ff"); return 0; }
+            const mc = 5 + (fse.enemyBlind > 0 ? 25 : 0);
+            if (rand(1, 100) <= mc) { spawnFloat("enemy", "MISS!", "#888"); addLog(`${fne.name} missed!`, "#888"); return 0; }
+            const c = isCrit(fne.crit || 5); const raw = rand(atkVal, atkVal + 4);
+            const dr = isMagic ? magicDR : flatDR;
+            const dmg = bypassDef ? Math.max(1, raw) : Math.max(0, calcDmg(c ? Math.floor(raw * 1.5) : raw, defVal) - dr);
+            flash("player"); fnp.hp -= dmg; spawnFloat("player", `-${dmg}`, c ? "#ff2200" : "#ff6060");
+            addLog(`${fne.icon} ${fne.name} hits ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#ff6060"); return dmg;
+        };
+        if (fne.style === "aggressive") { const bp = fne.affix === "defBypass" && isCrit(15); if (bp) addLog(`🐉 Dragonfire! DEF bypassed!`, "#ff8800"); doHit(eAtk, pDef, bp); }
+        else if (fne.style === "defensive") { if (rand(1, 100) > 50) doHit(eAtk - 2, pDef); else { fnb.enemy.push({ stat: "def", amount: 5, turns: 2 }); addLog(`${fne.icon} braces!`, "#f0a060"); } }
+        else if (fne.style === "magic") { if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true); }
+        else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; addLog(`☣️ Diseased Plague! 15% HP/turn × 2!`, "#cc44ff"); spawnFloat("player", "☣️", "#cc44ff"); } }
+        if (fnp.hp > 0) {
+            if (fne.affix === "burn" && isCrit(20)) { fse.burn = 2; addLog(`🔥 Hellbound! Burning 2 turns!`, "#ff6030"); }
+            if (fne.affix === "atkCurse" && isCrit(15)) { fnb.player.push({ stat: "atk", amount: -4, turns: 2 }); addLog(`💀 Undying Curse! ATK -4 × 2!`, "#aa44ff"); }
+            if (fne.affix === "soulStun" && isCrit(20)) { fse.stunned = true; addLog(`💀 SOUL STUN!`, "#cc44cc"); }
+            if (fne.minorSuffix === "venomous" && isCrit(35)) { fse.playerPoison = 2; addLog(`🐍 Poisoned!`, "#80ff80"); }
+        }
+        if (fse.enemyBlind > 0) fse.enemyBlind--;
+        if (hasP(eq, "reflect") && fnp.hp > 0) { const ref = Math.floor(Math.abs(np.hp - fnp.hp) * 0.1); if (ref > 0) { fne.hp -= ref; spawnFloat("enemy", `-${ref}👑`, "#f0f060"); addLog(`👑 Reflects ${ref}!`, "#f0f060"); } }
+        fnb.enemy = fnb.enemy.map(b => ({ ...b, turns: b.turns - 1 })).filter(b => b.turns > 0);
+        fnb.player = fnb.player.map(b => { if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) fse.demonPactBonus = 0; return { ...b, turns: nt }; } return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
+        setSavedEnemy({ ...fne });
+        if (fne.hp <= 0) { resolveVictory(fnp, fne, fnb, inv, g, eq, fse, rl); return; }
+        if (fnp.hp <= 0) { fnp.hp = 0; setPlayer(fnp); setFinalLog([...log]); setScreen("gameover"); return; }
+        setEnemy(fne); setPlayer(fnp); setBuffs(fnb); setSe(fse); setTurn("player");
+    };
+
+    const useItemOutside = idx => { const item = inventory[idx]; if (!item || item.qty <= 0 || item.effect === "revive") return; let np = { ...player }; if (item.effect === "heal") { np.hp = clamp(np.hp + item.amount, 0, np.maxHp); spawnFloat("player", `+${item.amount}`, "#60f0a0"); } else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); } setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); };
+    const hasRevive = inventory.some(i => i.id === "revive" && i.qty > 0);
+    const useRevive = () => { const idx = inventory.findIndex(i => i.id === "revive" && i.qty > 0); if (idx === -1) return; const e = { ...savedEnemy }; let np = { ...player, hp: clamp(100, 0, player.maxHp), mp: clamp((player.mp || 0) + 30, 0, player.maxMp) }; setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); setEnemy(e); setCombat(true); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate") }); setTurn("player"); setScreen("explore"); setTrinketUsed(false); addLog(`💎 Revived! ${e.name} has ${Math.max(0, e.hp)} HP!`, "#c060f0"); };
+    const buyConsumable = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } if (item.id === "revive" && hasRevive) { setShopMsg("Already have a Revive Gem!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); setInventory(inv => { const ex = inv.find(i => i.id === item.id && !i.isGear); return ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }]; }); setShopMsg(`Bought ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
+    const buyEquipment = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); const { np, newEq } = doEquip(item, equipped, player); setEquipped(newEq); setPlayer(np); setShopMsg(`Equipped ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
+    const sellItem = (item, idx) => { const price = item.sellPrice || Math.floor(item.cost / 2); setGold(g => g + price); setInventory(inv => inv.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setShopMsg(`Sold for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
+    const sellEquipped = slot => { const item = equipped[slot]; if (!item) return; const price = item.sellPrice || Math.floor(item.cost / 2); const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); setGold(g => g + price); setShopMsg(`Sold ${item.name} for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
+    const sellRelic = idx => { const r = relics[idx]; if (!r) return; setGold(g => g + r.sellPrice); setRelics(rl => rl.filter((_, i) => i !== idx)); setShopMsg(`Sold ${r.name} for ${r.sellPrice}g`); setTimeout(() => setShopMsg(""), 2000); };
+    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setLvlUp(false); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 12) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(3, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz === 3 ? "#ff4400" : "#60c0f0"); } };
+
+    const ep = player ? effStats(player, equipped) : null;
+    const rb = getRelicBonus();
+    const zoneData = ZONES[zone];
+    const classData = playerClass ? CLASSES[playerClass] : null;
+
+    const Btn = ({ onClick, disabled, border, bg, color = "#eee", children, style: s = {} }) => (
+        <button onClick={onClick} disabled={disabled}
+            style={{ background: bg, border: `1px solid ${border}`, color: disabled ? "#444" : color, borderRadius: 8, padding: "5px 9px", cursor: disabled ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 11, opacity: disabled ? 0.5 : 1, transition: "all 0.15s", boxShadow: disabled ? "none" : `0 0 5px ${border}33`, ...s }}
+            onMouseEnter={e => { if (!disabled) { e.currentTarget.style.boxShadow = `0 0 10px ${border}88`; } }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = disabled ? "none" : `0 0 5px ${border}33`; }}
+        >{children}</button>
+    );
+
+    const StatusPills = () => {
+        const pills = [];
+        if (se.burn > 0) pills.push(<StatusPill key="burn" label={`🔥 Burn(${se.burn})`} color="#ff6030" />);
+        if (se.playerPoison > 0) pills.push(<StatusPill key="p" label={`🐍 Poison(${se.playerPoison})`} color="#80ff80" />);
+        if (se.plagueDot > 0) pills.push(<StatusPill key="pl" label={`☣️ Plague(${se.plagueDot})`} color="#cc44ff" />);
+        if (se.stunned) pills.push(<StatusPill key="st" label="💀 Stunned" color="#cc44cc" />);
+        if (se.dodgeReady) pills.push(<StatusPill key="d" label="😇 Dodge" color="#e8e0ff" />);
+        if (se.flightBonus > 0) pills.push(<StatusPill key="f" label={`✈️ Flight(${se.flightBonus})`} color="#e8e0ff" />);
+        if (se.enemyDot > 0) pills.push(<StatusPill key="dot" label={`💀 DoT(${se.enemyDot})`} color="#a0ffa0" />);
+        if (se.demonPactBonus > 0) pills.push(<StatusPill key="dp" label="👹 Pact+30%" color="#c060f0" />);
+        buffs.player.filter(b => b.amount > 0 && !b.tag).forEach((b, i) => pills.push(<StatusPill key={`pb${i}`} label={`${b.stat.toUpperCase()}+${b.amount}(${b.turns})`} color="#f0f060" />));
+        buffs.player.filter(b => b.amount < 0).forEach((b, i) => pills.push(<StatusPill key={`nd${i}`} label={`${b.stat.toUpperCase()}${b.amount}(${b.turns === 99 ? "∞" : b.turns})`} color="#ff8888" />));
+        return pills.length ? <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop: 3 }}>{pills}</div> : null;
+    };
+
+    const getEnemyPortraitId = (e) => {
+        if (!e) return null;
+        if (e.id === "infernal_behemoth" && e.raged) return "infernal_behemoth_raged";
+        return e.id;
+    };
+
+    const CSS = `
+    @keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
+    @keyframes particleRise{0%{opacity:0;transform:translateY(0)}20%{opacity:1}80%{opacity:.6}100%{opacity:0;transform:translateY(-120px)}}
+    @keyframes glow{0%,100%{text-shadow:0 0 10px #f0c06088,0 0 20px #f0c06044}50%{text-shadow:0 0 20px #f0c060cc,0 0 40px #f0c06088}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    @keyframes flashRed{0%,100%{filter:none}50%{filter:brightness(1.8) saturate(2)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+  `;
+
+    // ── TITLE ──────────────────────────────────────────────────────────────────
+    if (screen === "title") return (
+        <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 16, position: "relative", overflow: "hidden" }}>
+            <style>{CSS}</style>
+            <Particles />
+            <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div style={{ fontSize: 48, animation: "pulse 2s infinite", filter: "drop-shadow(0 0 14px #f0c06099)" }}>⚔️</div>
+                <h1 style={{ fontSize: 26, margin: "6px 0 2px", animation: "glow 2.5s infinite", background: "linear-gradient(90deg,#f0c060,#fff8e0,#f0c060)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>Realm of Shadows</h1>
+                <p style={{ color: "#555", marginBottom: 18, fontSize: 10, letterSpacing: 2 }}>4 ZONES · 12 BATTLES · 6 CLASSES</p>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+                    {Object.entries(CLASSES).map(([cls, data]) => (
+                        <div key={cls} onClick={() => selectClass(cls)}
+                            style={{ background: "linear-gradient(140deg,#0d0d1a,#15152a)", border: `2px solid ${data.color}33`, borderRadius: 14, padding: "12px 10px", width: 128, cursor: "pointer", textAlign: "center", transition: "all 0.2s", boxShadow: `0 4px 14px ${data.color}18` }}
+                            onMouseOver={e => { e.currentTarget.style.transform = "translateY(-5px)"; e.currentTarget.style.border = `2px solid ${data.color}`; e.currentTarget.style.boxShadow = `0 10px 26px ${data.color}44`; }}
+                            onMouseOut={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.border = `2px solid ${data.color}33`; e.currentTarget.style.boxShadow = `0 4px 14px ${data.color}18`; }}>
+                            <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
+                                <ClassPortrait className={cls} size={80} />
+                            </div>
+                            <div style={{ color: data.color, fontWeight: "bold", fontSize: 11, marginBottom: 2 }}>{cls}</div>
+                            <div style={{ color: "#777", fontSize: 9, marginBottom: 4, lineHeight: 1.4 }}>{data.desc}</div>
+                            <div style={{ fontSize: 9, color: "#555", borderTop: `1px solid ${data.color}22`, paddingTop: 3 }}>HP {data.stats.maxHp} · ATK {data.stats.atk} · Crit {data.stats.crit}%</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+
+    // ── NAMING ─────────────────────────────────────────────────────────────────
+    if (screen === "naming") {
+        const cd = CLASSES[pendingCls]; return (
+            <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
+                <style>{CSS}</style>
+                <div style={{ textAlign: "center", animation: "fadeIn 0.4s ease-out" }}>
+                    <ClassPortrait className={pendingCls} size={120} style={{ margin: "0 auto 12px" }} />
+                    <h2 style={{ color: cd.color, marginBottom: 3, fontSize: 16, textShadow: `0 0 14px ${cd.color}` }}>{pendingCls}</h2>
+                    <p style={{ color: "#888", marginBottom: 12, fontSize: 11 }}>Name your hero:</p>
+                    <input value={charName} onChange={e => setCharName(e.target.value)} placeholder="Enter name..."
+                        style={{ background: "#0d0d1a", border: `1px solid ${cd.color}88`, borderRadius: 8, padding: "8px 14px", color: "#eee", fontFamily: "Georgia", fontSize: 13, width: 200, outline: "none", marginBottom: 10, textAlign: "center", boxShadow: `0 0 8px ${cd.color}44` }}
+                        onKeyDown={e => e.key === "Enter" && confirmName()} />
+                    <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 10 }}>
+                        <Btn onClick={randomName} border="#888" bg="#1a1a2e">🎲 Random</Btn>
+                        <Btn onClick={confirmName} border={cd.color} bg="#1a1a2e" color={cd.color}>▶ Begin</Btn>
+                    </div>
+                    {charName && <p style={{ color: "#666", fontSize: 11, fontStyle: "italic" }}>"{charName}, the {pendingCls}"</p>}
+                    <div style={{ marginTop: 14 }}><Btn onClick={() => setScreen("title")} border="#444" bg="#0d0d1a">← Back</Btn></div>
+                </div>
+            </div>
+        );
+    }
+
+    // ── GAME OVER ──────────────────────────────────────────────────────────────
+    if (screen === "gameover") return (
+        <div style={{ background: "linear-gradient(160deg,#0d0000,#1a0000)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
+            <style>{CSS}</style>
+            <div style={{ textAlign: "center", animation: "fadeIn 0.5s" }}>
+                <div style={{ fontSize: 52, filter: "drop-shadow(0 0 14px #ff000099)" }}>💀</div>
+                <h2 style={{ color: "#ff4444", fontSize: 20, textShadow: "0 0 20px #ff0000", marginBottom: 4 }}>You have fallen...</h2>
+                <p style={{ color: "#cc8888" }}>{playerTitle}</p>
+                <p style={{ color: "#555", fontSize: 10, marginBottom: 12 }}>{zoneData.name} · Level {level} · {encounters} battles</p>
+                {playerClass && <ClassPortrait className={playerClass} size={80} style={{ margin: "0 auto 12px", filter: "grayscale(80%) brightness(0.4)" }} />}
+                {hasRevive && (
+                    <div style={{ margin: "10px 0", background: "#1a0d2e", border: "1px solid #c060f0", borderRadius: 10, padding: "10px 14px" }}>
+                        <p style={{ color: "#c060f0", fontSize: 11, marginBottom: 6 }}>💎 You have a Revive Gem!</p>
+                        <Btn onClick={useRevive} border="#c060f0" bg="#1a0d2e" color="#c060f0">💎 Revive (+100 HP, +30 MP)</Btn>
+                    </div>
+                )}
+                <button onClick={reset} style={{ marginTop: 14, padding: "8px 20px", background: "linear-gradient(90deg,#cc2222,#ff4444)", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontFamily: "Georgia", boxShadow: "0 0 12px #ff000066" }}>New Game</button>
+                <div style={{ background: "#00000050", borderRadius: 8, padding: 8, maxHeight: 130, overflowY: "auto", marginTop: 12, fontSize: 10, textAlign: "left" }}>
+                    {(finalLog.length ? finalLog : log).slice(-20).map((l, i) => <div key={i} style={{ color: l.color, marginBottom: 2 }}>› {l.msg}</div>)}
+                </div>
+            </div>
+        </div>
+    );
+
+    // ── VICTORY ────────────────────────────────────────────────────────────────
+    if (screen === "victory") return (
+        <div style={{ background: "linear-gradient(160deg,#0a0a00,#1a1800,#0d0d00)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", fontFamily: "Georgia", color: "#eee", padding: 20, paddingTop: 28 }}>
+            <style>{CSS}</style>
+            <div style={{ fontSize: 48, filter: "drop-shadow(0 0 16px #f0c06099)" }}>🏆</div>
+            <h2 style={{ color: "#f0c060", fontSize: 20, animation: "glow 2s infinite", marginBottom: 4 }}>The Abyss is Vanquished!</h2>
+            <p style={{ color: "#ccc", textAlign: "center" }}>{playerTitle}</p>
+            <p style={{ color: "#666", fontSize: 10, marginBottom: 10 }}>Level {level} · {gold} Gold · {encounters} battles</p>
+            {playerClass && <ClassPortrait className={playerClass} size={100} style={{ margin: "0 auto 14px" }} />}
+            <div style={{ background: "#ffffff08", borderRadius: 10, padding: 12, textAlign: "left", width: "100%", maxWidth: 340 }}>
+                <div style={{ color: "#f0c060", fontWeight: "bold", fontSize: 12, marginBottom: 8 }}>🎽 Final Equipment</div>
+                {["head", "weapon", "body", "ring", "trinket"].map(slot => (
+                    <div key={slot} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5, fontSize: 11 }}>
+                        <span style={{ color: "#555", textTransform: "capitalize", width: 46, flexShrink: 0 }}>{slot}:</span>
+                        {equipped[slot] ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                                <ItemPortrait itemId={equipped[slot].id} size={28} />
+                                <span style={{ color: "#eee" }}>{equipped[slot].name}</span>
+                            </div>
+                        ) : <span style={{ color: "#333" }}>—</span>}
+                    </div>
+                ))}
+                {relics.map((r, i) => <div key={i} style={{ fontSize: 10, color: "#ffcc44", marginBottom: 2, display: "flex", alignItems: "center", gap: 4 }}><ItemPortrait itemId={r.id} size={24} />{r.name}</div>)}
+            </div>
+            <button onClick={reset} style={{ marginTop: 14, padding: "8px 20px", background: "linear-gradient(90deg,#c0a020,#f0c060)", color: "#0d0d0a", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold", boxShadow: "0 0 12px #f0c06066" }}>Play Again</button>
+        </div>
+    );
+
+    // ── LEVEL UP ───────────────────────────────────────────────────────────────
+    if (lvlUp) return (
+        <div style={{ background: "linear-gradient(160deg,#0a0a00,#1a1800)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
+            <style>{CSS}</style>
+            <div style={{ fontSize: 40, filter: "drop-shadow(0 0 14px #f0f06099)" }}>🌟</div>
+            <h2 style={{ color: "#f0f060", marginBottom: 3, textShadow: "0 0 16px #f0f060" }}>Level Up!</h2>
+            <p style={{ color: "#888", marginBottom: 14, fontSize: 11 }}>{playerTitle} — Level {level + 1}. Choose a bonus:</p>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 0.4s" }}>
+                {UPGRADES.map(upg => (
+                    <div key={upg.id} onClick={() => pickUpgrade(upg)}
+                        style={{ background: "linear-gradient(140deg,#1a1800,#252200)", border: "2px solid #f0f06055", borderRadius: 14, padding: "12px 10px", width: 108, cursor: "pointer", textAlign: "center", transition: "all 0.2s", boxShadow: "0 4px 12px #f0f06018" }}
+                        onMouseOver={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.border = "2px solid #f0f060"; e.currentTarget.style.boxShadow = "0 8px 20px #f0f06044"; }}
+                        onMouseOut={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.border = "2px solid #f0f06055"; e.currentTarget.style.boxShadow = "0 4px 12px #f0f06018"; }}>
+                        <div style={{ fontSize: 18 }}>{upg.label.split(" ")[0]}</div>
+                        <div style={{ color: "#f0f060", fontWeight: "bold", fontSize: 10, margin: "4px 0 2px" }}>{upg.label.split(" ").slice(1).join(" ")}</div>
+                        <div style={{ color: "#888", fontSize: 9 }}>{upg.desc}</div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    // ── EXPLORE / COMBAT ───────────────────────────────────────────────────────
+    return (
+        <div style={{ background: zoneData.bg, minHeight: "100vh", fontFamily: "Georgia", color: "#eee", padding: "10px 10px 20px", transition: "background 1.2s", position: "relative" }}>
+            <style>{CSS}</style>
+            {lootNotif && <div style={{ position: "fixed", top: 8, right: 8, background: "#1a1a2e", border: "2px solid #c060f0", borderRadius: 10, padding: "5px 12px", color: "#c060f0", fontSize: 11, fontWeight: "bold", zIndex: 999, boxShadow: "0 0 12px #c060f066", animation: "fadeIn 0.3s" }}>🎁 {lootNotif}</div>}
+
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, background: "#00000050", borderRadius: 10, padding: "5px 10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    {playerClass && <ClassPortrait className={playerClass} size={32} />}
+                    <div>
+                        <div style={{ color: classData?.color, fontWeight: "bold", fontSize: 11, textShadow: `0 0 6px ${classData?.color}88` }}>{playerTitle}</div>
+                        <div style={{ color: "#555", fontSize: 9 }}>{zoneData.name}</div>
+                    </div>
+                </div>
+                <div style={{ display: "flex", gap: 8, fontSize: 10, alignItems: "center" }}>
+                    <span style={{ color: "#f0c060", fontWeight: "bold" }}>💰{gold}</span>
+                    <span style={{ color: "#a0c0ff" }}>Lv.{level}</span>
+                    <span style={{ color: "#555" }}>⚔️{encounters}/12</span>
+                </div>
+            </div>
+
+            {/* XP bar */}
+            {player && <div style={{ marginBottom: 5 }}>
+                <div style={{ background: "#111", borderRadius: 3, height: 3, boxShadow: "inset 0 1px 2px #000" }}>
+                    <div style={{ width: `${Math.min(100, (xp / (level * 60)) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#8080ff,#60f0ff)", borderRadius: 3, transition: "width 0.5s", boxShadow: "0 0 4px #60f0ff88" }} />
+                </div>
+                <div style={{ textAlign: "right", fontSize: 8, color: "#444", marginTop: 1 }}>{xp}/{level * 60} XP</div>
+            </div>}
+
+            {/* Player card */}
+            {player && ep && (
+                <div style={{ background: "#00000040", border: `1px solid ${classData?.color}22`, borderRadius: 12, padding: "8px 10px", marginBottom: 5, animation: hitFlash === "player" ? "flashRed 0.3s" : undefined, boxShadow: `0 2px 8px ${classData?.color}11` }}>
+                    <AnimatedBar val={player.hp} max={player.maxHp} color={player.hp / player.maxHp > 0.5 ? "#3de060" : player.hp / player.maxHp > 0.25 ? "#f0c060" : "#ff4444"} label="❤️ HP" floats={playerFloats} />
+                    <AnimatedBar val={player.mp} max={player.maxMp} color="#5080ff" label="💙 MP" floats={[]} />
+                    <div style={{ fontSize: 10, color: "#666", marginTop: 2, display: "flex", gap: 5, flexWrap: "wrap" }}>
+                        <span>ATK <b style={{ color: "#ddd" }}>{ep.atk + rb.atk}</b></span>
+                        <span>DEF <b style={{ color: "#ddd" }}>{ep.def + rb.def}</b></span>
+                        <span>🎯<b style={{ color: "#ddd" }}>{(ep.crit || 2) + rb.crit}%</b></span>
+                        <span>✨<b style={{ color: "#ddd" }}>{ep.manaRegen + rb.manaRegen}/t</b></span>
+                        {hasP(equipped, "lifesteal") && <span style={{ color: "#ff6090" }}>🩸LS5</span>}
+                        {hasP(equipped, "lifesteal2") && <span style={{ color: "#cc2222" }}>🩸LS8</span>}
+                        {hasP(equipped, "reflect") && <span style={{ color: "#f0f060" }}>👑Ref</span>}
+                        {hasP(equipped, "flatDR") && <span style={{ color: "#60a0ff" }}>🛡-2DR</span>}
+                        {hasP(equipped, "magicDR") && <span style={{ color: "#88ccff" }}>✨-4mDR</span>}
+                        {hasP(equipped, "abilityBonus") && <span style={{ color: "#ffa060" }}>🌟+Abil</span>}
+                        {hasP(equipped, "holyAura") && <span style={{ color: "#ffe0a0" }}>✨+2/t</span>}
+                        {hasP(equipped, "cursedPlate") && <span style={{ color: "#cc2222" }}>💀-3/t</span>}
+                    </div>
+                    <StatusPills />
+                </div>
+            )}
+
+            {/* Enemy card */}
+            {combat && enemy && (
+                <div style={{ background: "#00000050", border: `1px solid ${zone === 3 ? "#ff440044" : "#ff404033"}`, borderRadius: 12, padding: "8px 10px", marginBottom: 5, animation: hitFlash === "enemy" ? "flashRed 0.3s" : undefined }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <EnemyPortrait enemyId={getEnemyPortraitId(enemy)} size={72} />
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 11, color: zone === 3 ? "#ff8844" : enemy.elite ? "#ffaa00" : "#ff8080", fontWeight: "bold", marginBottom: 2 }}>{enemy.name}</div>
+                            <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                                {enemy.unique && <StatusPill label="💠UNIQUE" color="#c060f0" />}
+                                {enemy.elite && <StatusPill label="⚡ELITE" color="#ffaa00" />}
+                                {enemy.affix && <StatusPill label={AFFIX_LABELS[enemy.affix]} color="#ff9944" />}
+                                {enemy.affix2 && <StatusPill label={AFFIX_LABELS[enemy.affix2]} color="#cc3333" />}
+                                {enemy.minorSuffix && <StatusPill label={MINOR_SUFFIXES[enemy.minorSuffix].label} color={MINOR_SUFFIXES[enemy.minorSuffix].color} />}
+                                {enemy.raged && <StatusPill label="😤RAGED" color="#ff4400" />}
+                                {enemy.deathMarked && <StatusPill label="💀DMARK" color="#880000" />}
+                                {se.enemyBlind > 0 && <StatusPill label={`🌑Blind(${se.enemyBlind})`} color="#ff88ff" />}
+                            </div>
+                            <div style={{ fontSize: 9, color: "#555", marginTop: 2 }}>ATK {enemy.atk} · DEF {enemy.def}</div>
+                        </div>
+                    </div>
+                    <AnimatedBar val={enemy.hp} max={enemy.maxHp} color={zone === 3 ? "#cc3300" : enemy.elite ? "#ff8800" : "#e05050"} label="💔 Enemy HP" floats={enemyFloats} />
+                </div>
+            )}
+
+            {/* Log */}
+            <div ref={logRef} style={{ background: "#00000060", borderRadius: 8, padding: "5px 8px", height: 76, overflowY: "auto", marginBottom: 5, fontSize: 10, border: "1px solid #ffffff08" }}>
+                {log.map((l, i) => <div key={i} style={{ color: l.color, marginBottom: 2, lineHeight: 1.3 }}>› {l.msg}</div>)}
+            </div>
+
+            {/* Combat actions */}
+            {combat && turn === "player" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {equipped.trinket && !trinketUsed && (
+                        <Btn onClick={useTrinket} border="#ff88ff" bg="#1a0d2e" color="#ff88ff">
+                            {equipped.trinket.icon} {equipped.trinket.activeName} — {equipped.trinket.activeDesc} <span style={{ opacity: 0.5, fontSize: 9 }}>(Free)</span>
+                        </Btn>
+                    )}
+                    {equipped.trinket && trinketUsed && <div style={{ fontSize: 9, color: "#333", marginBottom: 1 }}>{equipped.trinket.icon} {equipped.trinket.activeName} — used</div>}
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        <Btn onClick={() => playerAction("attack")} border="#60f060" bg="#0d2e0d" color="#60f060">⚔️ Attack</Btn>
+                        <Btn onClick={() => playerAction("flee")} border="#f0a060" bg="#2e1a0d" color="#f0a060">🏃 Flee</Btn>
+                    </div>
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        {classData?.abilities.map((ab, i) => {
+                            const isDarkSac = ab.type === "darkSacrifice";
+                            const hpCost = isDarkSac && player ? Math.floor(player.hp * 0.2) : 0;
+                            const cantAfford = isDarkSac ? (player && player.hp - hpCost <= 0) : (player && player.mp < ab.cost);
+                            return (
+                                <Btn key={i} onClick={() => playerAction("ability", ab)} disabled={cantAfford} border={classData.color} bg="#1a1a2e" color={classData.color}>
+                                    {isDarkSac ? `☠️ ${ab.name} (-${hpCost}HP)` : `✨ ${ab.name}`}
+                                    <span style={{ opacity: 0.5, fontSize: 9 }}>{isDarkSac ? "" : `(${ab.cost}MP)`}</span>
+                                </Btn>
+                            );
+                        })}
+                    </div>
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => (
+                            <button key={item.id} onClick={() => playerAction("item", inventory.indexOf(item))}
+                                style={{ background: "#0d1a2e", border: "1px solid #60c0f044", color: "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4, transition: "all 0.15s" }}
+                                onMouseEnter={e => e.currentTarget.style.boxShadow = "0 0 8px #60c0f066"}
+                                onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
+                                <ItemPortrait itemId={item.id} size={22} />
+                                {item.name}×{item.qty}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {combat && turn === "enemy" && (
+                <div style={{ textAlign: "center", color: "#ff8080", padding: 8, fontSize: 11, background: "#ff000010", borderRadius: 8, animation: "blink 0.8s infinite" }}>
+                    ⌛ Enemy acting...
+                </div>
+            )}
+
+            {/* Explore */}
+            {!combat && !lvlUp && (
+                <div>
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
+                        <Btn onClick={startCombat} border="#f0c060" bg="#2e2000" color="#f0c060">⚔️ Explore</Btn>
+                        <Btn onClick={() => { setShowShop(s => !s); setShowEquip(false); }} border="#60c0f0" bg="#0d1a2e" color="#60c0f0">🏪 Shop</Btn>
+                        <Btn onClick={() => { setShowEquip(s => !s); setShowShop(false); }} border="#c060f0" bg="#1a0d2e" color="#c060f0">🎽 Equipment</Btn>
+                    </div>
+                    {inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
+                            {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => (
+                                <button key={item.id} onClick={() => useItemOutside(inventory.indexOf(item))}
+                                    style={{ background: "#0d1a2e", border: "1px solid #60c0f033", color: "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
+                                    <ItemPortrait itemId={item.id} size={20} /> Use {item.name}×{item.qty}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Shop */}
+                    {showShop && (
+                        <div style={{ background: "#00000055", border: "1px solid #60c0f022", borderRadius: 12, padding: 10, marginBottom: 5 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                                <span style={{ color: "#f0c060", fontWeight: "bold", fontSize: 11 }}>🏪 Merchant · 💰{gold}g</span>
+                                {shopMsg && <span style={{ color: "#60f0a0", fontSize: 10 }}>{shopMsg}</span>}
+                            </div>
+                            <div style={{ display: "flex", gap: 4, marginBottom: 6, flexWrap: "wrap" }}>
+                                {["consumables", "equipment", "sell"].map(t => (
+                                    <Btn key={t} onClick={() => setShopTab(t)} border={shopTab === t ? "#f0c060" : "#333"} bg={shopTab === t ? "#2e2000" : "#1a1a2e"} color={shopTab === t ? "#f0c060" : "#666"}>{t.charAt(0).toUpperCase() + t.slice(1)}</Btn>
+                                ))}
+                            </div>
+                            {shopTab === "consumables" && (
+                                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                    {CONSUMABLES.map(item => {
+                                        const ro = item.id === "revive" && hasRevive; return (
+                                            <button key={item.id} onClick={() => buyConsumable(item)} disabled={gold < item.cost || ro}
+                                                style={{ background: "#1a1a1a", border: "1px solid #555", color: gold < item.cost || ro ? "#444" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || ro ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost || ro ? 0.5 : 1 }}>
+                                                <ItemPortrait itemId={item.id} size={26} />
+                                                <span style={{ lineHeight: 1.3 }}>{item.name}<br /><span style={{ fontSize: 8, color: "#888" }}>{item.cost}g{ro ? " (owned)" : ""}</span></span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            {shopTab === "equipment" && (
+                                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                    {EQUIPMENT.map(item => {
+                                        const owned = equipped[item.slot]?.id === item.id; return (
+                                            <button key={item.id} onClick={() => buyEquipment(item)} disabled={gold < item.cost || owned}
+                                                style={{ background: owned ? "#0d2e0d" : "#1a1a1a", border: `1px solid ${owned ? "#60f060" : "#555"}`, color: gold < item.cost || owned ? "#555" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || owned ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost ? 0.5 : 1 }}>
+                                                <ItemPortrait itemId={item.id} size={26} />
+                                                <span style={{ lineHeight: 1.3 }}>{item.name}<br /><span style={{ fontSize: 8, color: "#888" }}>{item.cost}g{owned ? " ✓" : ""}</span></span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            {shopTab === "sell" && (
+                                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                    {inventory.filter(it => it.effect !== "revive").map((item, i) => (
+                                        <button key={i} onClick={() => sellItem(item, inventory.indexOf(item))}
+                                            style={{ background: "#2e1a0d", border: "1px solid #f0a06044", color: "#f0a060", borderRadius: 8, padding: "5px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
+                                            <ItemPortrait itemId={item.id} size={22} />{item.name}×{item.qty}<br /><span style={{ fontSize: 8 }}>Sell:{item.sellPrice || Math.floor(item.cost / 2)}g</span>
+                                        </button>
+                                    ))}
+                                    {Object.entries(equipped).filter(([, it]) => it).map(([slot, item]) => (
+                                        <button key={slot} onClick={() => sellEquipped(slot)}
+                                            style={{ background: "#2e1a0d", border: "1px solid #f0a06044", color: "#f0a060", borderRadius: 8, padding: "5px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
+                                            <ItemPortrait itemId={item.id} size={22} />{item.name}(eq)<br /><span style={{ fontSize: 8 }}>Sell:{item.sellPrice || Math.floor(item.cost / 2)}g</span>
+                                        </button>
+                                    ))}
+                                    {relics.map((r, i) => (
+                                        <button key={i} onClick={() => sellRelic(i)}
+                                            style={{ background: "#2e1e00", border: "1px solid #ffcc4444", color: "#ffcc44", borderRadius: 8, padding: "5px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
+                                            <ItemPortrait itemId={r.id} size={22} />{r.name}<br /><span style={{ fontSize: 8 }}>Sell:{r.sellPrice}g</span>
+                                        </button>
+                                    ))}
+                                    {!inventory.filter(it => it.effect !== "revive").length && !Object.values(equipped).some(v => v) && !relics.length && <span style={{ color: "#333", fontSize: 10 }}>Nothing to sell.</span>}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Equipment panel */}
+                    {showEquip && (
+                        <div style={{ background: "#00000055", border: "1px solid #c060f022", borderRadius: 12, padding: 10, marginBottom: 5 }}>
+                            <div style={{ color: "#c060f0", marginBottom: 6, fontWeight: "bold", fontSize: 11 }}>🎽 Equipment</div>
+                            {["head", "weapon", "body", "ring", "trinket"].map(slot => (
+                                <div key={slot} style={{ display: "flex", alignItems: "center", marginBottom: 5, gap: 5, fontSize: 10, borderBottom: "1px solid #ffffff06", paddingBottom: 4 }}>
+                                    <span style={{ color: slot === "trinket" ? "#ff88ff" : "#555", textTransform: "capitalize", width: 46, flexShrink: 0 }}>{slot}:</span>
+                                    {equipped[slot] ? (
+                                        <div style={{ display: "flex", alignItems: "center", flex: 1, gap: 5 }}>
+                                            <ItemPortrait itemId={equipped[slot].id} size={26} />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ color: "#ddd" }}>{equipped[slot].name}</div>
+                                                <div style={{ color: "#555", fontSize: 9 }}>{equipped[slot].desc}</div>
+                                            </div>
+                                            <Btn onClick={() => unequipSlot(slot)} border="#ff6060" bg="#2e0d0d" color="#ff6060" style={{ fontSize: 9, padding: "2px 6px" }}>Remove</Btn>
+                                        </div>
+                                    ) : (
+                                        slot === "trinket" ? <span style={{ color: "#333", fontSize: 9 }}>— drops from monsters only —</span> : (
+                                            <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                                                {EQUIPMENT.filter(e => e.slot === slot).slice(0, 3).map(item => (
+                                                    <button key={item.id} onClick={() => { if (gold >= item.cost) buyEquipment(item); else setShopMsg("Not enough gold!"); }} disabled={gold < item.cost}
+                                                        style={{ background: "#1a1a1a", border: "1px solid #555", color: gold < item.cost ? "#444" : "#aaa", borderRadius: 6, padding: "3px 5px", cursor: gold < item.cost ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 9, display: "flex", alignItems: "center", gap: 3, opacity: gold < item.cost ? 0.5 : 1 }}>
+                                                        <ItemPortrait itemId={item.id} size={18} />{item.name}({item.cost}g)
+                                                    </button>
+                                                ))}
+                                            </div>)
+                                    )}
+                                </div>
+                            ))}
+                            {relics.length > 0 && (
+                                <div style={{ marginTop: 4, paddingTop: 4 }}>
+                                    <div style={{ color: "#ffcc44", fontSize: 10, marginBottom: 3 }}>🦴 Passive Relics</div>
+                                    {relics.map((r, i) => (
+                                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3, fontSize: 9, color: "#ffcc44" }}>
+                                            <ItemPortrait itemId={r.id} size={20} />{r.name} — {r.desc}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {Object.values(getBonus(equipped)).some(v => v > 0) && (
+                                <div style={{ marginTop: 4, fontSize: 9, color: "#60f0a0", borderTop: "1px solid #ffffff06", paddingTop: 4 }}>
+                                    Bonuses: {Object.entries(getBonus(equipped)).filter(([, v]) => v > 0).map(([k, v]) => `+${v} ${k}`).join(" · ")}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
