@@ -701,7 +701,7 @@ export default function App() {
     const isCrit = pct => rand(1, 100) <= pct;
 
     const resolveVictory = (np, ne, nb, inv, g, eq, cse, rl) => {
-        addLog(`🏆 ${ne.name} defeated! +${ne.xp} XP, +${ne.gold} Gold`, "#f0c060");
+        addLog(`🏆 ${ne.name} defeated! +${ne.xp} XP, +${ne.gold} Gold`, "#f0c060"); if (ne.gold > 0) notify(`+${ne.gold} Gold`, "🪙", null, "gold");
         const hpRec = Math.floor(np.maxHp * (rand(15, 20) / 100)); const mpRec = Math.floor(np.maxMp * (rand(15, 20) / 100));
         np.hp = clamp(np.hp + hpRec, 0, np.maxHp); np.mp = clamp(np.mp + mpRec, 0, np.maxMp);
         addLog(`💫 Recovered ${hpRec} HP, ${mpRec} MP.`, "#a0f0c0");
