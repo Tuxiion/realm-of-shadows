@@ -346,6 +346,16 @@ function Particles() {
 const initInv = () => [{ ...CONSUMABLES[0], qty: 2 }, { ...CONSUMABLES[2], qty: 1 }];
 const initEq = () => ({ head: null, weapon: null, body: null, ring: null, trinket: null });
 
+const CSS = `
+    @keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
+    @keyframes particleRise{0%{opacity:0;transform:translateY(0)}20%{opacity:1}80%{opacity:.6}100%{opacity:0;transform:translateY(-120px)}}
+    @keyframes glow{0%,100%{text-shadow:0 0 10px #f0c06088,0 0 20px #f0c06044}50%{text-shadow:0 0 20px #f0c060cc,0 0 40px #f0c06088}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    @keyframes flashRed{0%,100%{filter:none}50%{filter:brightness(1.8) saturate(2)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+  `;
+
 // ── Helper: build champion object from game state ──────────────────────────
 function buildChampion(playerTitle, playerClass, level, gold, encounters, player, equipped, relics, effStatsFn, getRelicBonusFn) {
     const ep = effStatsFn(player, equipped);
@@ -814,15 +824,6 @@ export default function App() {
         return e.id;
     };
 
-    const CSS = `
-    @keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
-    @keyframes particleRise{0%{opacity:0;transform:translateY(0)}20%{opacity:1}80%{opacity:.6}100%{opacity:0;transform:translateY(-120px)}}
-    @keyframes glow{0%,100%{text-shadow:0 0 10px #f0c06088,0 0 20px #f0c06044}50%{text-shadow:0 0 20px #f0c060cc,0 0 40px #f0c06088}}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-    @keyframes flashRed{0%,100%{filter:none}50%{filter:brightness(1.8) saturate(2)}}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
-  `;
 
     if (screen === "title") return (
         <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 16, position: "relative", overflow: "hidden" }}>
