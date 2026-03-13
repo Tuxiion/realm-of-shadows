@@ -983,10 +983,10 @@ export default function App() {
                     })}
                 </div>
             </div>
-        ))}
     </div>
-)}
-                    )}
+                        )}
+                    </div>
+                )}
                     {/* Equipment panel */}
                     {showEquip && (
                         <div style={{ background: "#00000055", border: "1px solid #c060f022", borderRadius: 12, padding: 10, marginBottom: 5 }}>
