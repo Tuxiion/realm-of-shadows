@@ -29,12 +29,12 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
     if (!meta) return <div style={{ width: displaySize, height: displaySize, ...style }} />;
     const cellW = meta.w / meta.cols;
     const cellH = meta.h / meta.rows;
-    const scale = displaySize / cellW;
-    const scaledSheetW = meta.w * scale;
-    const scaledSheetH = meta.h * scale;
-    const scaledCellH = cellH * scale;
+    const scaleX = displaySize / cellW;
+    const scaleY = displaySize / cellH;
+    const scaledSheetW = meta.w * scaleX;
+    const scaledSheetH = meta.h * scaleY;
     const bpx = -(col * displaySize);
-    const bpy = -(row * scaledCellH);
+    const bpy = -(row * displaySize);
     return (
         <div style={{ width: displaySize, height: displaySize, borderRadius: radius, overflow: "hidden", flexShrink: 0, border: `2px solid ${glow}88`, boxShadow: `0 0 10px ${glow}55`, ...style }}>
             <div style={{ width: scaledSheetW, height: scaledSheetH, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`, backgroundPosition: `${bpx}px ${bpy}px`, backgroundRepeat: "no-repeat" }} />
