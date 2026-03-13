@@ -384,6 +384,9 @@ function buildChampion(playerTitle, playerClass, level, gold, encounters, player
         equippedNames: Object.fromEntries(
             Object.entries(equipped).filter(([, v]) => v).map(([k, v]) => [k, v.name])
         ),
+        equippedIds: Object.fromEntries(
+            Object.entries(equipped).filter(([, v]) => v).map(([k, v]) => [k, v.id])
+        ),
         relicNames: relics.map(r => r.name),
     };
 }
@@ -911,19 +914,33 @@ export default function App() {
                     <ClassPortrait className={champ.playerClass} size={90} style={{ margin: "0 auto 10px" }} />
                     <div style={{ color: cls?.color || "#f0c060", fontWeight: "bold", fontSize: 15, marginBottom: 2 }}>{champ.playerTitle}</div>
                     <div style={{ color: "#555", fontSize: 10, marginBottom: 10 }}>Level {champ.level} · {champ.date}</div>
-                    <div style={{ display: "flex", justifyContent: "center", gap: 16, fontSize: 12, color: "#aaa" }}>
-                        <span>❤️ {champ.stats?.hp}</span>
-                        <span>⚔️ {champ.stats?.atk}</span>
-                        <span>🛡️ {champ.stats?.def}</span>
-                        <span>💨 {champ.stats?.spd}</span>
-                    </div>
+
                     {champ.equippedNames && Object.keys(champ.equippedNames).length > 0 && (
-                        <div style={{ marginTop: 10, fontSize: 10, color: "#666", textAlign: "left" }}>
+                        <div style={{ marginTop: 12, borderTop: "1px solid #ffffff10", paddingTop: 10 }}>
                             {Object.entries(champ.equippedNames).map(([slot, name]) => (
-                                <div key={slot}><span style={{ color: "#444", textTransform: "capitalize" }}>{slot}:</span> <span style={{ color: "#aaa" }}>{name}</span></div>
+                                <div key={slot} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                    {champ.equippedIds?.[slot] && <ItemPortrait itemId={champ.equippedIds[slot]} size={28} />}
+                                    <div style={{ textAlign: "left" }}>
+                                        <div style={{ color: "#eee", fontSize: 11, fontWeight: "bold" }}>{name}</div>
+                                        <div style={{ color: "#555", fontSize: 9, textTransform: "capitalize" }}>{slot}</div>
+                                    </div>
+                                </div>
+                            ))}
+                            {champ.relicNames?.length > 0 && champ.relicNames.map((r, i) => (
+                                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                    <div style={{ width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>💎</div>
+                                    <div style={{ color: "#ffcc44", fontSize: 11 }}>{r}</div>
+                                </div>
                             ))}
                         </div>
                     )}
+                    <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 12, padding: "8px 0", borderTop: "1px solid #ffffff10", fontSize: 11 }}>
+                        <div style={{ textAlign: "center" }}><div style={{ color: "#ff6060", fontSize: 13 }}>❤️</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.hp}</div><div style={{ color: "#555", fontSize: 9 }}>HP</div></div>
+                        <div style={{ textAlign: "center" }}><div style={{ color: "#f0a060", fontSize: 13 }}>⚔️</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.atk}</div><div style={{ color: "#555", fontSize: 9 }}>ATK</div></div>
+                        <div style={{ textAlign: "center" }}><div style={{ color: "#60a0ff", fontSize: 13 }}>🛡️</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.def}</div><div style={{ color: "#555", fontSize: 9 }}>DEF</div></div>
+                        <div style={{ textAlign: "center" }}><div style={{ color: "#60c0f0", fontSize: 13 }}>💨</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.spd}</div><div style={{ color: "#555", fontSize: 9 }}>SPD</div></div>
+                        <div style={{ textAlign: "center" }}><div style={{ color: "#f0f060", fontSize: 13 }}>🎯</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.crit}%</div><div style={{ color: "#555", fontSize: 9 }}>CRIT</div></div>
+                    </div>
                 </div>
                 <p style={{ color: "#666", fontSize: 11, textAlign: "center", marginBottom: 16, maxWidth: 300 }}>
                     Beat the game first to accept this challenge — then return to fight this champion!
