@@ -384,7 +384,7 @@ function buildChampion(playerTitle, playerClass, level, gold, encounters, player
 }
 
 // ── VictoryScreen ───────────────────────────────────────────────────────────
-function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounters, equipped, relics, effStats, getRelicBonus, reset }) {
+function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounters, equipped, relics, effStats, getRelicBonus, reset, challengeOnVictory }) {
     const [champName, setChampName] = useState("");
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -460,6 +460,16 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
                     <button onClick={handleCopyLink}
                         style={{ width: "100%", padding: "8px", background: "linear-gradient(90deg,#004488,#0080ff)", color: "#fff", border: "none", borderRadius: 7, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
                         {copyMsg ? "✅ " + copyMsg : "📋 Copy Challenge Link"}
+                    </button>
+                </div>
+            )}
+            {challengeOnVictory && (
+                <div style={{ width: "100%", maxWidth: 340, background: "linear-gradient(140deg,#1a0008,#2a0010)", border: "1px solid #ff446644", borderRadius: 10, padding: 12, marginBottom: 12, textAlign: "center" }}>
+                    <div style={{ color: "#ff4466", fontWeight: "bold", fontSize: 12, marginBottom: 4 }}>⚔️ Pending Challenge!</div>
+                    <div style={{ color: "#888", fontSize: 10, marginBottom: 8 }}>{challengeOnVictory.playerTitle} awaits your challenge.</div>
+                    <button onClick={() => window.dispatchEvent(new CustomEvent("startDuel", { detail: challengeOnVictory }))}
+                        style={{ width: "100%", padding: "8px", background: "linear-gradient(90deg,#880000,#cc2222)", color: "#fff", border: "none", borderRadius: 7, fontSize: 12, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
+                        ⚔️ Fight {challengeOnVictory.playerTitle}!
                     </button>
                 </div>
             )}
@@ -576,13 +586,36 @@ export default function App() {
     useEffect(() => {
         const goHall = () => setScreen("hall");
         window.addEventListener("gotoHall", goHall);
+        const onStartDuel = (e) => {
+            const champ = e.detail;
+            const champEnemy = {
+                name: champ.playerTitle,
+                id: champ.playerClass?.toLowerCase().replace(/ /g, "_") || "champion",
+                hp: champ.stats.hp, maxHp: champ.stats.hp,
+                atk: champ.stats.atk, def: champ.stats.def,
+                xp: 0, gold: 0, style: "aggressive", crit: champ.stats.crit || 5,
+            };
+            setEnemy(champEnemy);
+            setSavedEnemy({ ...champEnemy });
+            setCombat(true);
+            setBuffs({ player: [], enemy: [] });
+            setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate") });
+            setTurn("player");
+            setLog([{ msg: `⚔️ Duel begins! ${playerTitle} vs ${champ.playerTitle}!`, color: "#ff4466" }]);
+            setScreen("explore");
+        };
+        window.addEventListener("startDuel", onStartDuel);
         // Parse challenge link
         try {
             const params = new URLSearchParams(window.location.search);
             const enc = params.get("challenge");
-            if (enc) { const champ = JSON.parse(atob(enc)); setChallengeOnVictory(champ); }
+            if (enc) {
+                const champ = JSON.parse(atob(enc));
+                setChallengeOnVictory(champ);
+                setScreen("challengeIntro");
+            }
         } catch {}
-        return () => window.removeEventListener("gotoHall", goHall);
+        return () => { window.removeEventListener("gotoHall", goHall); window.removeEventListener("startDuel", onStartDuel); };
     }, []);
     const floatId = useRef(0);
     const logRef = useRef(null);
@@ -825,6 +858,47 @@ export default function App() {
     };
 
 
+    if (screen === "challengeIntro" && challengeOnVictory) {
+        const champ = challengeOnVictory;
+        const cls = CLASSES[champ.playerClass];
+        return (
+            <div style={{ background: "linear-gradient(160deg,#0a0005,#1a0010,#0d000a)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
+                <style>{CSS}</style>
+                <div style={{ fontSize: 42, filter: "drop-shadow(0 0 16px #ff006699)", marginBottom: 8 }}>⚔️</div>
+                <h2 style={{ color: "#ff4466", fontSize: 18, animation: "glow 2s infinite", marginBottom: 12 }}>You Have Been Challenged!</h2>
+                <div style={{ background: "#ffffff08", borderRadius: 14, padding: 16, textAlign: "center", marginBottom: 16, width: "100%", maxWidth: 320 }}>
+                    <ClassPortrait className={champ.playerClass} size={90} style={{ margin: "0 auto 10px" }} />
+                    <div style={{ color: cls?.color || "#f0c060", fontWeight: "bold", fontSize: 15, marginBottom: 2 }}>{champ.playerTitle}</div>
+                    <div style={{ color: "#555", fontSize: 10, marginBottom: 10 }}>Level {champ.level} · {champ.date}</div>
+                    <div style={{ display: "flex", justifyContent: "center", gap: 16, fontSize: 12, color: "#aaa" }}>
+                        <span>❤️ {champ.stats?.hp}</span>
+                        <span>⚔️ {champ.stats?.atk}</span>
+                        <span>🛡️ {champ.stats?.def}</span>
+                        <span>💨 {champ.stats?.spd}</span>
+                    </div>
+                    {champ.equippedNames && Object.keys(champ.equippedNames).length > 0 && (
+                        <div style={{ marginTop: 10, fontSize: 10, color: "#666", textAlign: "left" }}>
+                            {Object.entries(champ.equippedNames).map(([slot, name]) => (
+                                <div key={slot}><span style={{ color: "#444", textTransform: "capitalize" }}>{slot}:</span> <span style={{ color: "#aaa" }}>{name}</span></div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <p style={{ color: "#666", fontSize: 11, textAlign: "center", marginBottom: 16, maxWidth: 300 }}>
+                    Beat the game first to accept this challenge — then return to fight this champion!
+                </p>
+                <div style={{ display: "flex", gap: 10 }}>
+                    <button onClick={() => setScreen("title")} style={{ padding: "8px 20px", background: "linear-gradient(90deg,#880000,#cc2222)", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
+                        ⚔️ Accept Challenge
+                    </button>
+                    <button onClick={() => { setChallengeOnVictory(null); setScreen("title"); window.history.replaceState({}, "", window.location.pathname); }} style={{ padding: "8px 16px", background: "#ffffff10", color: "#888", border: "1px solid #333", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia" }}>
+                        Decline
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     if (screen === "title") return (
         <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 16, position: "relative", overflow: "hidden" }}>
             <style>{CSS}</style>
@@ -898,7 +972,7 @@ export default function App() {
         </div>
     );
 
-    if (screen === "victory") return <VictoryScreen player={player} playerTitle={playerTitle} playerClass={playerClass} level={level} gold={gold} encounters={encounters} equipped={equipped} relics={relics} effStats={effStats} getRelicBonus={getRelicBonus} reset={reset} />;
+    if (screen === "victory") return <VictoryScreen player={player} playerTitle={playerTitle} playerClass={playerClass} level={level} gold={gold} encounters={encounters} equipped={equipped} relics={relics} effStats={effStats} getRelicBonus={getRelicBonus} reset={reset} challengeOnVictory={challengeOnVictory} />;
 
     if (screen === "hall") return <HallScreen reset={reset} />;
 
