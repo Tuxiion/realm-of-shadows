@@ -140,7 +140,7 @@ const CLASSES = {
         stats: { hp: 120, maxHp: 120, mp: 40, maxMp: 40, atk: 18, def: 10, spd: 7, crit: 2, manaRegen: 5 },
         abilities: [
             { name: "Divine Strike", cost: 10, desc: "Sacred blade attack", damage: [18, 28], type: "atk" },
-            { name: "Holy Shield", cost: 8, desc: "+50% DEF for 3 turns", damage: [0, 0], type: "holyShield" },
+            { name: "Holy Shield", cost: 8, desc: "+50% DEF for 6 turns", damage: [0, 0], type: "holyShield" },
             { name: "Lay on Hands", cost: 15, desc: "Heal 18-25% Max HP", damage: [0.18, 0.25], type: "scaleHeal" },
         ]
     },
@@ -150,7 +150,7 @@ const CLASSES = {
         abilities: [
             { name: "Hellfire", cost: 15, desc: "Flames of the abyss", damage: [22, 35], type: "atk" },
             { name: "Soul Drain", cost: 12, desc: "Steal HP from enemy", damage: [15, 25], type: "drain" },
-            { name: "Demon Pact", cost: 20, desc: "+30% dmg for 4 turns", damage: [0, 0], type: "demonPact" },
+            { name: "Demon Pact", cost: 20, desc: "+30% dmg for 6 turns", damage: [0, 0], type: "demonPact" },
         ]
     },
     "Arcane Magician": {
@@ -158,7 +158,7 @@ const CLASSES = {
         stats: { hp: 85, maxHp: 85, mp: 100, maxMp: 100, atk: 10, def: 4, spd: 11, crit: 5, manaRegen: 5 },
         abilities: [
             { name: "Arcane Bolt", cost: 10, desc: "Blast of magical energy", damage: [20, 32], type: "atk" },
-            { name: "Arcane Surge", cost: 18, desc: "+14 SPD, +5 MP/turn for 3 turns", damage: [0, 0], type: "arcaneBoost" },
+            { name: "Arcane Surge", cost: 18, desc: "+14 SPD, +5 MP/turn for 6 turns", damage: [0, 0], type: "arcaneBoost" },
             { name: "Mana Burst", cost: 25, desc: "Massive magical explosion", damage: [35, 55], type: "atk" },
         ]
     },
@@ -167,7 +167,7 @@ const CLASSES = {
         stats: { hp: 80, maxHp: 80, mp: 60, maxMp: 60, atk: 16, def: 3, spd: 15, crit: 20, manaRegen: 5 },
         abilities: [
             { name: "Snipe", cost: 14, desc: "Pinpoint lethal shot", damage: [28, 42], type: "atk" },
-            { name: "Smoke Bomb", cost: 10, desc: "Reduce enemy ATK by 30% for 3 turns", damage: [0, 0], type: "smokeBomb" },
+            { name: "Smoke Bomb", cost: 10, desc: "Reduce enemy ATK by 30% for 6 turns", damage: [0, 0], type: "smokeBomb" },
             { name: "Lethal Volley", cost: 20, desc: "Hit 2-3 times", damage: [12, 20], type: "multi" },
         ]
     },
@@ -184,7 +184,7 @@ const CLASSES = {
         icon: "☠️", color: "#cc2222", desc: "Dark warrior who trades life for power.",
         stats: { hp: 115, maxHp: 115, mp: 50, maxMp: 50, atk: 20, def: 6, spd: 8, crit: 8, manaRegen: 4 },
         abilities: [
-            { name: "Dark Sacrifice", cost: 0, desc: "Cost 20% HP: +50% ATK & DEF 3 turns", damage: [0, 0], type: "darkSacrifice" },
+            { name: "Dark Sacrifice", cost: 0, desc: "Cost 20% HP: +50% ATK & DEF 6 turns", damage: [0, 0], type: "darkSacrifice" },
             { name: "Soul Rend", cost: 15, desc: "Heavy strike, ignore 30% DEF", damage: [25, 38], type: "soulRend" },
             { name: "Death's Suffering", cost: 18, desc: "DoT: 8% Max HP x 4 turns", damage: [0, 0], type: "deathSuffering" },
         ]
@@ -304,10 +304,11 @@ const LOOT_TABLES = [
 ];
 
 const UPGRADES = [
-    { id: "hp", label: "❤️ Health", desc: "+15 Max HP", apply: p => ({ ...p, maxHp: p.maxHp + 15, hp: Math.min(p.hp + 15, p.maxHp + 15) }) },
-    { id: "mp", label: "💧 Mana", desc: "+20 Max MP", apply: p => ({ ...p, maxMp: p.maxMp + 20, mp: Math.min(p.mp + 20, p.maxMp + 20) }) },
+    { id: "hp", label: "❤️ Health", desc: "+20 Max HP", apply: p => ({ ...p, maxHp: p.maxHp + 20, hp: Math.min(p.hp + 20, p.maxHp + 20) }) },
+    { id: "mp", label: "💧 Mana", desc: "+40 Max MP", apply: p => ({ ...p, maxMp: p.maxMp + 40, mp: Math.min(p.mp + 40, p.maxMp + 40) }) },
     { id: "reg", label: "✨ Mana Regen", desc: "+2 per turn", apply: p => ({ ...p, manaRegen: p.manaRegen + 2 }) },
-    { id: "atk", label: "⚔️ Attack", desc: "+4 Attack", apply: p => ({ ...p, atk: p.atk + 4 }) },
+    { id: "atk", label: "⚔️ Attack", desc: "+5 Attack", apply: p => ({ ...p, atk: p.atk + 5 }) },
+    { id: "def", label: "🛡️ Defense", desc: "+4 Defense", apply: p => ({ ...p, def: p.def + 4 }) },
     { id: "crit", label: "🎯 Critical Strike", desc: "+8% Crit Chance", apply: p => ({ ...p, crit: p.crit + 8 }) },
 ];
 
@@ -748,9 +749,9 @@ export default function App() {
             if (ne.minorSuffix === "thorned") { const ref = Math.max(1, Math.floor(dmg * 0.15)); np.hp = clamp(np.hp - ref, 0, np.maxHp); spawnFloat("player", `-${ref}🌵`, "#88ff44"); }
         } else if (type === "ability") {
             const ab = payload;
-            if (ab.type === "holyShield") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; } if (nb.player.some(b => b.tag === "holyShield")) { addLog("⚔️ Holy Shield already active!", "#f0c060"); setPlayer(np); return; } np.mp -= ab.cost; const baseDefForShield = ep.def + rb.def; const db = Math.max(1, Math.floor(baseDefForShield * 0.5)); nb.player.push({ stat: "def", amount: db, turns: 3, tag: "holyShield" }); spawnFloat("player", `🛡️+${db}`, "#f0c060"); addLog(`⚔️ Holy Shield! +${db} DEF for 3 turns!`, "#f0c060"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
-            if (ab.type === "darkSacrifice") { const hc = Math.floor(np.hp * 0.20); if (np.hp - hc <= 0) { addLog("⚠️ Not enough HP!", "#ff6060"); setPlayer(np); return; } if (nb.player.some(b => b.tag === "darkSacrifice")) { addLog("💀 Dark Sacrifice already active!", "#cc2222"); setPlayer(np); return; } np.hp -= hc; spawnFloat("player", `-${hc}💀`, "#cc2222"); const baseAtkForSac = ep.atk + rb.atk; const baseDefForSac = ep.def + rb.def; const ab2 = Math.floor(baseAtkForSac * 0.5); const db2 = Math.floor(baseDefForSac * 0.5); nb.player.push({ stat: "atk", amount: ab2, turns: 3, tag: "darkSacrifice" }); nb.player.push({ stat: "def", amount: db2, turns: 3, tag: "darkSacrifice" }); addLog(`💀 Dark Sacrifice! -${hc} HP => ATK+${ab2}, DEF+${db2} x 3!`, "#cc2222"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
-            if (ab.type === "demonPact") { if (cse.demonPactBonus > 0) { addLog("👹 Demon Pact already active!", "#c060f0"); setPlayer(np); return; } np.mp -= ab.cost; cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 3, tag: "demonPact" }); addLog(`👹 Demon Pact! +30% dmg x 3 turns!`, "#c060f0"); nb.player = nb.player.map(b => { if (b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            if (ab.type === "holyShield") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; } if (nb.player.some(b => b.tag === "holyShield")) { addLog("⚔️ Holy Shield already active!", "#f0c060"); setPlayer(np); return; } np.mp -= ab.cost; const baseDefForShield = ep.def + rb.def; const db = Math.max(1, Math.floor(baseDefForShield * 0.5)); nb.player.push({ stat: "def", amount: db, turns: 6, tag: "holyShield" }); spawnFloat("player", `🛡️+${db}`, "#f0c060"); addLog(`⚔️ Holy Shield! +${db} DEF for 6 turns!`, "#f0c060"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            if (ab.type === "darkSacrifice") { const hc = Math.floor(np.hp * 0.20); if (np.hp - hc <= 0) { addLog("⚠️ Not enough HP!", "#ff6060"); setPlayer(np); return; } if (nb.player.some(b => b.tag === "darkSacrifice")) { addLog("💀 Dark Sacrifice already active!", "#cc2222"); setPlayer(np); return; } np.hp -= hc; spawnFloat("player", `-${hc}💀`, "#cc2222"); const baseAtkForSac = ep.atk + rb.atk; const baseDefForSac = ep.def + rb.def; const ab2 = Math.floor(baseAtkForSac * 0.5); const db2 = Math.floor(baseDefForSac * 0.5); nb.player.push({ stat: "atk", amount: ab2, turns: 6, tag: "darkSacrifice" }); nb.player.push({ stat: "def", amount: db2, turns: 6, tag: "darkSacrifice" }); addLog(`💀 Dark Sacrifice! -${hc} HP => ATK+${ab2}, DEF+${db2} x 6!`, "#cc2222"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            if (ab.type === "demonPact") { if (cse.demonPactBonus > 0) { addLog("👹 Demon Pact already active!", "#c060f0"); setPlayer(np); return; } np.mp -= ab.cost; cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 6, tag: "demonPact" }); addLog(`👹 Demon Pact! +30% dmg x 6 turns!`, "#c060f0"); nb.player = nb.player.map(b => { if (b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; }
             np.mp -= ab.cost;
             if (ab.type === "atk") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0; const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * abilBonus * spdMult * demonMult) : Math.floor((raw + fb) * abilBonus * spdMult * demonMult), ne.def); dealDmg(dmg, `✨ ${ab.name}`, c); if (cse.flightBonus > 0) cse.flightBonus--; }
@@ -759,10 +760,10 @@ export default function App() {
             else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); spawnFloat("player", `+${h}`, "#60f0a0"); addLog(`💚 ${ab.name} +${h} HP`, "#60f0a0"); }
             else if (ab.type === "scaleHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); spawnFloat("player", `+${h}`, "#60f0a0"); addLog(`💚 ${ab.name} +${h} HP (${Math.round(pct*100)}% MaxHP)`, "#60f0a0"); }
             else if (ab.type === "drain") { const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const dmg = calcDmg(Math.floor(raw * abilBonus * spdMult * demonMult), ne.def); if (!miss()) { ne.hp -= dmg; flash("enemy"); const heal = Math.floor(dmg * healMult); np.hp = clamp(np.hp + heal, 0, np.maxHp); spawnFloat("enemy", `-${dmg}`, "#c060f0"); spawnFloat("player", `+${heal}`, "#c060f0"); addLog(`🩸 Soul Drain ${dmg} → stolen ${heal} HP!`, "#c060f0"); } else addLog("Soul Drain missed!", "#888"); }
-            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 3, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 3, tag: "arcaneBoost" }); spawnFloat("player", "🔮+14SPD", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 3!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 6, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 6, tag: "arcaneBoost" }); spawnFloat("player", "🔮+14SPD", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 6!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
             else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
-            else if (ab.type === "smokeBomb") { const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 3, tag: "smokeBomb" }); spawnFloat("enemy", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Smoke Bomb! Enemy ATK -${reduction} (30%) for 3 turns!`, "#60f0a0"); }
+            else if (ab.type === "smokeBomb") { const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 6, tag: "smokeBomb" }); spawnFloat("enemy", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Smoke Bomb! Enemy ATK -${reduction} (30%) for 6 turns!`, "#60f0a0"); }
             else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; const atkBonusM = Math.floor(totalAtk * 0.4); for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonusM; const d = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.6)); ne.hp -= d; tot += d; } } flash("enemy"); spawnFloat("enemy", `-${tot}`, "#60f0a0"); addLog(`🏹 Lethal Volley ${hits}x: ${tot}!`, "#60f0a0"); }
             else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult * demonMult) : Math.floor(base * spdMult * demonMult), ne.def); dealDmg(dmg, "😇 Divine Wrath", c); }
             else if (ab.type === "takeFlight") { cse.dodgeReady = true; cse.flightBonus = 2; addLog("😇 Take Flight! Dodge + +30% dmg!", "#e8e0ff"); }
@@ -844,7 +845,13 @@ export default function App() {
         else if (fne.style === "magic") { if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true); }
         else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; addLog(`☣️ Diseased Plague! 15% HP/turn x 2!`, "#cc44ff"); spawnFloat("player", "☣️", "#cc44ff"); } }
         // Tick player debuffs BEFORE applying new ones this turn, so fresh debuffs last their full duration
-        fnb.player = fnb.player.map(b => { if (b.tag === "holyShield" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) fse.demonPactBonus = 0; return { ...b, turns: nt }; } return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
+        fnb.player = fnb.player.map(b => {
+            if (b.tag === "holyShield") { const nt = b.turns - 1; return { ...b, turns: nt }; }
+            if (b.tag === "darkSacrifice") { const nt = b.turns - 1; return { ...b, turns: nt }; }
+            if (b.tag === "arcaneBoost") { const nt = b.turns - 1; return { ...b, turns: nt }; }
+            if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) fse.demonPactBonus = 0; return { ...b, turns: nt }; }
+            return { ...b, turns: b.turns - 1 };
+        }).filter(b => b.turns > 0);
         if (fnp.hp > 0) {
             if (fne.affix === "burn" && isCrit(20)) { fse.burn = 2; addLog(`🔥 Hellbound! Burning 2 turns!`, "#ff6030"); }
             if (fne.affix === "atkCurse" && isCrit(15)) { fnb.player.push({ stat: "atk", amount: -4, turns: 2 }); addLog(`💀 Undying Curse! ATK -4 x 2!`, "#aa44ff"); }
@@ -925,7 +932,7 @@ export default function App() {
                                     {champ.equippedIds?.[slot] && <ItemPortrait itemId={champ.equippedIds[slot]} size={28} />}
                                     <div style={{ textAlign: "left" }}>
                                         <div style={{ color: "#eee", fontSize: 11, fontWeight: "bold" }}>{name}</div>
-                                        <div style={{ color: "#555", fontSize: 9, textTransform: "capitalize" }}>{slot}</div>
+                                        <div style={{ color: "#555", fontSize: 9, textTransform: "capitalize" }}>{slot}{(() => { const it = EQUIPMENT.find(e => e.id === champ.equippedIds?.[slot]); return it ? <span style={{ color: "#888", marginLeft: 4 }}>· {it.desc}</span> : null; })()}</div>
                                     </div>
                                 </div>
                             ))}
@@ -1253,7 +1260,7 @@ export default function App() {
                                                             <ItemPortrait itemId={item.id} size={26} />
                                                             <span style={{ lineHeight: 1.3 }}>
                                                                 {item.name}<br />
-                                                                <span style={{ fontSize: 8, color: "#aaa" }}>{item.desc}</span><br />
+                                                                <span style={{ fontSize: 10, color: "#aaa" }}>{item.desc}</span><br />
                                                                 <span style={{ fontSize: 8, color: "#f0c060" }}>{item.cost}g{owned ? " ✓" : ""}</span>
                                                             </span>
                                                         </button>
@@ -1311,7 +1318,7 @@ export default function App() {
                                             <ItemPortrait itemId={equipped[slot].id} size={26} />
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ color: "#ddd" }}>{equipped[slot].name}</div>
-                                                <div style={{ color: "#555", fontSize: 9 }}>{equipped[slot].desc}</div>
+                                                <div style={{ color: "#aaa", fontSize: 11 }}>{equipped[slot].desc}</div>
                                             </div>
                                             <Btn onClick={() => unequipSlot(slot)} border="#ff6060" bg="#2e0d0d" color="#ff6060" style={{ fontSize: 9, padding: "2px 6px" }}>Remove</Btn>
                                         </div>
