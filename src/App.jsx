@@ -988,7 +988,6 @@ export default function App() {
                         </div>
                     )}
                 </div>
-            )}
 
                     {/* Equipment panel */}
                     {showEquip && (
