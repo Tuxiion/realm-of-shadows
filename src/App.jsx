@@ -249,7 +249,7 @@ const EQUIPMENT = [
     { id: "helmet1", name: "Iron Helmet", icon: "🪖", slot: "head", cost: 40, stats: { def: 4, maxHp: 15 }, desc: "+4 DEF, +15 HP" },
     { id: "helmet2", name: "Mithril Helm", icon: "🪖", slot: "head", cost: 90, stats: { def: 8, maxHp: 25 }, desc: "+8 DEF, +25 HP" },
     { id: "helmet3", name: "Crown of the Fallen", icon: "👑", slot: "head", cost: 140, stats: { def: 10, maxHp: 30 }, desc: "+10 DEF, +30 HP, reflect", passive: "reflect" },
-    { id: "wizHat", name: "Wizard's Peaked Hat", icon: "🧙", slot: "head", cost: 80, stats: { maxMp: 35, manaRegen: 4 }, desc: "+35 MP, +4 MP/turn" },
+    { id: "wizHat", name: "Wizard's Peaked Hat", icon: "🧙", slot: "head", cost: 80, stats: { maxMp: 35, spd: 8 }, desc: "+35 MP, +8 SPD" },
     { id: "orbHelm", name: "Orbim's Blessed Helm", icon: "🛡️", slot: "head", cost: 160, stats: { def: 14, maxHp: 40 }, desc: "+14 DEF, +40 HP, +2 HP/turn", passive: "holyAura" },
     { id: "blade1", name: "Shadow Blade", icon: "🗡️", slot: "weapon", cost: 50, stats: { atk: 6 }, desc: "+6 ATK" },
     { id: "blade2", name: "Blade of Saxav", icon: "🩸", slot: "weapon", cost: 130, stats: { atk: 10 }, desc: "+10 ATK, steals 5 HP", passive: "lifesteal" },
