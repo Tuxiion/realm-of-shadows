@@ -167,7 +167,7 @@ const CLASSES = {
         stats: { hp: 80, maxHp: 80, mp: 60, maxMp: 60, atk: 16, def: 3, spd: 15, crit: 20, manaRegen: 5 },
         abilities: [
             { name: "Snipe", cost: 14, desc: "Pinpoint lethal shot", damage: [28, 42], type: "atk" },
-            { name: "Smoke Bomb", cost: 10, desc: "Reduce enemy ATK 4 turns", damage: [0, 0], type: "debuff", debuff: { stat: "atk", amount: -8, turns: 4 } },
+            { name: "Smoke Bomb", cost: 10, desc: "Reduce enemy ATK by 30% for 4 turns", damage: [0, 0], type: "smokeBomb" },
             { name: "Lethal Volley", cost: 20, desc: "Hit 2-3 times", damage: [12, 20], type: "multi" },
         ]
     },
@@ -177,7 +177,7 @@ const CLASSES = {
         abilities: [
             { name: "Divine Wrath", cost: 18, desc: "Deals 20% Max HP as damage", damage: [0, 0], type: "divineWrath" },
             { name: "Take Flight", cost: 30, desc: "Dodge next attack + bonus dmg 2 turns", damage: [0, 0], type: "takeFlight" },
-            { name: "Celestial Heal", cost: 20, desc: "Heal 40-60 HP + 10 MP", damage: [-60, -40], type: "celestialHeal" },
+            { name: "Celestial Heal", cost: 20, desc: "Heal 15-22% Max HP + 10 MP", damage: [0.15, 0.22], type: "celestialHeal" },
         ]
     },
     "Death Knight": {
@@ -762,10 +762,11 @@ export default function App() {
             else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 3, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 3, tag: "arcaneBoost" }); spawnFloat("player", "🔮+14SPD", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 3!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "arcaneBoost") return b; if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) cse.demonPactBonus = 0; return { ...b, turns: nt }; } return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
             else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
-            else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]); const d = calcDmg(c ? Math.floor(raw * 1.5 * demonMult) : Math.floor(raw * demonMult), ne.def); ne.hp -= d; tot += d; } } flash("enemy"); spawnFloat("enemy", `-${tot}`, "#60f0a0"); addLog(`🏹 Lethal Volley ${hits}x: ${tot}!`, "#60f0a0"); }
+            else if (ab.type === "smokeBomb") { const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 4 }); spawnFloat("enemy", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Smoke Bomb! Enemy ATK -${reduction} (30%) for 4 turns!`, "#60f0a0"); }
+            else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]); const d = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.6)); ne.hp -= d; tot += d; } } flash("enemy"); spawnFloat("enemy", `-${tot}`, "#60f0a0"); addLog(`🏹 Lethal Volley ${hits}x: ${tot}!`, "#60f0a0"); }
             else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult * demonMult) : Math.floor(base * spdMult * demonMult), ne.def); dealDmg(dmg, "😇 Divine Wrath", c); }
             else if (ab.type === "takeFlight") { cse.dodgeReady = true; cse.flightBonus = 2; addLog("😇 Take Flight! Dodge + +30% dmg!", "#e8e0ff"); }
-            else if (ab.type === "celestialHeal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); np.mp = clamp(np.mp + 10, 0, np.maxMp); spawnFloat("player", `+${h}`, "#e8e0ff"); addLog(`😇 Celestial Heal +${h} HP, +10 MP`, "#e8e0ff"); }
+            else if (ab.type === "celestialHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); np.mp = clamp(np.mp + 10, 0, np.maxMp); spawnFloat("player", `+${h}`, "#e8e0ff"); addLog(`😇 Celestial Heal +${h} HP (${Math.round(pct*100)}% MaxHP) +10 MP`, "#e8e0ff"); }
         } else if (type === "item") {
             const item = inventory[payload]; if (!item || item.qty <= 0) return;
             if (item.effect === "heal") { const h = Math.floor(item.amount * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); spawnFloat("player", `+${h}`, "#60f0a0"); addLog(`${item.icon} +${h} HP`, "#60f0a0"); }
