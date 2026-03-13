@@ -642,6 +642,19 @@ export default function App() {
     const confirmName = () => { const name = charName.trim() || CLASS_NAMES[pendingCls][rand(0, 9)]; const title = `${name}, the ${pendingCls}`; setPlayerTitle(title); setPlayerClass(pendingCls); setPlayer({ ...CLASSES[pendingCls].stats }); setLog([{ msg: `${title} enters the Whispering Forest...`, color: "#f0c060" }]); setScreen("explore"); };
 
     const unequipSlot = slot => { const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); addLog(`Unequipped ${equipped[slot]?.name}.`, "#aaa"); };
+    const equipFromBag = (item) => {
+        const oldEquipped = equipped[item.slot];
+        const { np: np2, newEq } = doEquip(item, equipped, player);
+        setEquipped(newEq);
+        setPlayer(np2);
+        // Remove new item from inventory, add old equipped item to inventory if there was one
+        setInventory(inv => {
+            let newInv = inv.filter(i => !(i.id === item.id && i.isGear));
+            if (oldEquipped) newInv = [...newInv, { ...oldEquipped, qty: 1, isGear: true }];
+            return newInv;
+        });
+        addLog(`🎽 Equipped ${item.icon} ${item.name}${oldEquipped ? ` (swapped from ${oldEquipped.name})` : ""}!`, "#c060f0");
+    };
     const getRelicBonus = () => { const b = { atk: 0, def: 0, maxHp: 0, maxMp: 0, crit: 0, manaRegen: 0, spd: 0 }; relics.forEach(r => { if (r.stats) Object.entries(r.stats).forEach(([k, v]) => { b[k] = (b[k] || 0) + v; }); }); return b; };
 
     const applyLoot = (loot, np, eq, inv, g, rl) => {
@@ -659,7 +672,7 @@ export default function App() {
             return { np, inv, g, rl };
         }
         if (loot.type === "consumable") { const item = CONSUMABLES.find(c => c.id === loot.id); if (!item) return { np, inv, g, rl }; if (item.id === "revive" && inv.some(i => i.id === "revive" && i.qty > 0)) return { np, inv, g, rl }; addLog(`✨ Loot: ${item.icon} ${item.name}!`, "#60f0a0"); notify(`${item.icon} ${item.name}`); const ex = inv.find(i => i.id === item.id && !i.isGear); return { np, inv: ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }], g, rl }; }
-        if (loot.type === "equipment") { const item = EQUIPMENT.find(e => e.id === loot.id); if (!item) return { np, inv, g, rl }; if (!eq[item.slot]) { const { np: nnp, newEq } = doEquip(item, eq, np); setEquipped(newEq); addLog(`✨ Loot: ${item.icon} ${item.name} (Auto-equipped!)`, "#c060f0"); notify(`${item.icon} ${item.name}`); return { np: nnp, inv, g, rl }; } addLog(`✨ Loot: ${item.icon} ${item.name}!`, "#c060f0"); notify(`${item.icon} ${item.name}`); return { np, inv, g, rl }; }
+        if (loot.type === "equipment") { const item = EQUIPMENT.find(e => e.id === loot.id); if (!item) return { np, inv, g, rl }; if (!eq[item.slot]) { const { np: nnp, newEq } = doEquip(item, eq, np); setEquipped(newEq); addLog(`✨ Loot: ${item.icon} ${item.name} (Auto-equipped!)`, "#c060f0"); notify(`${item.icon} ${item.name}`); return { np: nnp, inv, g, rl }; } const alreadyInInv = inv.some(i => i.id === item.id && i.isGear); if (!alreadyInInv) { addLog(`✨ Loot: ${item.icon} ${item.name} (Saved to bag!)`, "#c060f0"); notify(`${item.icon} ${item.name}`); return { np, inv: [...inv, { ...item, qty: 1, isGear: true }], g, rl }; } addLog(`✨ Loot: ${item.icon} ${item.name} (Already have one)`, "#888"); return { np, inv, g, rl }; }
         return { np, inv, g, rl };
     };
 
@@ -1342,6 +1355,21 @@ export default function App() {
                             {Object.values(getBonus(equipped)).some(v => v > 0) && (
                                 <div style={{ marginTop: 4, fontSize: 9, color: "#60f0a0", borderTop: "1px solid #ffffff06", paddingTop: 4 }}>
                                     Bonuses: {Object.entries(getBonus(equipped)).filter(([, v]) => v > 0).map(([k, v]) => `+${v} ${k}`).join(" · ")}
+                                </div>
+                            )}
+                            {inventory.filter(i => i.isGear).length > 0 && (
+                                <div style={{ marginTop: 8, borderTop: "1px solid #ffffff10", paddingTop: 8 }}>
+                                    <div style={{ color: "#f0c060", fontSize: 10, marginBottom: 6, fontWeight: "bold" }}>🎒 In Bag</div>
+                                    {inventory.filter(i => i.isGear).map((item, idx) => (
+                                        <div key={idx} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5, background: "#ffffff06", borderRadius: 7, padding: "4px 6px" }}>
+                                            <ItemPortrait itemId={item.id} size={26} />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ color: "#ddd", fontSize: 10, fontWeight: "bold" }}>{item.name}</div>
+                                                <div style={{ color: "#aaa", fontSize: 9 }}>{item.desc}</div>
+                                            </div>
+                                            <Btn onClick={() => equipFromBag(item)} border="#60c060" bg="#0d2e0d" color="#60f060" style={{ fontSize: 9, padding: "2px 8px", flexShrink: 0 }}>Equip</Btn>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
