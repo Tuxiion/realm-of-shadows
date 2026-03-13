@@ -4,27 +4,16 @@ const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 const clamp = (v, mn, mx) => Math.max(mn, Math.min(mx, v));
 const miss = () => rand(1, 100) <= 5;
 
-// ── PORTRAIT SYSTEM ───────────────────────────────────────────────────────────
-// Sprite sheets live in /public/assets/images/ — served as static files by Vite.
-// GitHub raw URL format (after you push):
-//   https://raw.githubusercontent.com/YOUR_USERNAME/realm-of-shadows/main/public/assets/images/classes.png
-// For local dev (npm run dev) the paths below work as-is:
-
 const SHEETS = {
-    classes: "/realm-of-shadows/assets/images/classes.png",    // 1024×1024 — 3 cols × 2 rows  → cell 341×512
-    zone1: "/realm-of-shadows/assets/images/zone1.png",      // 1024×1024 — 3 cols × 2 rows  → cell 341×512
-    zone2: "/realm-of-shadows/assets/images/zone2.png",      // 1024×1024 — 3 cols × 2 rows  → cell 341×512
-    zone3: "/realm-of-shadows/assets/images/zone3.png",      // 1023×926  — 3 cols × 1 row   → cell 341×926
-    zone4: "/realm-of-shadows/assets/images/zone4.png",      // 1024×1024 — 2 cols × 2 rows  → cell 512×512
-    equipment: "/realm-of-shadows/assets/images/equipment.png",  // 1024×1024 — 6 cols × 5 rows  → cell ~170×204
-    extras: "/realm-of-shadows/assets/images/extras.png",     // 1024×1024 — 2 cols × 2 rows  → cell 512×512
-    // col0 row0: Blood Vial
-    // col1 row0: Veil of Shadows
-    // col0 row1: Arcane Sliver
-    // col1 row1: Heart of the Fallen
+    classes: "/realm-of-shadows/assets/images/classes.png",
+    zone1: "/realm-of-shadows/assets/images/zone1.png",
+    zone2: "/realm-of-shadows/assets/images/zone2.png",
+    zone3: "/realm-of-shadows/assets/images/zone3.png",
+    zone4: "/realm-of-shadows/assets/images/zone4.png",
+    equipment: "/realm-of-shadows/assets/images/equipment.png",
+    extras: "/realm-of-shadows/assets/images/extras.png",
 };
 
-// Cell pixel dimensions per sheet
 const SHEET_META = {
     classes: { cols: 3, rows: 2, w: 1024, h: 1024 },
     zone1: { cols: 3, rows: 2, w: 1024, h: 1024 },
@@ -35,48 +24,24 @@ const SHEET_META = {
     extras: { cols: 2, rows: 2, w: 1024, h: 1024 },
 };
 
-// Portrait component — crops a cell from a sprite sheet using background-position
 function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888" }) {
     const meta = SHEET_META[sheetKey];
     if (!meta) return <div style={{ width: displaySize, height: displaySize, ...style }} />;
-
     const cellW = meta.w / meta.cols;
     const cellH = meta.h / meta.rows;
-
-    // Scale uniformly by width
     const scale = displaySize / cellW;
-
     const scaledSheetW = meta.w * scale;
     const scaledSheetH = meta.h * scale;
     const scaledCellH = cellH * scale;
-
     const bpx = -(col * displaySize);
     const bpy = -(row * scaledCellH);
-
-    // For non-square cells: show top portion (faces) instead of center
-    const verticalOffset = 0;
-
     return (
-        <div style={{
-            width: displaySize, height: displaySize, borderRadius: radius,
-            overflow: "hidden", flexShrink: 0,
-            border: `2px solid ${glow}88`,
-            boxShadow: `0 0 10px ${glow}55`,
-            ...style
-        }}>
-            <div style={{
-                width: scaledSheetW,
-                height: scaledSheetH,
-                backgroundImage: `url(${SHEETS[sheetKey]})`,
-                backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`,
-                backgroundPosition: `${bpx}px ${bpy - verticalOffset}px`,
-                backgroundRepeat: "no-repeat",
-            }} />
+        <div style={{ width: displaySize, height: displaySize, borderRadius: radius, overflow: "hidden", flexShrink: 0, border: `2px solid ${glow}88`, boxShadow: `0 0 10px ${glow}55`, ...style }}>
+            <div style={{ width: scaledSheetW, height: scaledSheetH, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`, backgroundPosition: `${bpx}px ${bpy}px`, backgroundRepeat: "no-repeat" }} />
         </div>
     );
 }
 
-// Class portrait helper
 function ClassPortrait({ className, size = 56, style = {} }) {
     const MAP = {
         "Holy Knight": { sheetKey: "classes", col: 0, row: 0 },
@@ -92,28 +57,23 @@ function ClassPortrait({ className, size = 56, style = {} }) {
     return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} glow={color} style={style} />;
 }
 
-// Enemy portrait helper
 function EnemyPortrait({ enemyId, size = 56, style = {} }) {
     const MAP = {
-        // Zone 1 — zone1.png — 3×2
         "forest_wraith": { sheetKey: "zone1", col: 0, row: 0 },
         "dark_treant": { sheetKey: "zone1", col: 1, row: 0 },
         "shadow_wolf": { sheetKey: "zone1", col: 2, row: 0 },
         "bog_lurker": { sheetKey: "zone1", col: 0, row: 1 },
         "venomfang_spider": { sheetKey: "zone1", col: 1, row: 1 },
         "cursed_scarecrow": { sheetKey: "zone1", col: 2, row: 1 },
-        // Zone 2 — zone2.png — 3×2
         "dungeon_troll": { sheetKey: "zone2", col: 0, row: 0 },
         "skeleton_mage": { sheetKey: "zone2", col: 1, row: 0 },
         "cursed_knight": { sheetKey: "zone2", col: 2, row: 0 },
         "stone_golem": { sheetKey: "zone2", col: 0, row: 1 },
         "shadow_assassin": { sheetKey: "zone2", col: 1, row: 1 },
         "plague_priest": { sheetKey: "zone2", col: 2, row: 1 },
-        // Zone 3 — zone3.png — 3×1
         "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0 },
         "xaroon_dragon": { sheetKey: "zone3", col: 1, row: 0 },
         "veltharion": { sheetKey: "zone3", col: 2, row: 0 },
-        // Zone 4 — zone4.png — 2×2
         "infernal_behemoth": { sheetKey: "zone4", col: 0, row: 0 },
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
@@ -124,43 +84,18 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
     return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} radius="12px" glow="#cc4444" style={style} />;
 }
 
-// Equipment portrait helper — equipment.png 6×5
 function ItemPortrait({ itemId, size = 32, style = {} }) {
     const MAP = {
-        // Row 0 — Helmets (6 cols)
-        "helmet1": { col: 0, row: 0 },
-        "helmet2": { col: 1, row: 0 },
-        "helmet3": { col: 2, row: 0 },
-        "wizHat": { col: 3, row: 0 },
-        "orbHelm": { col: 4, row: 0 },
-        // Row 1 — Weapons
-        "blade1": { col: 0, row: 1 },
-        "blade2": { col: 1, row: 1 },
-        "axe1": { col: 2, row: 1 },
-        "sword1": { col: 3, row: 1 },
-        "staff1": { col: 4, row: 1 },
-        "staff2": { col: 5, row: 1 },
-        // Row 2 — Body armor
-        "armor1": { col: 0, row: 2 },
-        "armor2": { col: 1, row: 2 },
-        "robe1": { col: 2, row: 2 },
-        "archArmor": { col: 3, row: 2 },
-        "cursedArmor": { col: 4, row: 2 },
-        // Row 3 — Rings + Consumables
-        "ring1": { col: 0, row: 3 },
-        "ring2": { col: 1, row: 3 },
-        "ring3": { col: 2, row: 3 },
-        "ring4": { col: 3, row: 3 },
-        "hpot": { col: 4, row: 3 },
-        "revive": { col: 5, row: 3 },
-        // Row 4 — Relics + Potions
-        "boneFrag": { col: 0, row: 4 },
-        "cursedRoot": { col: 1, row: 4 },
-        "shadowEss": { col: 2, row: 4 },
-        "voidShard": { col: 3, row: 4 },
-        "mpot": { col: 4, row: 4 },
-        "gpot": { col: 5, row: 4 },
-        // extras.png — 2x2 grid (Blood Vial, Veil of Shadows, Arcane Sliver, Heart of the Fallen)
+        "helmet1": { col: 0, row: 0 }, "helmet2": { col: 1, row: 0 }, "helmet3": { col: 2, row: 0 },
+        "wizHat": { col: 3, row: 0 }, "orbHelm": { col: 4, row: 0 },
+        "blade1": { col: 0, row: 1 }, "blade2": { col: 1, row: 1 }, "axe1": { col: 2, row: 1 },
+        "sword1": { col: 3, row: 1 }, "staff1": { col: 4, row: 1 }, "staff2": { col: 5, row: 1 },
+        "armor1": { col: 0, row: 2 }, "armor2": { col: 1, row: 2 }, "robe1": { col: 2, row: 2 },
+        "archArmor": { col: 3, row: 2 }, "cursedArmor": { col: 4, row: 2 },
+        "ring1": { col: 0, row: 3 }, "ring2": { col: 1, row: 3 }, "ring3": { col: 2, row: 3 },
+        "ring4": { col: 3, row: 3 }, "hpot": { col: 4, row: 3 }, "revive": { col: 5, row: 3 },
+        "boneFrag": { col: 0, row: 4 }, "cursedRoot": { col: 1, row: 4 }, "shadowEss": { col: 2, row: 4 },
+        "voidShard": { col: 3, row: 4 }, "mpot": { col: 4, row: 4 }, "gpot": { col: 5, row: 4 },
         "bloodVial": { col: 0, row: 0, sheetKey: "extras" },
         "veilShadows": { col: 1, row: 0, sheetKey: "extras" },
         "arcaneSliver": { col: 0, row: 1, sheetKey: "extras" },
@@ -172,7 +107,6 @@ function ItemPortrait({ itemId, size = 32, style = {} }) {
     return <Portrait sheetKey={sheet} col={p.col} row={p.row} displaySize={size} radius="6px" glow="#f0c060" style={style} />;
 }
 
-// ── DATA ──────────────────────────────────────────────────────────────────────
 const CLASS_NAMES = {
     "Holy Knight": ["Valdris", "Seraphon", "Aurelion", "Belthar", "Dawnsworn", "Kaelthas", "Solarius", "Brightmere", "Aldric", "Luminar"],
     "Demonic Beast": ["Malachar", "Vexaroth", "Duskbane", "Zyr'ak", "Noctiver", "Hexulon", "Draeven", "Voidcaller", "Grimthar", "Soulrend"],
@@ -184,45 +118,57 @@ const CLASS_NAMES = {
 
 const CLASSES = {
     "Holy Knight": {
-        icon: "⚔️", color: "#f0c060", desc: "Sacred warrior. High defense, heals allies.", stats: { hp: 120, maxHp: 120, mp: 40, maxMp: 40, atk: 18, def: 10, spd: 7, crit: 2, manaRegen: 5 }, abilities: [
+        icon: "⚔️", color: "#f0c060", desc: "Sacred warrior. High defense, heals allies.",
+        stats: { hp: 120, maxHp: 120, mp: 40, maxMp: 40, atk: 18, def: 10, spd: 7, crit: 2, manaRegen: 5 },
+        abilities: [
             { name: "Divine Strike", cost: 10, desc: "Sacred blade attack", damage: [18, 28], type: "atk" },
             { name: "Holy Shield", cost: 8, desc: "+50% DEF for 3 turns", damage: [0, 0], type: "holyShield" },
-            { name: "Lay on Hands", cost: 15, desc: "Heal 30–45 HP", damage: [-45, -30], type: "heal" },
+            { name: "Lay on Hands", cost: 15, desc: "Heal 30-45 HP", damage: [-45, -30], type: "heal" },
         ]
     },
     "Demonic Beast": {
-        icon: "👹", color: "#c060f0", desc: "Dark pact-maker. High attack, fragile.", stats: { hp: 90, maxHp: 90, mp: 70, maxMp: 70, atk: 18, def: 5, spd: 9, crit: 5, manaRegen: 5 }, abilities: [
+        icon: "👹", color: "#c060f0", desc: "Dark pact-maker. High attack, fragile.",
+        stats: { hp: 90, maxHp: 90, mp: 70, maxMp: 70, atk: 18, def: 5, spd: 9, crit: 5, manaRegen: 5 },
+        abilities: [
             { name: "Hellfire", cost: 15, desc: "Flames of the abyss", damage: [22, 35], type: "atk" },
             { name: "Soul Drain", cost: 12, desc: "Steal HP from enemy", damage: [15, 25], type: "drain" },
             { name: "Demon Pact", cost: 20, desc: "+30% dmg for 4 turns", damage: [0, 0], type: "demonPact" },
         ]
     },
     "Arcane Magician": {
-        icon: "🔮", color: "#60c0f0", desc: "Master of arcane arts. High magic, low defense.", stats: { hp: 85, maxHp: 85, mp: 100, maxMp: 100, atk: 10, def: 4, spd: 11, crit: 5, manaRegen: 5 }, abilities: [
+        icon: "🔮", color: "#60c0f0", desc: "Master of arcane arts. High magic, low defense.",
+        stats: { hp: 85, maxHp: 85, mp: 100, maxMp: 100, atk: 10, def: 4, spd: 11, crit: 5, manaRegen: 5 },
+        abilities: [
             { name: "Arcane Bolt", cost: 10, desc: "Blast of magical energy", damage: [20, 32], type: "atk" },
             { name: "Time Warp", cost: 18, desc: "+15 SPD for 1 turn", damage: [0, 0], type: "buff", buff: { stat: "spd", amount: 15, turns: 1 } },
             { name: "Mana Burst", cost: 25, desc: "Massive magical explosion", damage: [35, 55], type: "atk" },
         ]
     },
     "Ranged Assassin": {
-        icon: "🏹", color: "#60f0a0", desc: "Swift shadow hunter. Extreme speed and crit.", stats: { hp: 80, maxHp: 80, mp: 60, maxMp: 60, atk: 16, def: 3, spd: 15, crit: 20, manaRegen: 5 }, abilities: [
+        icon: "🏹", color: "#60f0a0", desc: "Swift shadow hunter. Extreme speed and crit.",
+        stats: { hp: 80, maxHp: 80, mp: 60, maxMp: 60, atk: 16, def: 3, spd: 15, crit: 20, manaRegen: 5 },
+        abilities: [
             { name: "Snipe", cost: 14, desc: "Pinpoint lethal shot", damage: [28, 42], type: "atk" },
             { name: "Smoke Bomb", cost: 10, desc: "Reduce enemy ATK 4 turns", damage: [0, 0], type: "debuff", debuff: { stat: "atk", amount: -8, turns: 4 } },
-            { name: "Lethal Volley", cost: 20, desc: "Hit 2–3 times", damage: [12, 20], type: "multi" },
+            { name: "Lethal Volley", cost: 20, desc: "Hit 2-3 times", damage: [12, 20], type: "multi" },
         ]
     },
     "Arch Angel": {
-        icon: "😇", color: "#e8e0ff", desc: "Radiant celestial warrior. High HP and DEF.", stats: { hp: 130, maxHp: 130, mp: 70, maxMp: 70, atk: 12, def: 12, spd: 8, crit: 8, manaRegen: 6 }, abilities: [
+        icon: "😇", color: "#e8e0ff", desc: "Radiant celestial warrior. High HP and DEF.",
+        stats: { hp: 130, maxHp: 130, mp: 70, maxMp: 70, atk: 12, def: 12, spd: 8, crit: 8, manaRegen: 6 },
+        abilities: [
             { name: "Divine Wrath", cost: 18, desc: "Deals 20% Max HP as damage", damage: [0, 0], type: "divineWrath" },
             { name: "Take Flight", cost: 30, desc: "Dodge next attack + bonus dmg 2 turns", damage: [0, 0], type: "takeFlight" },
-            { name: "Celestial Heal", cost: 20, desc: "Heal 40–60 HP + 10 MP", damage: [-60, -40], type: "celestialHeal" },
+            { name: "Celestial Heal", cost: 20, desc: "Heal 40-60 HP + 10 MP", damage: [-60, -40], type: "celestialHeal" },
         ]
     },
     "Death Knight": {
-        icon: "☠️", color: "#cc2222", desc: "Dark warrior who trades life for power.", stats: { hp: 115, maxHp: 115, mp: 50, maxMp: 50, atk: 20, def: 6, spd: 8, crit: 8, manaRegen: 4 }, abilities: [
+        icon: "☠️", color: "#cc2222", desc: "Dark warrior who trades life for power.",
+        stats: { hp: 115, maxHp: 115, mp: 50, maxMp: 50, atk: 20, def: 6, spd: 8, crit: 8, manaRegen: 4 },
+        abilities: [
             { name: "Dark Sacrifice", cost: 0, desc: "Cost 20% HP: +50% ATK & DEF 3 turns", damage: [0, 0], type: "darkSacrifice" },
             { name: "Soul Rend", cost: 15, desc: "Heavy strike, ignore 30% DEF", damage: [25, 38], type: "soulRend" },
-            { name: "Death's Suffering", cost: 18, desc: "DoT: 8% Max HP × 4 turns", damage: [0, 0], type: "deathSuffering" },
+            { name: "Death's Suffering", cost: 18, desc: "DoT: 8% Max HP x 4 turns", damage: [0, 0], type: "deathSuffering" },
         ]
     },
 };
@@ -322,13 +268,23 @@ const EQUIPMENT = [
     { id: "ring4", name: "Ring of the Abyss", icon: "🖤", slot: "ring", cost: 120, stats: { atk: 6, crit: 6, manaRegen: 3 }, desc: "+6 ATK, +6% Crit, +3 MP/turn" },
 ];
 
-const MONSTER_LOOT = [{ type: "relic", id: "boneFrag", tier: 0, chance: 20 }, { type: "relic", id: "cursedRoot", tier: 0, chance: 20 }, { type: "relic", id: "shadowEss", tier: 1, chance: 15 }, { type: "relic", id: "thornSpike", tier: 1, chance: 15 }, { type: "relic", id: "bloodVial", tier: 0, chance: 10 }, { type: "relic", id: "voidShard", tier: 2, chance: 10 }, { type: "trinket", id: "veilShadows", tier: 1, chance: 8 }, { type: "trinket", id: "arcaneSliver", tier: 1, chance: 8 }, { type: "trinket", id: "heartFallen", tier: 1, chance: 8 }, { type: "equipment", id: "orbHelm", tier: 2, chance: 6 }, { type: "equipment", id: "axe1", tier: 2, chance: 6 }, { type: "equipment", id: "sword1", tier: 2, chance: 6 }, { type: "equipment", id: "archArmor", tier: 3, chance: 5 }, { type: "equipment", id: "cursedArmor", tier: 3, chance: 5 }];
+const MONSTER_LOOT = [
+    { type: "relic", id: "boneFrag", tier: 0, chance: 20 }, { type: "relic", id: "cursedRoot", tier: 0, chance: 20 },
+    { type: "relic", id: "shadowEss", tier: 1, chance: 15 }, { type: "relic", id: "thornSpike", tier: 1, chance: 15 },
+    { type: "relic", id: "bloodVial", tier: 0, chance: 10 }, { type: "relic", id: "voidShard", tier: 2, chance: 10 },
+    { type: "trinket", id: "veilShadows", tier: 1, chance: 8 }, { type: "trinket", id: "arcaneSliver", tier: 1, chance: 8 },
+    { type: "trinket", id: "heartFallen", tier: 1, chance: 8 }, { type: "equipment", id: "orbHelm", tier: 2, chance: 6 },
+    { type: "equipment", id: "axe1", tier: 2, chance: 6 }, { type: "equipment", id: "sword1", tier: 2, chance: 6 },
+    { type: "equipment", id: "archArmor", tier: 3, chance: 5 }, { type: "equipment", id: "cursedArmor", tier: 3, chance: 5 },
+];
+
 const LOOT_TABLES = [
     [{ type: "consumable", id: "hpot", chance: 40 }, { type: "consumable", id: "mpot", chance: 30 }, { type: "equipment", id: "helmet1", chance: 10 }, { type: "equipment", id: "blade1", chance: 8 }, { type: "gold", amount: [8, 18], chance: 5 }, { type: "monsterLoot", tier: 0, chance: 7 }],
     [{ type: "consumable", id: "hpot", chance: 18 }, { type: "consumable", id: "gpot", chance: 8 }, { type: "consumable", id: "mpot", chance: 14 }, { type: "equipment", id: "helmet2", chance: 10 }, { type: "equipment", id: "armor1", chance: 10 }, { type: "equipment", id: "ring1", chance: 10 }, { type: "equipment", id: "staff1", chance: 8 }, { type: "gold", amount: [20, 40], chance: 8 }, { type: "monsterLoot", tier: 1, chance: 14 }],
     [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 8 }, { type: "equipment", id: "helmet3", chance: 10 }, { type: "equipment", id: "blade2", chance: 10 }, { type: "equipment", id: "staff2", chance: 10 }, { type: "equipment", id: "armor2", chance: 10 }, { type: "equipment", id: "ring4", chance: 10 }, { type: "gold", amount: [40, 70], chance: 10 }, { type: "monsterLoot", tier: 2, chance: 20 }],
     [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 15 }, { type: "equipment", id: "blade2", chance: 12 }, { type: "equipment", id: "staff2", chance: 12 }, { type: "equipment", id: "armor2", chance: 10 }, { type: "equipment", id: "ring4", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 31 }],
 ];
+
 const UPGRADES = [
     { id: "hp", label: "❤️ Health", desc: "+15 Max HP", apply: p => ({ ...p, maxHp: p.maxHp + 15, hp: Math.min(p.hp + 15, p.maxHp + 15) }) },
     { id: "mp", label: "💧 Mana", desc: "+20 Max MP", apply: p => ({ ...p, maxMp: p.maxMp + 20, mp: Math.min(p.mp + 20, p.maxMp + 20) }) },
@@ -343,7 +299,6 @@ const effStats = (p, eq) => { const b = getBonus(eq); return { ...p, atk: p.atk 
 const doEquip = (item, eq, p) => { let np = { ...p }; const old = eq[item.slot]; if (old) { if (old.stats.maxHp) { np.maxHp -= old.stats.maxHp; np.hp = clamp(np.hp - old.stats.maxHp, 1, np.maxHp); } if (old.stats.maxMp) { np.maxMp -= old.stats.maxMp; np.mp = clamp(np.mp - old.stats.maxMp, 0, np.maxMp); } } if (item.stats.maxHp) { np.maxHp += item.stats.maxHp; np.hp = clamp(np.hp + item.stats.maxHp, 1, np.maxHp); } if (item.stats.maxMp) { np.maxMp += item.stats.maxMp; np.mp = clamp(np.mp + item.stats.maxMp, 0, np.maxMp); } return { np, newEq: { ...eq, [item.slot]: item } }; };
 const doUnequip = (slot, eq, p) => { const old = eq[slot]; if (!old) return { np: p, newEq: eq }; let np = { ...p }; if (old.stats.maxHp) { np.maxHp -= old.stats.maxHp; np.hp = clamp(np.hp - old.stats.maxHp, 1, np.maxHp); } if (old.stats.maxMp) { np.maxMp -= old.stats.maxMp; np.mp = clamp(np.mp - old.stats.maxMp, 0, np.maxMp); } return { np, newEq: { ...eq, [slot]: null } }; };
 
-// ── UI COMPONENTS ─────────────────────────────────────────────────────────────
 function AnimatedBar({ val, max, color, label, floats = [] }) {
     const [disp, setDisp] = useState(val); const [ghost, setGhost] = useState(val); const gt = useRef(null);
     useEffect(() => { if (val < disp) { setGhost(disp); clearTimeout(gt.current); gt.current = setTimeout(() => setGhost(val), 600); } setDisp(val); }, [val]);
@@ -378,7 +333,6 @@ function Particles() {
 const initInv = () => [{ ...CONSUMABLES[0], qty: 2 }, { ...CONSUMABLES[2], qty: 1 }];
 const initEq = () => ({ head: null, weapon: null, body: null, ring: null, trinket: null });
 
-// ── APP ───────────────────────────────────────────────────────────────────────
 export default function App() {
     const [screen, setScreen] = useState("title");
     const [pendingCls, setPendingCls] = useState(null);
@@ -490,7 +444,7 @@ export default function App() {
     const useTrinket = () => {
         if (trinketUsed || !equipped.trinket) return;
         const t = equipped.trinket; let np = { ...player };
-        if (t.activeType === "blind") { setSe(s => ({ ...s, enemyBlind: 2 })); addLog(`${t.icon} ${t.activeName}! Enemy 25% miss × 2!`, "#ff88ff"); }
+        if (t.activeType === "blind") { setSe(s => ({ ...s, enemyBlind: 2 })); addLog(`${t.icon} ${t.activeName}! Enemy 25% miss x 2!`, "#ff88ff"); }
         else if (t.activeType === "mpSurge") { np.mp = clamp(np.mp + 25, 0, np.maxMp); spawnFloat("player", "+25💧", "#60c0ff"); addLog(`${t.icon} ${t.activeName}! +25 MP!`, "#60c0ff"); }
         else if (t.activeType === "mend") { np.hp = clamp(np.hp + 35, 0, np.maxHp); spawnFloat("player", "+35❤️", "#ff6090"); addLog(`${t.icon} ${t.activeName}! +35 HP!`, "#ff6090"); }
         setPlayer(np); setTrinketUsed(true);
@@ -534,13 +488,13 @@ export default function App() {
         } else if (type === "ability") {
             const ab = payload;
             if (ab.type === "holyShield") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; } np.mp -= ab.cost; const db = Math.max(1, Math.floor(totalDef * 0.5)); nb.player.push({ stat: "def", amount: db, turns: 3, tag: "holyShield" }); spawnFloat("player", `🛡️+${db}`, "#f0c060"); addLog(`⚔️ Holy Shield! +${db} DEF for 3 turns!`, "#f0c060"); setPlayer(np); setBuffs(nb); return; }
-            if (ab.type === "darkSacrifice") { const hc = Math.floor(np.hp * 0.20); if (np.hp - hc <= 0) { addLog("⚠️ Not enough HP!", "#ff6060"); setPlayer(np); return; } np.hp -= hc; spawnFloat("player", `-${hc}💀`, "#cc2222"); const ab2 = Math.floor(totalAtk * 0.5); const db2 = Math.floor(totalDef * 0.5); nb.player.push({ stat: "atk", amount: ab2, turns: 3 }); nb.player.push({ stat: "def", amount: db2, turns: 3 }); addLog(`💀 Dark Sacrifice! -${hc} HP → ATK+${ab2}, DEF+${db2} × 3!`, "#cc2222"); setPlayer(np); setBuffs(nb); return; }
-            if (ab.type === "demonPact") { np.mp -= ab.cost; cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 4, tag: "demonPact" }); addLog(`👹 Demon Pact! +30% dmg × 4!`, "#c060f0"); setPlayer(np); setSe(cse); setBuffs(nb); return; }
+            if (ab.type === "darkSacrifice") { const hc = Math.floor(np.hp * 0.20); if (np.hp - hc <= 0) { addLog("⚠️ Not enough HP!", "#ff6060"); setPlayer(np); return; } np.hp -= hc; spawnFloat("player", `-${hc}💀`, "#cc2222"); const ab2 = Math.floor(totalAtk * 0.5); const db2 = Math.floor(totalDef * 0.5); nb.player.push({ stat: "atk", amount: ab2, turns: 3 }); nb.player.push({ stat: "def", amount: db2, turns: 3 }); addLog(`💀 Dark Sacrifice! -${hc} HP => ATK+${ab2}, DEF+${db2} x 3!`, "#cc2222"); setPlayer(np); setBuffs(nb); return; }
+            if (ab.type === "demonPact") { np.mp -= ab.cost; cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 4, tag: "demonPact" }); addLog(`👹 Demon Pact! +30% dmg x 4!`, "#c060f0"); setPlayer(np); setSe(cse); setBuffs(nb); return; }
             if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; }
             np.mp -= ab.cost;
             if (ab.type === "atk") { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]); const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0; const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * abilBonus * demonMult) : Math.floor((raw + fb) * abilBonus * demonMult), ne.def); dealDmg(dmg, `✨ ${ab.name}`, c); if (cse.flightBonus > 0) cse.flightBonus--; }
             else if (ab.type === "soulRend") { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]); const dmg = calcDmg(c ? Math.floor(raw * 1.5 * demonMult) : Math.floor(raw * demonMult), Math.floor(ne.def * 0.7)); dealDmg(dmg, "💀 Soul Rend", c); }
-            else if (ab.type === "deathSuffering") { cse.enemyDot = 4; spawnFloat("enemy", "💀DoT", "#a0ffa0"); addLog("💀 Death's Suffering! 8% × 4!", "#a0ffa0"); }
+            else if (ab.type === "deathSuffering") { cse.enemyDot = 4; spawnFloat("enemy", "💀DoT", "#a0ffa0"); addLog("💀 Death's Suffering! 8% x 4!", "#a0ffa0"); }
             else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); spawnFloat("player", `+${h}`, "#60f0a0"); addLog(`💚 ${ab.name} +${h} HP`, "#60f0a0"); }
             else if (ab.type === "drain") { const raw = rand(ab.damage[0], ab.damage[1]); const dmg = calcDmg(Math.floor(raw * abilBonus * demonMult), ne.def); if (!miss()) { ne.hp -= dmg; flash("enemy"); const heal = Math.floor(Math.floor(dmg / 2) * healMult); np.hp = clamp(np.hp + heal, 0, np.maxHp); spawnFloat("enemy", `-${dmg}`, "#c060f0"); spawnFloat("player", `+${heal}`, "#c060f0"); addLog(`🩸 Soul Drain ${dmg}!`, "#c060f0"); } else addLog("Soul Drain missed!", "#888"); }
             else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
@@ -588,10 +542,10 @@ export default function App() {
         if (fne.style === "aggressive") { const bp = fne.affix === "defBypass" && isCrit(15); if (bp) addLog(`🐉 Dragonfire! DEF bypassed!`, "#ff8800"); doHit(eAtk, pDef, bp); }
         else if (fne.style === "defensive") { if (rand(1, 100) > 50) doHit(eAtk - 2, pDef); else { fnb.enemy.push({ stat: "def", amount: 5, turns: 2 }); addLog(`${fne.icon} braces!`, "#f0a060"); } }
         else if (fne.style === "magic") { if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true); }
-        else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; addLog(`☣️ Diseased Plague! 15% HP/turn × 2!`, "#cc44ff"); spawnFloat("player", "☣️", "#cc44ff"); } }
+        else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; addLog(`☣️ Diseased Plague! 15% HP/turn x 2!`, "#cc44ff"); spawnFloat("player", "☣️", "#cc44ff"); } }
         if (fnp.hp > 0) {
             if (fne.affix === "burn" && isCrit(20)) { fse.burn = 2; addLog(`🔥 Hellbound! Burning 2 turns!`, "#ff6030"); }
-            if (fne.affix === "atkCurse" && isCrit(15)) { fnb.player.push({ stat: "atk", amount: -4, turns: 2 }); addLog(`💀 Undying Curse! ATK -4 × 2!`, "#aa44ff"); }
+            if (fne.affix === "atkCurse" && isCrit(15)) { fnb.player.push({ stat: "atk", amount: -4, turns: 2 }); addLog(`💀 Undying Curse! ATK -4 x 2!`, "#aa44ff"); }
             if (fne.affix === "soulStun" && isCrit(20)) { fse.stunned = true; addLog(`💀 SOUL STUN!`, "#cc44cc"); }
             if (fne.minorSuffix === "venomous" && isCrit(35)) { fse.playerPoison = 2; addLog(`🐍 Poisoned!`, "#80ff80"); }
         }
@@ -659,7 +613,6 @@ export default function App() {
     @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
   `;
 
-    // ── TITLE ──────────────────────────────────────────────────────────────────
     if (screen === "title") return (
         <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 16, position: "relative", overflow: "hidden" }}>
             <style>{CSS}</style>
@@ -687,7 +640,6 @@ export default function App() {
         </div>
     );
 
-    // ── NAMING ─────────────────────────────────────────────────────────────────
     if (screen === "naming") {
         const cd = CLASSES[pendingCls]; return (
             <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
@@ -710,7 +662,6 @@ export default function App() {
         );
     }
 
-    // ── GAME OVER ──────────────────────────────────────────────────────────────
     if (screen === "gameover") return (
         <div style={{ background: "linear-gradient(160deg,#0d0000,#1a0000)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
             <style>{CSS}</style>
@@ -734,7 +685,6 @@ export default function App() {
         </div>
     );
 
-    // ── VICTORY ────────────────────────────────────────────────────────────────
     if (screen === "victory") return (
         <div style={{ background: "linear-gradient(160deg,#0a0a00,#1a1800,#0d0d00)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", fontFamily: "Georgia", color: "#eee", padding: 20, paddingTop: 28 }}>
             <style>{CSS}</style>
@@ -762,7 +712,6 @@ export default function App() {
         </div>
     );
 
-    // ── LEVEL UP ───────────────────────────────────────────────────────────────
     if (lvlUp) return (
         <div style={{ background: "linear-gradient(160deg,#0a0a00,#1a1800)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
             <style>{CSS}</style>
@@ -911,7 +860,7 @@ export default function App() {
                 </div>
             )}
 
-            {/* Explore */}
+            {/* Explore / Shop / Equip */}
             {!combat && !lvlUp && (
                 <div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
@@ -919,6 +868,7 @@ export default function App() {
                         <Btn onClick={() => { setShowShop(s => !s); setShowEquip(false); }} border="#60c0f0" bg="#0d1a2e" color="#60c0f0">🏪 Shop</Btn>
                         <Btn onClick={() => { setShowEquip(s => !s); setShowShop(false); }} border="#c060f0" bg="#1a0d2e" color="#c060f0">🎽 Equipment</Btn>
                     </div>
+
                     {inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
                         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
                             {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => (
@@ -942,10 +892,12 @@ export default function App() {
                                     <Btn key={t} onClick={() => setShopTab(t)} border={shopTab === t ? "#f0c060" : "#333"} bg={shopTab === t ? "#2e2000" : "#1a1a2e"} color={shopTab === t ? "#f0c060" : "#666"}>{t.charAt(0).toUpperCase() + t.slice(1)}</Btn>
                                 ))}
                             </div>
+
                             {shopTab === "consumables" && (
                                 <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                                     {CONSUMABLES.map(item => {
-                                        const ro = item.id === "revive" && hasRevive; return (
+                                        const ro = item.id === "revive" && hasRevive;
+                                        return (
                                             <button key={item.id} onClick={() => buyConsumable(item)} disabled={gold < item.cost || ro}
                                                 style={{ background: "#1a1a1a", border: "1px solid #555", color: gold < item.cost || ro ? "#444" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || ro ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost || ro ? 0.5 : 1 }}>
                                                 <ItemPortrait itemId={item.id} size={26} />
@@ -955,6 +907,7 @@ export default function App() {
                                     })}
                                 </div>
                             )}
+
                             {shopTab === "equipment" && (
                                 <div>
                                     {[
@@ -985,9 +938,40 @@ export default function App() {
                                     ))}
                                 </div>
                             )}
+
+                            {shopTab === "sell" && (
+                                <div>
+                                    <div style={{ color: "#555", fontSize: 9, marginBottom: 6 }}>Sell items for gold:</div>
+                                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                        {inventory.map((item, idx) => (
+                                            <button key={idx} onClick={() => sellItem(item, idx)}
+                                                style={{ background: "#1a1a1a", border: "1px solid #555", color: "#ddd", borderRadius: 8, padding: "6px 8px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5 }}>
+                                                <ItemPortrait itemId={item.id} size={22} />
+                                                <span style={{ lineHeight: 1.3 }}>{item.name}×{item.qty}<br /><span style={{ fontSize: 8, color: "#f0c060" }}>{item.sellPrice || Math.floor(item.cost / 2)}g</span></span>
+                                            </button>
+                                        ))}
+                                        {["head", "weapon", "body", "ring"].filter(s => equipped[s]).map(slot => (
+                                            <button key={slot} onClick={() => sellEquipped(slot)}
+                                                style={{ background: "#1a1a1a", border: "1px solid #f0606044", color: "#ddd", borderRadius: 8, padding: "6px 8px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5 }}>
+                                                <ItemPortrait itemId={equipped[slot].id} size={22} />
+                                                <span style={{ lineHeight: 1.3 }}>{equipped[slot].name}<br /><span style={{ fontSize: 8, color: "#f0c060" }}>{Math.floor(equipped[slot].cost / 2)}g</span></span>
+                                            </button>
+                                        ))}
+                                        {relics.map((r, i) => (
+                                            <button key={i} onClick={() => sellRelic(i)}
+                                                style={{ background: "#1a1a1a", border: "1px solid #ffcc4444", color: "#ddd", borderRadius: 8, padding: "6px 8px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5 }}>
+                                                <ItemPortrait itemId={r.id} size={22} />
+                                                <span style={{ lineHeight: 1.3 }}>{r.name}<br /><span style={{ fontSize: 8, color: "#f0c060" }}>{r.sellPrice}g</span></span>
+                                            </button>
+                                        ))}
+                                        {inventory.length === 0 && !["head","weapon","body","ring"].some(s => equipped[s]) && relics.length === 0 && (
+                                            <div style={{ color: "#333", fontSize: 10 }}>Nothing to sell.</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
 
                     {/* Equipment panel */}
                     {showEquip && (
