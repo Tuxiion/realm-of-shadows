@@ -1016,9 +1016,10 @@ export default function App() {
                     <ClassPortrait className={pendingCls} size={120} style={{ margin: "0 auto 12px" }} />
                     <h2 style={{ color: cd.color, marginBottom: 3, fontSize: 16, textShadow: `0 0 14px ${cd.color}` }}>{pendingCls}</h2>
                     <p style={{ color: "#888", marginBottom: 12, fontSize: 11 }}>Name your hero:</p>
-                    <input value={charName} onChange={e => setCharName(e.target.value)} placeholder="Enter name..."
-                        style={{ background: "#0d0d1a", border: `1px solid ${cd.color}88`, borderRadius: 8, padding: "8px 14px", color: "#eee", fontFamily: "Georgia", fontSize: 13, width: 200, outline: "none", marginBottom: 10, textAlign: "center", boxShadow: `0 0 8px ${cd.color}44` }}
+                    <input value={charName} onChange={e => setCharName(e.target.value.slice(0, 20))} placeholder="Enter name..." maxLength={20}
+                        style={{ background: "#0d0d1a", border: `1px solid ${cd.color}88`, borderRadius: 8, padding: "8px 14px", color: "#eee", fontFamily: "Georgia", fontSize: 13, width: 200, outline: "none", marginBottom: 4, textAlign: "center", boxShadow: `0 0 8px ${cd.color}44` }}
                         onKeyDown={e => e.key === "Enter" && confirmName()} />
+                    <div style={{ fontSize: 9, color: charName.length >= 20 ? "#ff6060" : "#444", marginBottom: 8, textAlign: "center" }}>{charName.length}/20</div>
                     <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 10 }}>
                         <Btn onClick={randomName} border="#888" bg="#1a1a2e">🎲 Random</Btn>
                         <Btn onClick={confirmName} border={cd.color} bg="#1a1a2e" color={cd.color}>▶ Begin</Btn>
