@@ -94,6 +94,11 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
     };
     const p = MAP[enemyId];
     if (!p) return <div style={{ width: size, height: size, ...style }} />;
+    if (!p) {
+        const clsKey = Object.keys(CLASSES).find(k => k.toLowerCase().replace(/ /g, "_") === enemyId);
+        if (clsKey) return <ClassPortrait className={clsKey} size={size} style={{ borderRadius: "12px", ...style }} />;
+        return <div style={{ width: size, height: size, borderRadius: "12px", background: "#222", ...style }} />;
+    }
     return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} radius="12px" glow="#cc4444" style={style} />;
 }
 
@@ -225,14 +230,14 @@ const ENEMIES_BY_ZONE = [
         { name: "Plague Priest", id: "plague_priest", icon: "☣️", hp: 75, maxHp: 75, atk: 20, def: 6, xp: 55, gold: 30, style: "plague", crit: 5, minorSuffix: "cursed" },
     ],
     [
-        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", hp: 144, maxHp: 144, atk: 25, def: 17, xp: 100, gold: 60, style: "magic", crit: 5, affix: "burn", elite: true },
-        { name: "Xaroon the Dragon", id: "xaroon_dragon", hp: 180, maxHp: 180, atk: 29, def: 20, xp: 120, gold: 80, style: "aggressive", crit: 5, affix: "defBypass", elite: true },
-        { name: "Veltharion the Undying", id: "veltharion", hp: 120, maxHp: 120, atk: 32, def: 13, xp: 110, gold: 70, style: "magic", crit: 5, affix: "atkCurse", elite: true },
+        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", hp: 190, maxHp: 190, atk: 30, def: 19, xp: 100, gold: 60, style: "magic", crit: 8, affix: "burn", elite: true },
+        { name: "Xaroon the Dragon", id: "xaroon_dragon", hp: 230, maxHp: 230, atk: 34, def: 22, xp: 120, gold: 80, style: "aggressive", crit: 8, affix: "defBypass", elite: true },
+        { name: "Veltharion the Undying", id: "veltharion", hp: 160, maxHp: 160, atk: 40, def: 14, xp: 110, gold: 70, style: "magic", crit: 10, affix: "atkCurse", elite: true },
     ],
     [
-        { name: "Infernal Behemoth", id: "infernal_behemoth", hp: 180, maxHp: 180, atk: 30, def: 14, xp: 150, gold: 90, style: "aggressive", crit: 5, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
-        { name: "The Abyssal Overlord", id: "abyssal_overlord", hp: 220, maxHp: 220, atk: 38, def: 18, xp: 200, gold: 130, style: "magic", crit: 5, affix: "voidRupture", unique: true, uniqueId: "ao" },
-        { name: "Doomreaper, the Eternal", id: "doomreaper", hp: 320, maxHp: 320, atk: 44, def: 16, xp: 300, gold: 200, style: "magic", crit: 10, affix: "soulStun", affix2: "deathMark", unique: true, uniqueId: "dr", deathMarked: false },
+        { name: "Infernal Behemoth", id: "infernal_behemoth", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
+        { name: "The Abyssal Overlord", id: "abyssal_overlord", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", unique: true, uniqueId: "ao" },
+        { name: "Doomreaper, the Eternal", id: "doomreaper", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", unique: true, uniqueId: "dr", deathMarked: false },
     ],
 ];
 
@@ -447,9 +452,9 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
                     <div style={{ color: "#666", fontSize: 10, marginBottom: 8 }}>Save to the global Hall of Champions and challenge others!</div>
                     <input value={champName} onChange={e => setChampName(e.target.value)} placeholder={playerTitle} maxLength={32}
                         style={{ width: "100%", padding: "6px 10px", background: "#0d0d1a", border: "1px solid #f0c06055", borderRadius: 6, color: "#eee", fontFamily: "Georgia", fontSize: 11, marginBottom: 8, boxSizing: "border-box" }} />
-                    <button onClick={handleSave} disabled={saving}
+                    <button onClick={handleSave} disabled={saving || encounters > 12}
                         style={{ width: "100%", padding: "8px", background: saving ? "#333" : "linear-gradient(90deg,#8a6000,#f0c060)", color: saving ? "#666" : "#0d0d0a", border: "none", borderRadius: 7, fontSize: 12, cursor: saving ? "default" : "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
-                        {saving ? "Saving..." : "🏆 Save to Hall of Champions"}
+                        {encounters > 12 ? "⚠️ Duel winners cannot save (beat main game only)" : saving ? "Saving..." : "🏆 Save to Hall of Champions"}
                     </button>
                     {saveMsg && <div style={{ color: "#ff8060", fontSize: 10, marginTop: 5, textAlign: "center" }}>{saveMsg}</div>}
                 </div>
@@ -593,7 +598,7 @@ export default function App() {
                 id: champ.playerClass?.toLowerCase().replace(/ /g, "_") || "champion",
                 hp: champ.stats.hp, maxHp: champ.stats.hp,
                 atk: champ.stats.atk, def: champ.stats.def,
-                xp: 0, gold: 0, style: "aggressive", crit: champ.stats.crit || 5,
+                xp: 0, gold: 0, style: "duel", champClass: champ.playerClass, crit: champ.stats.crit || 5,
             };
             setEnemy(champEnemy);
             setSavedEnemy({ ...champEnemy });
@@ -780,7 +785,7 @@ export default function App() {
         const flatDR = hasP(eq, "flatDR") ? 2 : 0; const magicDR = hasP(eq, "magicDR") ? 4 : 0;
         const eAtkMod = fnb.enemy.filter(b => b.stat === "atk").reduce((s, b) => s + b.amount, 0);
         let eAtk = fne.atk + eAtkMod;
-        if (fne.affix === "infernalRage" && !fne.raged && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, atk: fne.atk + 5, raged: true }; eAtk += 5; addLog(`🔥 Infernal Behemoth RAGES! +5 ATK!`, "#ff4400"); }
+        if (fne.affix === "infernalRage" && !fne.raged && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, atk: fne.atk + 10, raged: true }; eAtk += 10; addLog(`🔥 Infernal Behemoth RAGES! +10 ATK!`, "#ff4400"); }
         if (fne.affix2 === "deathMark" && !fne.deathMarked && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, deathMarked: true }; fnb.player.push({ stat: "atk", amount: -6, turns: 99 }); addLog(`💀 DEATH MARK! ATK -6 permanently!`, "#880000"); }
         if (fne.minorSuffix === "frenzied" && fne.hp <= (fne.maxHp * 0.5)) eAtk += 8;
         const doHit = (atkVal, defVal, bypassDef = false, isMagic = false) => {
@@ -793,7 +798,43 @@ export default function App() {
             flash("player"); fnp.hp -= dmg; spawnFloat("player", `-${dmg}`, c ? "#ff2200" : "#ff6060");
             addLog(`${fne.icon} ${fne.name} hits ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#ff6060"); return dmg;
         };
-        if (fne.style === "aggressive") { const bp = fne.affix === "defBypass" && isCrit(15); if (bp) addLog(`🐉 Dragonfire! DEF bypassed!`, "#ff8800"); doHit(eAtk, pDef, bp); }
+        if (fne.style === "duel") {
+            // Champion duel — use class-appropriate abilities
+            const champClass = fne.champClass || "";
+            const roll = rand(1, 100);
+            if (champClass === "Death Knight" && roll <= 30 && !fnb.enemy.some(b => b.tag === "duelSacrifice")) {
+                const hc = Math.floor(fne.hp * 0.20);
+                if (fne.hp - hc > 0) {
+                    fne.hp -= hc; spawnFloat("enemy", `-${hc}💀`, "#cc2222");
+                    const ab2 = Math.floor(eAtk * 0.5); const db2 = Math.floor(fne.def * 0.5);
+                    fnb.enemy.push({ stat: "atk", amount: ab2, turns: 3, tag: "duelSacrifice" });
+                    fnb.enemy.push({ stat: "def", amount: db2, turns: 3, tag: "duelSacrifice" });
+                    addLog(`💀 ${fne.name} uses Dark Sacrifice! ATK+${ab2}, DEF+${db2}!`, "#cc2222");
+                } else doHit(eAtk, pDef);
+            } else if (champClass === "Demonic Beast" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelPact")) {
+                fnb.enemy.push({ stat: "atk", amount: Math.floor(eAtk * 0.30), turns: 4, tag: "duelPact" });
+                addLog(`👹 ${fne.name} uses Demon Pact! +30% ATK x 4!`, "#c060f0");
+            } else if (champClass === "Holy Knight" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelShield")) {
+                const db = Math.max(1, Math.floor(fne.def * 0.5));
+                fnb.enemy.push({ stat: "def", amount: db, turns: 3, tag: "duelShield" });
+                addLog(`⚔️ ${fne.name} uses Holy Shield! DEF+${db} x 3!`, "#f0c060");
+            } else if (champClass === "Arch Angel" && roll <= 20 && fne.hp < fne.maxHp * 0.6) {
+                const heal = Math.floor(fne.maxHp * 0.15);
+                fne.hp = Math.min(fne.hp + heal, fne.maxHp);
+                spawnFloat("enemy", `+${heal}`, "#e8e0ff"); addLog(`😇 ${fne.name} heals ${heal} HP!`, "#e8e0ff");
+            } else if (champClass === "Arcane Magician" && roll <= 35) {
+                doHit(Math.floor(eAtk * 1.4), Math.floor(pDef * 0.6), false, true);
+                addLog(`🔮 ${fne.name} casts a spell!`, "#60c0f0");
+            } else if (champClass === "Ranged Assassin" && roll <= 30) {
+                const c = isCrit((fne.crit || 5) + 15);
+                const raw = rand(eAtk, eAtk + 4);
+                const dmg = Math.max(0, calcDmg(c ? Math.floor(raw * 1.5) : raw, Math.floor(pDef * 0.5)));
+                flash("player"); fnp.hp -= dmg; spawnFloat("player", `-${dmg}`, c ? "#ff2200" : "#ff6060");
+                addLog(`🏹 ${fne.name} snipes ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#60f0a0");
+            } else {
+                doHit(eAtk, pDef);
+            }
+        } else if (fne.style === "aggressive") { const bp = fne.affix === "defBypass" && isCrit(15); if (bp) addLog(`🐉 Dragonfire! DEF bypassed!`, "#ff8800"); doHit(eAtk, pDef, bp); }
         else if (fne.style === "defensive") { if (rand(1, 100) > 50) doHit(eAtk - 2, pDef); else { fnb.enemy.push({ stat: "def", amount: 5, turns: 2 }); addLog(`${fne.icon} braces!`, "#f0a060"); } }
         else if (fne.style === "magic") { if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true); }
         else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; addLog(`☣️ Diseased Plague! 15% HP/turn x 2!`, "#cc44ff"); spawnFloat("player", "☣️", "#cc44ff"); } }
