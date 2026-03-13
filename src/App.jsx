@@ -93,7 +93,6 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
     };
     const p = MAP[enemyId];
-    if (!p) return <div style={{ width: size, height: size, ...style }} />;
     if (!p) {
         const clsKey = Object.keys(CLASSES).find(k => k.toLowerCase().replace(/ /g, "_") === enemyId);
         if (clsKey) return <ClassPortrait className={clsKey} size={size} style={{ borderRadius: "12px", ...style }} />;
@@ -230,22 +229,22 @@ const ENEMIES_BY_ZONE = [
         { name: "Plague Priest", id: "plague_priest", icon: "☣️", hp: 75, maxHp: 75, atk: 20, def: 6, xp: 55, gold: 30, style: "plague", crit: 5, minorSuffix: "cursed" },
     ],
     [
-        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", hp: 190, maxHp: 190, atk: 25, def: 19, xp: 100, gold: 60, style: "magic", crit: 8, affix: "burn", elite: true },
-        { name: "Xaroon the Dragon", id: "xaroon_dragon", hp: 230, maxHp: 230, atk: 29, def: 22, xp: 120, gold: 80, style: "aggressive", crit: 8, affix: "defBypass", elite: true },
-        { name: "Veltharion the Undying", id: "veltharion", hp: 160, maxHp: 160, atk: 32, def: 14, xp: 110, gold: 70, style: "magic", crit: 10, affix: "atkCurse", elite: true },
+        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", icon: "👿", hp: 190, maxHp: 190, atk: 25, def: 19, xp: 100, gold: 60, style: "magic", crit: 8, affix: "burn", elite: true },
+        { name: "Xaroon the Dragon", id: "xaroon_dragon", icon: "🐉", hp: 230, maxHp: 230, atk: 29, def: 22, xp: 120, gold: 80, style: "aggressive", crit: 8, affix: "defBypass", elite: true },
+        { name: "Veltharion the Undying", id: "veltharion", icon: "💀", hp: 160, maxHp: 160, atk: 32, def: 14, xp: 110, gold: 70, style: "magic", crit: 10, affix: "atkCurse", elite: true },
     ],
     [
-        { name: "Infernal Behemoth", id: "infernal_behemoth", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
-        { name: "The Abyssal Overlord", id: "abyssal_overlord", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", unique: true, uniqueId: "ao" },
-        { name: "Doomreaper, the Eternal", id: "doomreaper", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", unique: true, uniqueId: "dr", deathMarked: false },
+        { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
+        { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", unique: true, uniqueId: "ao" },
+        { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", unique: true, uniqueId: "dr", deathMarked: false },
     ],
 ];
 
 const CONSUMABLES = [
-    { id: "hpot", name: "Health Potion", icon: "🧪", cost: 15, effect: "heal", amount: 40, desc: "Restore 40 HP" },
-    { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 45, effect: "heal", amount: 100, desc: "Restore 100 HP" },
+    { id: "hpot", name: "Health Potion", icon: "🧪", cost: 10, effect: "heal", amount: 40, desc: "Restore 40 HP" },
+    { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 25, effect: "heal", amount: 100, desc: "Restore 100 HP" },
     { id: "mpot", name: "Mana Elixir", icon: "💧", cost: 15, effect: "mp", amount: 30, desc: "Restore 30 MP" },
-    { id: "revive", name: "Revive Gem", icon: "💎", cost: 60, effect: "revive", amount: 100, desc: "Revive: +100 HP, +30 MP" },
+    { id: "revive", name: "Revive Gem", icon: "💎", cost: 50, effect: "revive", amount: 100, desc: "Revive: +100 HP, +30 MP" },
 ];
 
 const MONSTER_RELICS = [
@@ -584,6 +583,8 @@ export default function App() {
     const [showEquip, setShowEquip] = useState(false);
     const [lvlUp, setLvlUp] = useState(false);
     const [lootNotif, setLootNotif] = useState(null);
+    const [lootQueue, setLootQueue] = useState([]);
+    const [showingLoot, setShowingLoot] = useState(false);
     const [shopMsg, setShopMsg] = useState("");
     const [playerFloats, setPlayerFloats] = useState([]);
     const [enemyFloats, setEnemyFloats] = useState([]);
@@ -633,9 +634,11 @@ export default function App() {
     useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [log]);
     const spawnFloat = (t, text, color) => { const id = floatId.current++; const s = t === "player" ? setPlayerFloats : setEnemyFloats; s(f => [...f, { id, text, color }]); setTimeout(() => s(f => f.filter(x => x.id !== id)), 1300); };
     const flash = t => { setHitFlash(t); setTimeout(() => setHitFlash(null), 300); };
-    const notify = msg => { setLootNotif(msg); setTimeout(() => setLootNotif(null), 2500); };
+    const notify = (msg, icon, desc, type) => {
+        setLootQueue(q => [...q, { msg, icon, desc, type: type || "item" }]);
+    };
 
-    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setShopMsg(""); setShowShop(false); setShowEquip(false); setPlayerFloats([]); setEnemyFloats([]); setTrinketUsed(false); setHitFlash(null); };
+    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setPlayerFloats([]); setEnemyFloats([]); setTrinketUsed(false); setHitFlash(null); };
 
     const selectClass = cls => { setPendingCls(cls); setCharName(""); setScreen("naming"); };
     const randomName = () => { const n = CLASS_NAMES[pendingCls]; setCharName(n[rand(0, n.length - 1)]); };
@@ -659,20 +662,20 @@ export default function App() {
 
     const applyLoot = (loot, np, eq, inv, g, rl) => {
         if (!loot) return { np, inv, g, rl };
-        if (loot.type === "gold") { const amt = rand(loot.amount[0], loot.amount[1]); addLog(`✨ +${amt} Gold!`, "#f0c060"); notify(`💰 +${amt} Gold`); return { np, inv, g: g + amt, rl }; }
+        if (loot.type === "gold") { const amt = rand(loot.amount[0], loot.amount[1]); addLog(`🪙 +${amt} Gold!`, "#f0c060"); notify(`+${amt} Gold`, "🪙", null, "gold"); return { np, inv, g: g + amt, rl }; }
         if (loot.type === "monsterLoot") {
             const pool = MONSTER_LOOT.filter(m => m.tier <= zone); if (!pool.length) return { np, inv, g, rl }; if (rand(1, 100) > 40) return { np, inv, g, rl };
             const ml = pool[rand(0, pool.length - 1)];
             const rItem = [...MONSTER_RELICS, ...TRINKETS].find(x => x.id === ml.id);
             if (!rItem) return { np, inv, g, rl };
-            if (ml.type === "trinket" && !eq.trinket) { const { np: nnp, newEq } = doEquip({ ...rItem, slot: "trinket" }, eq, np); setEquipped(newEq); addLog(`✨ Trinket: ${rItem.icon} ${rItem.name} (Equipped!)`, "#ff88ff"); notify(`${rItem.icon} ${rItem.name}`); return { np: nnp, inv, g, rl }; }
-            if (ml.type === "relic" && rItem.type === "consumable") { addLog(`✨ Loot: ${rItem.icon} ${rItem.name}!`, "#60f0a0"); notify(`${rItem.icon} ${rItem.name}`); const ex = inv.find(i => i.id === rItem.id); return { np, inv: ex ? inv.map(i => i.id === rItem.id ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...rItem, qty: 1 }], g, rl }; }
-            if (ml.type === "relic" && rItem.type === "passive") { addLog(`✨ Relic: ${rItem.icon} ${rItem.name}!`, "#ffcc44"); notify(`${rItem.icon} ${rItem.name}`); return { np, inv, g, rl: [...rl, rItem] }; }
+            if (ml.type === "trinket" && !eq.trinket) { const { np: nnp, newEq } = doEquip({ ...rItem, slot: "trinket" }, eq, np); setEquipped(newEq); addLog(`✨ Trinket: ${rItem.icon} ${rItem.name} (Equipped!)`, "#ff88ff"); notify(rItem.name, rItem.icon, rItem.desc, "equip"); return { np: nnp, inv, g, rl }; }
+            if (ml.type === "relic" && rItem.type === "consumable") { addLog(`✨ Loot: ${rItem.icon} ${rItem.name}!`, "#60f0a0"); notify(rItem.name, rItem.icon, rItem.desc, "consumable"); const ex = inv.find(i => i.id === rItem.id); return { np, inv: ex ? inv.map(i => i.id === rItem.id ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...rItem, qty: 1 }], g, rl }; }
+            if (ml.type === "relic" && rItem.type === "passive") { addLog(`✨ Relic: ${rItem.icon} ${rItem.name}!`, "#ffcc44"); notify(rItem.name, rItem.icon, rItem.desc, "relic"); return { np, inv, g, rl: [...rl, rItem] }; }
             if (ml.type === "trinket") { addLog(`✨ Trinket: ${rItem.icon} ${rItem.name}!`, "#ff88ff"); notify(`${rItem.icon} ${rItem.name}`); const ex = inv.find(i => i.id === rItem.id); return { np, inv: ex ? inv.map(i => i.id === rItem.id ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...rItem, qty: 1 }], g, rl }; }
             return { np, inv, g, rl };
         }
-        if (loot.type === "consumable") { const item = CONSUMABLES.find(c => c.id === loot.id); if (!item) return { np, inv, g, rl }; if (item.id === "revive" && inv.some(i => i.id === "revive" && i.qty > 0)) return { np, inv, g, rl }; addLog(`✨ Loot: ${item.icon} ${item.name}!`, "#60f0a0"); notify(`${item.icon} ${item.name}`); const ex = inv.find(i => i.id === item.id && !i.isGear); return { np, inv: ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }], g, rl }; }
-        if (loot.type === "equipment") { const item = EQUIPMENT.find(e => e.id === loot.id); if (!item) return { np, inv, g, rl }; if (!eq[item.slot]) { const { np: nnp, newEq } = doEquip(item, eq, np); setEquipped(newEq); addLog(`✨ Loot: ${item.icon} ${item.name} (Auto-equipped!)`, "#c060f0"); notify(`${item.icon} ${item.name}`); return { np: nnp, inv, g, rl }; } const alreadyInInv = inv.some(i => i.id === item.id && i.isGear); if (!alreadyInInv) { addLog(`✨ Loot: ${item.icon} ${item.name} (Saved to bag!)`, "#c060f0"); notify(`${item.icon} ${item.name}`); return { np, inv: [...inv, { ...item, qty: 1, isGear: true }], g, rl }; } addLog(`✨ Loot: ${item.icon} ${item.name} (Already have one)`, "#888"); return { np, inv, g, rl }; }
+        if (loot.type === "consumable") { const item = CONSUMABLES.find(c => c.id === loot.id); if (!item) return { np, inv, g, rl }; if (item.id === "revive" && inv.some(i => i.id === "revive" && i.qty > 0)) return { np, inv, g, rl }; addLog(`✨ Loot: ${item.icon} ${item.name}!`, "#60f0a0"); notify(item.name, item.icon, item.desc, "consumable"); const ex = inv.find(i => i.id === item.id && !i.isGear); return { np, inv: ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }], g, rl }; }
+        if (loot.type === "equipment") { const item = EQUIPMENT.find(e => e.id === loot.id); if (!item) return { np, inv, g, rl }; if (!eq[item.slot]) { const { np: nnp, newEq } = doEquip(item, eq, np); setEquipped(newEq); addLog(`✨ Loot: ${item.icon} ${item.name} (Auto-equipped!)`, "#c060f0"); notify(item.name, item.icon, item.desc, "equip"); return { np: nnp, inv, g, rl }; } const alreadyInInv = inv.some(i => i.id === item.id && i.isGear); if (!alreadyInInv) { addLog(`✨ Loot: ${item.icon} ${item.name} (Saved to bag!)`, "#c060f0"); notify(item.name, item.icon, item.desc, "bag"); return { np, inv: [...inv, { ...item, qty: 1, isGear: true }], g, rl }; } addLog(`✨ Loot: ${item.icon} ${item.name} (Already have one)`, "#888"); return { np, inv, g, rl }; }
         return { np, inv, g, rl };
     };
 
@@ -810,12 +813,12 @@ export default function App() {
         const doHit = (atkVal, defVal, bypassDef = false, isMagic = false) => {
             if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges!`, "#e8e0ff"); return 0; }
             const mc = 5 + (fse.enemyBlind > 0 ? 25 : 0);
-            if (rand(1, 100) <= mc) { spawnFloat("enemy", "MISS!", "#888"); addLog(`${fne.name} missed!`, "#888"); return 0; }
+            if (rand(1, 100) <= mc) { spawnFloat("enemy", "MISS!", "#888"); addLog(`${fne.icon || ""} ${fne.name} missed!`, "#888"); return 0; }
             const c = isCrit(fne.crit || 5); const raw = rand(atkVal, atkVal + 4);
             const dr = isMagic ? magicDR : flatDR;
             const dmg = bypassDef ? Math.max(1, raw) : Math.max(0, calcDmg(c ? Math.floor(raw * 1.5) : raw, defVal) - dr);
             flash("player"); fnp.hp -= dmg; spawnFloat("player", `-${dmg}`, c ? "#ff2200" : "#ff6060");
-            addLog(`${fne.icon} ${fne.name} hits ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#ff6060"); return dmg;
+            addLog(`${fne.icon || ""} ${fne.name} hits ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#ff6060"); return dmg;
         };
         if (fne.style === "duel") {
             // Champion duel — use class-appropriate abilities
@@ -854,7 +857,7 @@ export default function App() {
                 doHit(eAtk, pDef);
             }
         } else if (fne.style === "aggressive") { const bp = fne.affix === "defBypass" && isCrit(15); if (bp) addLog(`🐉 Dragonfire! DEF bypassed!`, "#ff8800"); doHit(eAtk, pDef, bp); }
-        else if (fne.style === "defensive") { if (rand(1, 100) > 50) doHit(eAtk - 2, pDef); else { fnb.enemy.push({ stat: "def", amount: 5, turns: 2 }); addLog(`${fne.icon} braces!`, "#f0a060"); } }
+        else if (fne.style === "defensive") { if (rand(1, 100) > 50) doHit(eAtk - 2, pDef); else { fnb.enemy.push({ stat: "def", amount: 5, turns: 2 }); addLog(`${fne.icon || "🛡️"} braces!`, "#f0a060"); } }
         else if (fne.style === "magic") { if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true); }
         else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; addLog(`☣️ Diseased Plague! 15% HP/turn x 2!`, "#cc44ff"); spawnFloat("player", "☣️", "#cc44ff"); } }
         // Tick player debuffs BEFORE applying new ones this turn, so fresh debuffs last their full duration
@@ -1083,7 +1086,28 @@ export default function App() {
     return (
         <div style={{ background: zoneData.bg, minHeight: "100vh", fontFamily: "Georgia", color: "#eee", padding: "10px 10px 20px", transition: "background 1.2s", position: "relative" }}>
             <style>{CSS}</style>
-            {lootNotif && <div style={{ position: "fixed", top: 8, right: 8, background: "#1a1a2e", border: "2px solid #c060f0", borderRadius: 10, padding: "5px 12px", color: "#c060f0", fontSize: 11, fontWeight: "bold", zIndex: 999, boxShadow: "0 0 12px #c060f066", animation: "fadeIn 0.3s" }}>🎁 {lootNotif}</div>}
+            {lootQueue.length > 0 && (() => {
+                const loot = lootQueue[0];
+                const typeColors = { gold: "#f0c060", equip: "#c060f0", bag: "#60a0ff", relic: "#ffcc44", consumable: "#60f0a0" };
+                const typeLabels = { gold: "Gold!", equip: "Equipped!", bag: "Saved to Bag", relic: "Relic Found!", consumable: "Item Found!" };
+                const color = typeColors[loot.type] || "#c060f0";
+                return (
+                    <div style={{ position: "fixed", inset: 0, background: "#00000088", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
+                        onClick={() => setLootQueue(q => q.slice(1))}>
+                        <div style={{ background: "linear-gradient(160deg,#0d0d1a,#1a1020)", border: `2px solid ${color}66`, borderRadius: 16, padding: "24px 28px", textAlign: "center", maxWidth: 260, width: "90%", boxShadow: `0 0 40px ${color}44`, animation: "fadeIn 0.2s" }}
+                            onClick={e => e.stopPropagation()}>
+                            <div style={{ fontSize: 10, color: color, letterSpacing: 2, marginBottom: 8, fontWeight: "bold" }}>{typeLabels[loot.type] || "LOOT!"}</div>
+                            <div style={{ fontSize: 52, marginBottom: 8, filter: `drop-shadow(0 0 12px ${color}88)` }}>{loot.icon}</div>
+                            <div style={{ color: "#eee", fontWeight: "bold", fontSize: 15, marginBottom: 4 }}>{loot.msg}</div>
+                            {loot.desc && <div style={{ color: "#666", fontSize: 10, marginBottom: 16 }}>{loot.desc}</div>}
+                            <button onClick={() => setLootQueue(q => q.slice(1))}
+                                style={{ padding: "8px 28px", background: `linear-gradient(90deg,${color}44,${color}88)`, color: "#fff", border: `1px solid ${color}`, borderRadius: 8, fontSize: 12, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
+                                ✓ Continue{lootQueue.length > 1 ? ` (${lootQueue.length - 1} more)` : ""}
+                            </button>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, background: "#00000050", borderRadius: 10, padding: "5px 10px" }}>
