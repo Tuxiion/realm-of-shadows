@@ -141,7 +141,7 @@ const CLASSES = {
         abilities: [
             { name: "Divine Strike", cost: 10, desc: "Sacred blade attack", damage: [18, 28], type: "atk" },
             { name: "Holy Shield", cost: 8, desc: "+50% DEF for 3 turns", damage: [0, 0], type: "holyShield" },
-            { name: "Lay on Hands", cost: 15, desc: "Heal 30-45 HP", damage: [-45, -30], type: "heal" },
+            { name: "Lay on Hands", cost: 15, desc: "Heal 18-25% Max HP", damage: [0.18, 0.25], type: "scaleHeal" },
         ]
     },
     "Demonic Beast": {
@@ -230,9 +230,9 @@ const ENEMIES_BY_ZONE = [
         { name: "Plague Priest", id: "plague_priest", icon: "☣️", hp: 75, maxHp: 75, atk: 20, def: 6, xp: 55, gold: 30, style: "plague", crit: 5, minorSuffix: "cursed" },
     ],
     [
-        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", hp: 190, maxHp: 190, atk: 30, def: 19, xp: 100, gold: 60, style: "magic", crit: 8, affix: "burn", elite: true },
-        { name: "Xaroon the Dragon", id: "xaroon_dragon", hp: 230, maxHp: 230, atk: 34, def: 22, xp: 120, gold: 80, style: "aggressive", crit: 8, affix: "defBypass", elite: true },
-        { name: "Veltharion the Undying", id: "veltharion", hp: 160, maxHp: 160, atk: 40, def: 14, xp: 110, gold: 70, style: "magic", crit: 10, affix: "atkCurse", elite: true },
+        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", hp: 190, maxHp: 190, atk: 25, def: 19, xp: 100, gold: 60, style: "magic", crit: 8, affix: "burn", elite: true },
+        { name: "Xaroon the Dragon", id: "xaroon_dragon", hp: 230, maxHp: 230, atk: 29, def: 22, xp: 120, gold: 80, style: "aggressive", crit: 8, affix: "defBypass", elite: true },
+        { name: "Veltharion the Undying", id: "veltharion", hp: 160, maxHp: 160, atk: 32, def: 14, xp: 110, gold: 70, style: "magic", crit: 10, affix: "atkCurse", elite: true },
     ],
     [
         { name: "Infernal Behemoth", id: "infernal_behemoth", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
@@ -757,7 +757,8 @@ export default function App() {
             else if (ab.type === "soulRend") { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]); const dmg = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.7)); dealDmg(dmg, "💀 Soul Rend", c); }
             else if (ab.type === "deathSuffering") { cse.enemyDot = 4; spawnFloat("enemy", "💀DoT", "#a0ffa0"); addLog("💀 Death's Suffering! 8% x 4!", "#a0ffa0"); }
             else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); spawnFloat("player", `+${h}`, "#60f0a0"); addLog(`💚 ${ab.name} +${h} HP`, "#60f0a0"); }
-            else if (ab.type === "drain") { const raw = rand(ab.damage[0], ab.damage[1]); const dmg = calcDmg(Math.floor(raw * abilBonus * spdMult * demonMult), ne.def); if (!miss()) { ne.hp -= dmg; flash("enemy"); const heal = Math.floor(Math.floor(dmg / 2) * healMult); np.hp = clamp(np.hp + heal, 0, np.maxHp); spawnFloat("enemy", `-${dmg}`, "#c060f0"); spawnFloat("player", `+${heal}`, "#c060f0"); addLog(`🩸 Soul Drain ${dmg}!`, "#c060f0"); } else addLog("Soul Drain missed!", "#888"); }
+            else if (ab.type === "scaleHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); spawnFloat("player", `+${h}`, "#60f0a0"); addLog(`💚 ${ab.name} +${h} HP (${Math.round(pct*100)}% MaxHP)`, "#60f0a0"); }
+            else if (ab.type === "drain") { const raw = rand(ab.damage[0], ab.damage[1]); const dmg = calcDmg(Math.floor(raw * abilBonus * spdMult * demonMult), ne.def); if (!miss()) { ne.hp -= dmg; flash("enemy"); const heal = Math.floor(dmg * healMult); np.hp = clamp(np.hp + heal, 0, np.maxHp); spawnFloat("enemy", `-${dmg}`, "#c060f0"); spawnFloat("player", `+${heal}`, "#c060f0"); addLog(`🩸 Soul Drain ${dmg} → stolen ${heal} HP!`, "#c060f0"); } else addLog("Soul Drain missed!", "#888"); }
             else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 3, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 3, tag: "arcaneBoost" }); spawnFloat("player", "🔮+14SPD", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 3!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "arcaneBoost") return b; if (b.tag === "demonPact") { const nt = b.turns - 1; if (nt <= 0) cse.demonPactBonus = 0; return { ...b, turns: nt }; } return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
             else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
