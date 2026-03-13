@@ -950,7 +950,7 @@ export default function App() {
                                     {champ.equippedIds?.[slot] && <ItemPortrait itemId={champ.equippedIds[slot]} size={28} />}
                                     <div style={{ textAlign: "left" }}>
                                         <div style={{ color: "#eee", fontSize: 11, fontWeight: "bold" }}>{name}</div>
-                                        <div style={{ color: "#555", fontSize: 9, textTransform: "capitalize" }}>{slot}{(() => { const it = EQUIPMENT.find(e => e.id === champ.equippedIds?.[slot]); return it ? <span style={{ color: "#888", marginLeft: 4 }}>· {it.desc}</span> : null; })()}</div>
+                                        <div style={{ color: "#555", fontSize: 9, textTransform: "capitalize" }}>{slot}{(() => { const it = EQUIPMENT.find(e => e.id === champ.equippedIds?.[slot]) || TRINKETS.find(e => e.id === champ.equippedIds?.[slot]); return it ? <span style={{ color: "#888", marginLeft: 4 }}>· {it.desc}</span> : null; })()}</div>
                                     </div>
                                 </div>
                             ))}
