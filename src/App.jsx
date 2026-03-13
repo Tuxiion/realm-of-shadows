@@ -1,4 +1,17 @@
 ﻿import { useState, useRef, useEffect } from "react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, getDocs, orderBy, query } from "firebase/firestore";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDsOOhAQNlmStCbHLd6Q7rUzCzsz3V5N7g",
+    authDomain: "realm-of-shadows-12493.firebaseapp.com",
+    projectId: "realm-of-shadows-12493",
+    storageBucket: "realm-of-shadows-12493.firebasestorage.app",
+    messagingSenderId: "757070417568",
+    appId: "1:757070417568:web:3ce96324db9fe5171683c5",
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
 
 const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 const clamp = (v, mn, mx) => Math.max(mn, Math.min(mx, v));
@@ -333,6 +346,186 @@ function Particles() {
 const initInv = () => [{ ...CONSUMABLES[0], qty: 2 }, { ...CONSUMABLES[2], qty: 1 }];
 const initEq = () => ({ head: null, weapon: null, body: null, ring: null, trinket: null });
 
+// ── Helper: build champion object from game state ──────────────────────────
+function buildChampion(playerTitle, playerClass, level, gold, encounters, player, equipped, relics, effStatsFn, getRelicBonusFn) {
+    const ep = effStatsFn(player, equipped);
+    const rb = getRelicBonusFn();
+    return {
+        playerTitle,
+        playerClass,
+        level,
+        gold,
+        encounters,
+        date: new Date().toLocaleDateString("sv-SE"),
+        stats: {
+            hp: player.maxHp, maxHp: player.maxHp,
+            mp: player.maxMp, maxMp: player.maxMp,
+            atk: ep.atk + rb.atk,
+            def: ep.def + rb.def,
+            spd: (ep.spd || 0) + rb.spd,
+            crit: (ep.crit || 2) + rb.crit,
+            manaRegen: ep.manaRegen + rb.manaRegen,
+        },
+        equippedNames: Object.fromEntries(
+            Object.entries(equipped).filter(([, v]) => v).map(([k, v]) => [k, v.name])
+        ),
+        relicNames: relics.map(r => r.name),
+    };
+}
+
+// ── VictoryScreen ───────────────────────────────────────────────────────────
+function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounters, equipped, relics, effStats, getRelicBonus, reset }) {
+    const [champName, setChampName] = useState("");
+    const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saveMsg, setSaveMsg] = useState("");
+    const [copyMsg, setCopyMsg] = useState("");
+    const [savedChamp, setSavedChamp] = useState(null);
+
+    const handleSave = async () => {
+        if (saving || saved) return;
+        setSaving(true);
+        try {
+            const name = champName.trim() || playerTitle;
+            const champ = buildChampion(name, playerClass, level, gold, encounters, player, equipped, relics, effStats, getRelicBonus);
+            const docRef = await addDoc(collection(db, "champions"), champ);
+            champ.id = docRef.id;
+            setSavedChamp(champ);
+            setSaved(true);
+            setSaveMsg("Champion immortalized! ✅");
+        } catch (e) {
+            setSaveMsg("Failed to save. Check connection.");
+        }
+        setSaving(false);
+    };
+
+    const handleCopyLink = () => {
+        if (!savedChamp) return;
+        const encoded = btoa(JSON.stringify(savedChamp));
+        const url = `${window.location.origin}${window.location.pathname}?challenge=${encoded}`;
+        navigator.clipboard.writeText(url);
+        setCopyMsg("Copied!"); setTimeout(() => setCopyMsg(""), 2000);
+    };
+
+    const cls = CLASSES[playerClass];
+    return (
+        <div style={{ background: "linear-gradient(160deg,#0a0a00,#1a1800,#0d0d00)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", fontFamily: "Georgia", color: "#eee", padding: 20, paddingTop: 28 }}>
+            <style>{CSS}</style>
+            <div style={{ fontSize: 48, filter: "drop-shadow(0 0 16px #f0c06099)" }}>🏆</div>
+            <h2 style={{ color: "#f0c060", fontSize: 20, animation: "glow 2s infinite", marginBottom: 4 }}>The Abyss is Vanquished!</h2>
+            <p style={{ color: "#ccc", textAlign: "center" }}>{playerTitle}</p>
+            <p style={{ color: "#666", fontSize: 10, marginBottom: 10 }}>Level {level} · {gold} Gold · {encounters} battles</p>
+            {playerClass && <ClassPortrait className={playerClass} size={100} style={{ margin: "0 auto 14px" }} />}
+            <div style={{ background: "#ffffff08", borderRadius: 10, padding: 12, textAlign: "left", width: "100%", maxWidth: 340, marginBottom: 12 }}>
+                <div style={{ color: "#f0c060", fontWeight: "bold", fontSize: 12, marginBottom: 8 }}>🎽 Final Equipment</div>
+                {["head", "weapon", "body", "ring", "trinket"].map(slot => (
+                    <div key={slot} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5, fontSize: 11 }}>
+                        <span style={{ color: "#555", textTransform: "capitalize", width: 46, flexShrink: 0 }}>{slot}:</span>
+                        {equipped[slot] ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                                <ItemPortrait itemId={equipped[slot].id} size={28} />
+                                <span style={{ color: "#eee" }}>{equipped[slot].name}</span>
+                            </div>
+                        ) : <span style={{ color: "#333" }}>—</span>}
+                    </div>
+                ))}
+                {relics.map((r, i) => <div key={i} style={{ fontSize: 10, color: "#ffcc44", marginBottom: 2, display: "flex", alignItems: "center", gap: 4 }}><ItemPortrait itemId={r.id} size={24} />{r.name}</div>)}
+            </div>
+            {!saved ? (
+                <div style={{ width: "100%", maxWidth: 340, background: "#ffffff08", borderRadius: 10, padding: 12, marginBottom: 12 }}>
+                    <div style={{ color: "#f0c060", fontWeight: "bold", fontSize: 12, marginBottom: 6 }}>⚔️ Immortalize Your Champion</div>
+                    <div style={{ color: "#666", fontSize: 10, marginBottom: 8 }}>Save to the global Hall of Champions and challenge others!</div>
+                    <input value={champName} onChange={e => setChampName(e.target.value)} placeholder={playerTitle} maxLength={32}
+                        style={{ width: "100%", padding: "6px 10px", background: "#0d0d1a", border: "1px solid #f0c06055", borderRadius: 6, color: "#eee", fontFamily: "Georgia", fontSize: 11, marginBottom: 8, boxSizing: "border-box" }} />
+                    <button onClick={handleSave} disabled={saving}
+                        style={{ width: "100%", padding: "8px", background: saving ? "#333" : "linear-gradient(90deg,#8a6000,#f0c060)", color: saving ? "#666" : "#0d0d0a", border: "none", borderRadius: 7, fontSize: 12, cursor: saving ? "default" : "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
+                        {saving ? "Saving..." : "🏆 Save to Hall of Champions"}
+                    </button>
+                    {saveMsg && <div style={{ color: "#ff8060", fontSize: 10, marginTop: 5, textAlign: "center" }}>{saveMsg}</div>}
+                </div>
+            ) : (
+                <div style={{ width: "100%", maxWidth: 340, background: "#ffffff08", borderRadius: 10, padding: 12, marginBottom: 12, textAlign: "center" }}>
+                    <div style={{ color: "#60f060", fontSize: 12, marginBottom: 6 }}>{saveMsg}</div>
+                    <div style={{ color: "#666", fontSize: 10, marginBottom: 8 }}>Share this link to challenge others:</div>
+                    <button onClick={handleCopyLink}
+                        style={{ width: "100%", padding: "8px", background: "linear-gradient(90deg,#004488,#0080ff)", color: "#fff", border: "none", borderRadius: 7, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
+                        {copyMsg ? "✅ " + copyMsg : "📋 Copy Challenge Link"}
+                    </button>
+                </div>
+            )}
+            <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => window.dispatchEvent(new CustomEvent("gotoHall"))}
+                    style={{ padding: "7px 16px", background: "#ffffff10", color: "#f0c060", border: "1px solid #f0c06044", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia" }}>🏛️ Hall of Champions</button>
+                <button onClick={reset}
+                    style={{ padding: "7px 16px", background: "linear-gradient(90deg,#c0a020,#f0c060)", color: "#0d0d0a", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>Play Again</button>
+            </div>
+        </div>
+    );
+}
+
+// ── HallScreen ───────────────────────────────────────────────────────────────
+function HallScreen({ reset }) {
+    const [champions, setChampions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [copyIdx, setCopyIdx] = useState(null);
+    const [challenge, setChallenge] = useState(null); // champion to fight
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const q = query(collection(db, "champions"), orderBy("date", "desc"));
+                const snap = await getDocs(q);
+                setChampions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            } catch { setChampions([]); }
+            setLoading(false);
+        })();
+    }, []);
+
+    const handleCopyChallenge = (champ, i) => {
+        const encoded = btoa(JSON.stringify(champ));
+        const url = `${window.location.origin}${window.location.pathname}?challenge=${encoded}`;
+        navigator.clipboard.writeText(url);
+        setCopyIdx(i); setTimeout(() => setCopyIdx(null), 2000);
+    };
+
+    const cls = challenge ? CLASSES[challenge.playerClass] : null;
+    return (
+        <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", fontFamily: "Georgia", color: "#eee", padding: 20, paddingTop: 28 }}>
+            <style>{CSS}</style>
+            <div style={{ fontSize: 36, filter: "drop-shadow(0 0 14px #f0c06099)" }}>🏛️</div>
+            <h2 style={{ color: "#f0c060", fontSize: 18, animation: "glow 2s infinite", marginBottom: 2 }}>Hall of Champions</h2>
+            <p style={{ color: "#555", fontSize: 10, marginBottom: 16, letterSpacing: 1 }}>THOSE WHO CONQUERED THE REALM</p>
+            {loading ? (
+                <div style={{ color: "#444", fontSize: 12, marginTop: 40 }}>Loading champions...</div>
+            ) : champions.length === 0 ? (
+                <div style={{ color: "#444", fontSize: 12, marginTop: 40 }}>No champions yet. Be the first to conquer the Realm!</div>
+            ) : (
+                <div style={{ width: "100%", maxWidth: 500, display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+                    {champions.map((champ, i) => {
+                        const c = CLASSES[champ.playerClass];
+                        return (
+                            <div key={champ.id} style={{ background: "linear-gradient(140deg,#0d0d1a,#15152a)", border: `1px solid ${c?.color || "#444"}44`, borderRadius: 12, padding: "10px 12px", display: "flex", alignItems: "center", gap: 10 }}>
+                                <ClassPortrait className={champ.playerClass} size={48} />
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ color: c?.color || "#f0c060", fontWeight: "bold", fontSize: 12 }}>{champ.playerTitle}</div>
+                                    <div style={{ color: "#555", fontSize: 9 }}>Lv.{champ.level} · {champ.encounters} battles · {champ.date}</div>
+                                    <div style={{ color: "#777", fontSize: 9, marginTop: 2 }}>❤️{champ.stats?.hp} ⚔️{champ.stats?.atk} 🛡️{champ.stats?.def} 💨{champ.stats?.spd}</div>
+                                </div>
+                                <button onClick={() => handleCopyChallenge(champ, i)}
+                                    style={{ padding: "6px 10px", background: copyIdx === i ? "linear-gradient(90deg,#006600,#00aa00)" : "linear-gradient(90deg,#880000,#cc2222)", color: "#fff", border: "none", borderRadius: 7, fontSize: 10, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold", whiteSpace: "nowrap" }}>
+                                    {copyIdx === i ? "✅ Copied!" : "⚔️ Challenge"}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+            <button onClick={reset}
+                style={{ padding: "7px 20px", background: "#ffffff10", color: "#888", border: "1px solid #333", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia" }}>← Back to Menu</button>
+        </div>
+    );
+}
+
 export default function App() {
     const [screen, setScreen] = useState("title");
     const [pendingCls, setPendingCls] = useState(null);
@@ -367,6 +560,20 @@ export default function App() {
     const [enemyFloats, setEnemyFloats] = useState([]);
     const [trinketUsed, setTrinketUsed] = useState(false);
     const [hitFlash, setHitFlash] = useState(null);
+    const [challengeOnVictory, setChallengeOnVictory] = useState(null);
+
+    // Hall nav event + challenge URL parsing
+    useEffect(() => {
+        const goHall = () => setScreen("hall");
+        window.addEventListener("gotoHall", goHall);
+        // Parse challenge link
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const enc = params.get("challenge");
+            if (enc) { const champ = JSON.parse(atob(enc)); setChallengeOnVictory(champ); }
+        } catch {}
+        return () => window.removeEventListener("gotoHall", goHall);
+    }, []);
     const floatId = useRef(0);
     const logRef = useRef(null);
 
@@ -624,7 +831,8 @@ export default function App() {
             <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ fontSize: 48, animation: "pulse 2s infinite", filter: "drop-shadow(0 0 14px #f0c06099)" }}>⚔️</div>
                 <h1 style={{ fontSize: 26, margin: "6px 0 2px", animation: "glow 2.5s infinite", background: "linear-gradient(90deg,#f0c060,#fff8e0,#f0c060)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>Realm of Shadows</h1>
-                <p style={{ color: "#555", marginBottom: 18, fontSize: 10, letterSpacing: 2 }}>4 ZONES · 12 BATTLES · 6 CLASSES</p>
+                <p style={{ color: "#555", marginBottom: 10, fontSize: 10, letterSpacing: 2 }}>4 ZONES · 12 BATTLES · 6 CLASSES</p>
+                <button onClick={() => setScreen("hall")} style={{ marginBottom: 16, padding: "6px 20px", background: "#ffffff08", color: "#f0c060", border: "1px solid #f0c06044", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", letterSpacing: 1 }}>🏛️ Hall of Champions</button>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
                     {Object.entries(CLASSES).map(([cls, data]) => (
                         <div key={cls} onClick={() => selectClass(cls)}
@@ -689,32 +897,9 @@ export default function App() {
         </div>
     );
 
-    if (screen === "victory") return (
-        <div style={{ background: "linear-gradient(160deg,#0a0a00,#1a1800,#0d0d00)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", fontFamily: "Georgia", color: "#eee", padding: 20, paddingTop: 28 }}>
-            <style>{CSS}</style>
-            <div style={{ fontSize: 48, filter: "drop-shadow(0 0 16px #f0c06099)" }}>🏆</div>
-            <h2 style={{ color: "#f0c060", fontSize: 20, animation: "glow 2s infinite", marginBottom: 4 }}>The Abyss is Vanquished!</h2>
-            <p style={{ color: "#ccc", textAlign: "center" }}>{playerTitle}</p>
-            <p style={{ color: "#666", fontSize: 10, marginBottom: 10 }}>Level {level} · {gold} Gold · {encounters} battles</p>
-            {playerClass && <ClassPortrait className={playerClass} size={100} style={{ margin: "0 auto 14px" }} />}
-            <div style={{ background: "#ffffff08", borderRadius: 10, padding: 12, textAlign: "left", width: "100%", maxWidth: 340 }}>
-                <div style={{ color: "#f0c060", fontWeight: "bold", fontSize: 12, marginBottom: 8 }}>🎽 Final Equipment</div>
-                {["head", "weapon", "body", "ring", "trinket"].map(slot => (
-                    <div key={slot} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5, fontSize: 11 }}>
-                        <span style={{ color: "#555", textTransform: "capitalize", width: 46, flexShrink: 0 }}>{slot}:</span>
-                        {equipped[slot] ? (
-                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                <ItemPortrait itemId={equipped[slot].id} size={28} />
-                                <span style={{ color: "#eee" }}>{equipped[slot].name}</span>
-                            </div>
-                        ) : <span style={{ color: "#333" }}>—</span>}
-                    </div>
-                ))}
-                {relics.map((r, i) => <div key={i} style={{ fontSize: 10, color: "#ffcc44", marginBottom: 2, display: "flex", alignItems: "center", gap: 4 }}><ItemPortrait itemId={r.id} size={24} />{r.name}</div>)}
-            </div>
-            <button onClick={reset} style={{ marginTop: 14, padding: "8px 20px", background: "linear-gradient(90deg,#c0a020,#f0c060)", color: "#0d0d0a", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold", boxShadow: "0 0 12px #f0c06066" }}>Play Again</button>
-        </div>
-    );
+    if (screen === "victory") return <VictoryScreen player={player} playerTitle={playerTitle} playerClass={playerClass} level={level} gold={gold} encounters={encounters} equipped={equipped} relics={relics} effStats={effStats} getRelicBonus={getRelicBonus} reset={reset} />;
+
+    if (screen === "hall") return <HallScreen reset={reset} />;
 
     if (lvlUp) return (
         <div style={{ background: "linear-gradient(160deg,#0a0a00,#1a1800)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
