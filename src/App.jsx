@@ -659,6 +659,16 @@ export default function App() {
         } catch {}
         return () => { window.removeEventListener("gotoHall", goHall); window.removeEventListener("startDuel", onStartDuel); };
     }, []);
+    const headerRef = useRef(null);
+    const [headerHeight, setHeaderHeight] = useState(160);
+    useEffect(() => {
+        if (!headerRef.current) return;
+        const obs = new ResizeObserver(() => {
+            if (headerRef.current) setHeaderHeight(headerRef.current.offsetHeight);
+        });
+        obs.observe(headerRef.current);
+        return () => obs.disconnect();
+    }, []);
     const floatId = useRef(0);
     const logRef = useRef(null);
 
@@ -728,6 +738,7 @@ export default function App() {
         if (lvlUp) return;
         const e = getNextEnemy(zone, defeatedUniques); if (!e) return;
         let ef = { ...e }; if (ef.minorSuffix === "armored") ef = { ...ef, def: ef.def + 6 };
+        setDefeatedEnemy(null); setPendingVictory(null);
         setEnemy(ef); setSavedEnemy({ ...ef }); setCombat(true); setBuffs({ player: [], enemy: [] });
         setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate") });
         setTurn("player"); setPlayerFloats([]); setEnemyFloats([]); setTrinketUsed(false);
@@ -1175,9 +1186,9 @@ export default function App() {
                 );
             })()}
 
-            {/* Sticky header — fixed to top on all screen sizes */}
-            <div style={{ position: "sticky", top: 0, zIndex: 100, background: zoneData.bg, paddingTop: 10, paddingBottom: 2, marginBottom: 3 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, background: "#00000070", borderRadius: 10, padding: "5px 10px", backdropFilter: "blur(4px)" }}>
+            {/* Fixed header — stays at top while page scrolls */}
+            <div ref={headerRef} style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: zoneData.bg, padding: "8px 10px 4px", borderBottom: "1px solid #ffffff08", boxShadow: "0 2px 12px #00000088" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, background: "#00000070", borderRadius: 10, padding: "5px 10px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         {playerClass && <ClassPortrait className={playerClass} size={32} />}
                         <div>
@@ -1191,16 +1202,16 @@ export default function App() {
                         <span style={{ color: "#555" }}>⚔️{encounters}/12</span>
                     </div>
                 </div>
-                {/* XP bar inside sticky header */}
-                {player && <div style={{ marginBottom: 2 }}>
+                {/* XP bar */}
+                {player && <div style={{ marginBottom: 3 }}>
                     <div style={{ background: "#111", borderRadius: 3, height: 3, boxShadow: "inset 0 1px 2px #000" }}>
                         <div style={{ width: `${Math.min(100, (xp / (level * 60)) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#8080ff,#60f0ff)", borderRadius: 3, transition: "width 0.5s", boxShadow: "0 0 4px #60f0ff88" }} />
                     </div>
                     <div style={{ textAlign: "right", fontSize: 8, color: "#444", marginTop: 1 }}>{xp}/{level * 60} XP</div>
                 </div>}
-                {/* Player HP/MP bars inside sticky header */}
+                {/* Player HP/MP bars + stats */}
                 {player && ep && (
-                    <div style={{ background: "#00000040", border: `1px solid ${classData?.color}22`, borderRadius: 10, padding: "6px 10px", boxShadow: `0 2px 8px ${classData?.color}11`, animation: hitFlash === "player" ? "flashRed 0.3s" : undefined }}>
+                    <div style={{ background: "#00000040", border: `1px solid ${classData?.color}22`, borderRadius: 10, padding: "6px 10px", animation: hitFlash === "player" ? "flashRed 0.3s" : undefined }}>
                         <AnimatedBar val={player.hp} max={player.maxHp} color={player.hp / player.maxHp > 0.5 ? "#3de060" : player.hp / player.maxHp > 0.25 ? "#f0c060" : "#ff4444"} label="❤️ HP" floats={playerFloats} />
                         <AnimatedBar val={player.mp} max={player.maxMp} color="#5080ff" label="💙 MP" floats={[]} />
                         <div style={{ fontSize: 10, color: "#666", marginTop: 2, display: "flex", gap: 5, flexWrap: "wrap" }}>
@@ -1222,6 +1233,8 @@ export default function App() {
                     </div>
                 )}
             </div>
+            {/* Spacer — pushes content below the fixed header */}
+            <div style={{ height: headerHeight }} />
 
             {/* Defeated enemy — grayed out while loot popups are shown */}
             {defeatedEnemy && !combat && (
