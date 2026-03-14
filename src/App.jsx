@@ -107,38 +107,38 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
 function ItemPortrait({ itemId, size = 32, style = {} }) {
     const MAP = {
         // Row 0 — helmets & staff2
-        "helmet1":     { col: 0, row: 0, yOffset: 0.125 },
-        "helmet2":     { col: 1, row: 0, yOffset: 0.125 },
-        "helmet3":     { col: 2, row: 0, yOffset: 0.175 },
-        "wizHat":      { col: 3, row: 0, yOffset: 0.125 },
-        "orbHelm":     { col: 4, row: 0, yOffset: 0.125 },
-        "staff2":      { col: 5, row: 0, yOffset: 0.125 },
+        "helmet1":     { col: 0, row: 0, yOffset: 0.150 },
+        "helmet2":     { col: 1, row: 0, yOffset: 0.150 },
+        "helmet3":     { col: 2, row: 0, yOffset: 0.200 },
+        "wizHat":      { col: 3, row: 0, yOffset: 0.150 },
+        "orbHelm":     { col: 4, row: 0, yOffset: 0.150 },
+        "staff2":      { col: 5, row: 0, yOffset: 0.150 },
         // Row 1 — weapons
-        "blade1":      { col: 0, row: 1, yOffset: 0.100 },
-        "blade2":      { col: 1, row: 1, yOffset: 0.100 },
-        "axe1":        { col: 2, row: 1, yOffset: 0.100 },
-        "sword1":      { col: 3, row: 1, yOffset: 0.150 },
-        "staff1":      { col: 4, row: 1, yOffset: 0.125 },
+        "blade1":      { col: 0, row: 1, yOffset: 0.125 },
+        "blade2":      { col: 1, row: 1, yOffset: 0.125 },
+        "axe1":        { col: 2, row: 1, yOffset: 0.125 },
+        "sword1":      { col: 3, row: 1, yOffset: 0.175 },
+        "staff1":      { col: 4, row: 1, yOffset: 0.150 },
         // Row 2 — body armor
-        "armor1":      { col: 0, row: 2, yOffset: 0.175 },
-        "armor2":      { col: 1, row: 2, yOffset: 0.175 },
-        "robe1":       { col: 2, row: 2, yOffset: 0.175 },
-        "archArmor":   { col: 3, row: 2, yOffset: 0.175 },
-        "cursedArmor": { col: 5, row: 2, yOffset: 0.175 },
+        "armor1":      { col: 0, row: 2, yOffset: 0.200 },
+        "armor2":      { col: 1, row: 2, yOffset: 0.200 },
+        "robe1":       { col: 2, row: 2, yOffset: 0.200 },
+        "archArmor":   { col: 3, row: 2, yOffset: 0.200 },
+        "cursedArmor": { col: 5, row: 2, yOffset: 0.200 },
         // Row 3 — rings, health potion, revive gem
-        "ring1":       { col: 0, row: 3, yOffset: 0.225 },
-        "ring2":       { col: 1, row: 3, yOffset: 0.175 },
-        "ring3":       { col: 2, row: 3, yOffset: 0.175 },
-        "ring4":       { col: 3, row: 3, yOffset: 0.175 },
-        "hpot":        { col: 4, row: 3, yOffset: 0.275 },
-        "revive":      { col: 5, row: 3, yOffset: 0.075 },
+        "ring1":       { col: 0, row: 3, yOffset: 0.250 },
+        "ring2":       { col: 1, row: 3, yOffset: 0.200 },
+        "ring3":       { col: 2, row: 3, yOffset: 0.200 },
+        "ring4":       { col: 3, row: 3, yOffset: 0.200 },
+        "hpot":        { col: 4, row: 3, yOffset: 0.300 },
+        "revive":      { col: 5, row: 3, yOffset: 0.150 },
         // Row 4 — relics, mana elixir, greater potion
-        "boneFrag":    { col: 0, row: 4, yOffset: 0.125 },
-        "cursedRoot":  { col: 1, row: 4, yOffset: 0.150 },
-        "shadowEss":   { col: 2, row: 4, yOffset: 0.150 },
-        "voidShard":   { col: 3, row: 4, yOffset: 0.150 },
-        "mpot":        { col: 4, row: 4, yOffset: 0.175 },
-        "gpot":        { col: 5, row: 4, yOffset: 0.175 },
+        "boneFrag":    { col: 0, row: 4, yOffset: 0.150 },
+        "cursedRoot":  { col: 1, row: 4, yOffset: 0.175 },
+        "shadowEss":   { col: 2, row: 4, yOffset: 0.175 },
+        "voidShard":   { col: 3, row: 4, yOffset: 0.175 },
+        "mpot":        { col: 4, row: 4, yOffset: 0.200 },
+        "gpot":        { col: 5, row: 4, yOffset: 0.200 },
         // extras sheet — square cells, no yOffset needed
         "bloodVial":    { col: 0, row: 0, sheetKey: "extras" },
         "veilShadows":  { col: 1, row: 0, sheetKey: "extras" },
@@ -1139,7 +1139,7 @@ export default function App() {
 
     // ── EXPLORE / COMBAT ───────────────────────────────────────────────────────
     return (
-        <div style={{ background: zoneData.bg, minHeight: "100vh", fontFamily: "Georgia", color: "#eee", padding: "10px 10px 20px", transition: "background 1.2s", position: "relative" }}>
+        <div style={{ background: zoneData.bg, minHeight: "100vh", fontFamily: "Georgia", color: "#eee", padding: "10px 10px 20px", paddingTop: 0, transition: "background 1.2s", position: "relative" }}>
             <style>{CSS}</style>
             {lootQueue.length > 0 && (() => {
                 const loot = lootQueue[0];
@@ -1175,53 +1175,53 @@ export default function App() {
                 );
             })()}
 
-            {/* Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, background: "#00000050", borderRadius: 10, padding: "5px 10px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    {playerClass && <ClassPortrait className={playerClass} size={32} />}
-                    <div>
-                        <div style={{ color: classData?.color, fontWeight: "bold", fontSize: 11, textShadow: `0 0 6px ${classData?.color}88` }}>{playerTitle}</div>
-                        <div style={{ color: "#555", fontSize: 9 }}>{zoneData.name}</div>
+            {/* Sticky header — fixed to top on all screen sizes */}
+            <div style={{ position: "sticky", top: 0, zIndex: 100, background: zoneData.bg, paddingTop: 10, paddingBottom: 2, marginBottom: 3 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, background: "#00000070", borderRadius: 10, padding: "5px 10px", backdropFilter: "blur(4px)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {playerClass && <ClassPortrait className={playerClass} size={32} />}
+                        <div>
+                            <div style={{ color: classData?.color, fontWeight: "bold", fontSize: 11, textShadow: `0 0 6px ${classData?.color}88` }}>{playerTitle}</div>
+                            <div style={{ color: "#555", fontSize: 9 }}>{zoneData.name}</div>
+                        </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, fontSize: 10, alignItems: "center" }}>
+                        <span style={{ color: "#f0c060", fontWeight: "bold" }}>💰{gold}</span>
+                        <span style={{ color: "#a0c0ff" }}>Lv.{level}</span>
+                        <span style={{ color: "#555" }}>⚔️{encounters}/12</span>
                     </div>
                 </div>
-                <div style={{ display: "flex", gap: 8, fontSize: 10, alignItems: "center" }}>
-                    <span style={{ color: "#f0c060", fontWeight: "bold" }}>💰{gold}</span>
-                    <span style={{ color: "#a0c0ff" }}>Lv.{level}</span>
-                    <span style={{ color: "#555" }}>⚔️{encounters}/12</span>
-                </div>
+                {/* XP bar inside sticky header */}
+                {player && <div style={{ marginBottom: 2 }}>
+                    <div style={{ background: "#111", borderRadius: 3, height: 3, boxShadow: "inset 0 1px 2px #000" }}>
+                        <div style={{ width: `${Math.min(100, (xp / (level * 60)) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#8080ff,#60f0ff)", borderRadius: 3, transition: "width 0.5s", boxShadow: "0 0 4px #60f0ff88" }} />
+                    </div>
+                    <div style={{ textAlign: "right", fontSize: 8, color: "#444", marginTop: 1 }}>{xp}/{level * 60} XP</div>
+                </div>}
+                {/* Player HP/MP bars inside sticky header */}
+                {player && ep && (
+                    <div style={{ background: "#00000040", border: `1px solid ${classData?.color}22`, borderRadius: 10, padding: "6px 10px", boxShadow: `0 2px 8px ${classData?.color}11`, animation: hitFlash === "player" ? "flashRed 0.3s" : undefined }}>
+                        <AnimatedBar val={player.hp} max={player.maxHp} color={player.hp / player.maxHp > 0.5 ? "#3de060" : player.hp / player.maxHp > 0.25 ? "#f0c060" : "#ff4444"} label="❤️ HP" floats={playerFloats} />
+                        <AnimatedBar val={player.mp} max={player.maxMp} color="#5080ff" label="💙 MP" floats={[]} />
+                        <div style={{ fontSize: 10, color: "#666", marginTop: 2, display: "flex", gap: 5, flexWrap: "wrap" }}>
+                            <span>ATK <b style={{ color: "#ddd" }}>{ep.atk + rb.atk}</b></span>
+                            <span>DEF <b style={{ color: "#ddd" }}>{ep.def + rb.def}</b></span>
+                            <span>🎯<b style={{ color: "#ddd" }}>{(ep.crit || 2) + rb.crit}%</b></span>
+                            <span>💨<b style={{ color: "#ddd" }}>SPD {ep.spd + rb.spd}</b></span>
+                            <span>✨<b style={{ color: "#ddd" }}>{ep.manaRegen + rb.manaRegen}/t</b></span>
+                            {hasP(equipped, "lifesteal") && <span style={{ color: "#ff6090" }}>🩸LS5</span>}
+                            {hasP(equipped, "lifesteal2") && <span style={{ color: "#cc2222" }}>🩸LS8</span>}
+                            {hasP(equipped, "reflect") && <span style={{ color: "#f0f060" }}>👑Ref</span>}
+                            {hasP(equipped, "flatDR") && <span style={{ color: "#60a0ff" }}>🛡-2DR</span>}
+                            {hasP(equipped, "magicDR") && <span style={{ color: "#88ccff" }}>✨-4 magic DR</span>}
+                            {hasP(equipped, "abilityBonus") && <span style={{ color: "#ffa060" }}>🌟+Abil</span>}
+                            {hasP(equipped, "holyAura") && <span style={{ color: "#ffe0a0" }}>✨+2/t</span>}
+                            {hasP(equipped, "cursedPlate") && <span style={{ color: "#cc2222" }}>💀-3/t</span>}
+                        </div>
+                        <StatusPills />
+                    </div>
+                )}
             </div>
-
-            {/* XP bar */}
-            {player && <div style={{ marginBottom: 5 }}>
-                <div style={{ background: "#111", borderRadius: 3, height: 3, boxShadow: "inset 0 1px 2px #000" }}>
-                    <div style={{ width: `${Math.min(100, (xp / (level * 60)) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#8080ff,#60f0ff)", borderRadius: 3, transition: "width 0.5s", boxShadow: "0 0 4px #60f0ff88" }} />
-                </div>
-                <div style={{ textAlign: "right", fontSize: 8, color: "#444", marginTop: 1 }}>{xp}/{level * 60} XP</div>
-            </div>}
-
-            {/* Player card */}
-            {player && ep && (
-                <div style={{ background: "#00000040", border: `1px solid ${classData?.color}22`, borderRadius: 12, padding: "8px 10px", marginBottom: 5, animation: hitFlash === "player" ? "flashRed 0.3s" : undefined, boxShadow: `0 2px 8px ${classData?.color}11` }}>
-                    <AnimatedBar val={player.hp} max={player.maxHp} color={player.hp / player.maxHp > 0.5 ? "#3de060" : player.hp / player.maxHp > 0.25 ? "#f0c060" : "#ff4444"} label="❤️ HP" floats={playerFloats} />
-                    <AnimatedBar val={player.mp} max={player.maxMp} color="#5080ff" label="💙 MP" floats={[]} />
-                    <div style={{ fontSize: 10, color: "#666", marginTop: 2, display: "flex", gap: 5, flexWrap: "wrap" }}>
-                        <span>ATK <b style={{ color: "#ddd" }}>{ep.atk + rb.atk}</b></span>
-                        <span>DEF <b style={{ color: "#ddd" }}>{ep.def + rb.def}</b></span>
-                        <span>🎯<b style={{ color: "#ddd" }}>{(ep.crit || 2) + rb.crit}%</b></span>
-                        <span>💨<b style={{ color: "#ddd" }}>SPD {ep.spd + rb.spd}</b></span>
-                        <span>✨<b style={{ color: "#ddd" }}>{ep.manaRegen + rb.manaRegen}/t</b></span>
-                        {hasP(equipped, "lifesteal") && <span style={{ color: "#ff6090" }}>🩸LS5</span>}
-                        {hasP(equipped, "lifesteal2") && <span style={{ color: "#cc2222" }}>🩸LS8</span>}
-                        {hasP(equipped, "reflect") && <span style={{ color: "#f0f060" }}>👑Ref</span>}
-                        {hasP(equipped, "flatDR") && <span style={{ color: "#60a0ff" }}>🛡-2DR</span>}
-                        {hasP(equipped, "magicDR") && <span style={{ color: "#88ccff" }}>✨-4 magic DR</span>}
-                        {hasP(equipped, "abilityBonus") && <span style={{ color: "#ffa060" }}>🌟+Abil</span>}
-                        {hasP(equipped, "holyAura") && <span style={{ color: "#ffe0a0" }}>✨+2/t</span>}
-                        {hasP(equipped, "cursedPlate") && <span style={{ color: "#cc2222" }}>💀-3/t</span>}
-                    </div>
-                    <StatusPills />
-                </div>
-            )}
 
             {/* Defeated enemy — grayed out while loot popups are shown */}
             {defeatedEnemy && !combat && (
@@ -1394,20 +1394,13 @@ export default function App() {
 
                             {shopTab === "sell" && (
                                 <div>
-                                    <div style={{ color: "#555", fontSize: 9, marginBottom: 6 }}>Sell items for gold:</div>
+                                    <div style={{ color: "#555", fontSize: 9, marginBottom: 6 }}>Sell items from your bag (unequip first to sell gear):</div>
                                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                                         {inventory.map((item, idx) => (
                                             <button key={idx} onClick={() => sellItem(item, idx)}
                                                 style={{ background: "#1a1a1a", border: "1px solid #555", color: "#ddd", borderRadius: 8, padding: "6px 8px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5 }}>
                                                 <ItemPortrait itemId={item.id} size={22} />
                                                 <span style={{ lineHeight: 1.3 }}>{item.name}×{item.qty}<br /><span style={{ fontSize: 8, color: "#f0c060" }}>{item.sellPrice || Math.floor(item.cost / 2)}g</span></span>
-                                            </button>
-                                        ))}
-                                        {["head", "weapon", "body", "ring"].filter(s => equipped[s]).map(slot => (
-                                            <button key={slot} onClick={() => sellEquipped(slot)}
-                                                style={{ background: "#1a1a1a", border: "1px solid #f0606044", color: "#ddd", borderRadius: 8, padding: "6px 8px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5 }}>
-                                                <ItemPortrait itemId={equipped[slot].id} size={22} />
-                                                <span style={{ lineHeight: 1.3 }}>{equipped[slot].name}<br /><span style={{ fontSize: 8, color: "#f0c060" }}>{Math.floor(equipped[slot].cost / 2)}g</span></span>
                                             </button>
                                         ))}
                                         {relics.map((r, i) => (
@@ -1417,8 +1410,8 @@ export default function App() {
                                                 <span style={{ lineHeight: 1.3 }}>{r.name}<br /><span style={{ fontSize: 8, color: "#f0c060" }}>{r.sellPrice}g</span></span>
                                             </button>
                                         ))}
-                                        {inventory.length === 0 && !["head","weapon","body","ring"].some(s => equipped[s]) && relics.length === 0 && (
-                                            <div style={{ color: "#333", fontSize: 10 }}>Nothing to sell.</div>
+                                        {inventory.length === 0 && relics.length === 0 && (
+                                            <div style={{ color: "#333", fontSize: 10 }}>Nothing to sell. Unequip items first.</div>
                                         )}
                                     </div>
                                 </div>
