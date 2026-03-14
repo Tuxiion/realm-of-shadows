@@ -104,9 +104,9 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
 function ItemPortrait({ itemId, size = 32, style = {} }) {
     const MAP = {
         "helmet1": { col: 0, row: 0 }, "helmet2": { col: 1, row: 0 }, "helmet3": { col: 2, row: 0 },
-        "wizHat": { col: 3, row: 0 }, "orbHelm": { col: 4, row: 0 },
+        "wizHat": { col: 3, row: 0 }, "orbHelm": { col: 4, row: 0 }, "staff2": { col: 5, row: 0 },
         "blade1": { col: 0, row: 1 }, "blade2": { col: 1, row: 1 }, "axe1": { col: 2, row: 1 },
-        "sword1": { col: 3, row: 1 }, "staff1": { col: 4, row: 1 }, "staff2": { col: 5, row: 1 },
+        "sword1": { col: 3, row: 1 }, "staff1": { col: 4, row: 1 },
         "armor1": { col: 0, row: 2 }, "armor2": { col: 1, row: 2 }, "robe1": { col: 2, row: 2 },
         "archArmor": { col: 3, row: 2 }, "cursedArmor": { col: 4, row: 2 },
         "ring1": { col: 0, row: 3 }, "ring2": { col: 1, row: 3 }, "ring3": { col: 2, row: 3 },
