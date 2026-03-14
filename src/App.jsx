@@ -434,23 +434,6 @@ const initEq = () => ({ head: null, weapon: null, body: null, ring: null, trinke
 const CSS = `
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #000; overflow-x: hidden; }
-    #root {
-        max-width: 600px;
-        margin: 0 auto;
-        min-height: 100vh;
-    }
-    @media (min-width: 900px) {
-        #root { zoom: 1.4; }
-    }
-    @media (min-width: 1200px) {
-        #root { zoom: 1.8; }
-    }
-    @media (min-width: 1600px) {
-        #root { zoom: 2.2; }
-    }
-    @media (min-width: 2000px) {
-        #root { zoom: 2.6; }
-    }
     @keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
     @keyframes particleRise{0%{opacity:0;transform:translateY(0)}20%{opacity:1}80%{opacity:.6}100%{opacity:0;transform:translateY(-120px)}}
     @keyframes glow{0%,100%{text-shadow:0 0 10px #f0c06088,0 0 20px #f0c06044}50%{text-shadow:0 0 20px #f0c060cc,0 0 40px #f0c06088}}
@@ -1421,7 +1404,7 @@ export default function App() {
             })()}
 
             {/* Fixed header — stays at top while page scrolls */}
-            <div ref={headerRef} style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 600, zIndex: 100, background: zoneData.bg, padding: "8px 10px 4px", borderBottom: "1px solid #ffffff08", boxShadow: "0 2px 12px #00000088" }}>
+            <div ref={headerRef} style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: zoneData.bg, padding: "8px 10px 4px", borderBottom: "1px solid #ffffff08", boxShadow: "0 2px 12px #00000088" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, background: "#00000070", borderRadius: 10, padding: "5px 10px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         {playerClass && <ClassPortrait className={playerClass} size={32} />}
