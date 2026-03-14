@@ -67,7 +67,7 @@ function ClassPortrait({ className, size = 56, style = {} }) {
     const p = MAP[className];
     if (!p) return <div style={{ width: size, height: size, ...style }} />;
     const color = CLASSES[className]?.color || "#888";
-    return <Portrait sheetKey={sheet} col={p.col} row={p.row} displaySize={size} radius="6px" glow="#f0c060" style={style} yOffset={p.yOffset || 0} />;
+    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} glow={color} style={style} />;
 }
 
 function EnemyPortrait({ enemyId, size = 56, style = {} }) {
@@ -101,27 +101,51 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
     return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} radius="12px" glow="#cc4444" style={style} yOffset={p.yOffset || 0} />;
 }
 
+// ── FIX: yOffset: 0.083 centers all equipment-sheet items vertically.
+// The equipment sheet cells are 170×205px (20% taller than wide), so without
+// the offset every item was top-biased by ~17px in source coordinates.
+// yOffset = (cellH/cellW - 1) / (2 * cellH/cellW) = 0.1/1.2 ≈ 0.083
 function ItemPortrait({ itemId, size = 32, style = {} }) {
     const MAP = {
-    "helmet1":    { col: 0, row: 0, yOffset: 0.083 }, "helmet2":    { col: 1, row: 0, yOffset: 0.083 }, "helmet3":    { col: 2, row: 0, yOffset: 0.083 },
-    "wizHat":     { col: 3, row: 0, yOffset: 0.083 }, "orbHelm":    { col: 4, row: 0, yOffset: 0.083 }, "staff2":     { col: 5, row: 0, yOffset: 0.083 },
-    "blade1":     { col: 0, row: 1, yOffset: 0.083 }, "blade2":     { col: 1, row: 1, yOffset: 0.083 }, "axe1":       { col: 2, row: 1, yOffset: 0.083 },
-    "sword1":     { col: 3, row: 1, yOffset: 0.083 }, "staff1":     { col: 4, row: 1, yOffset: 0.083 },
-    "armor1":     { col: 0, row: 2, yOffset: 0.083 }, "armor2":     { col: 1, row: 2, yOffset: 0.083 }, "robe1":      { col: 2, row: 2, yOffset: 0.083 },
-    "archArmor":  { col: 3, row: 2, yOffset: 0.083 }, "cursedArmor":{ col: 5, row: 2, yOffset: 0.083 },
-    "ring1":      { col: 0, row: 3, yOffset: 0.083 }, "ring2":      { col: 1, row: 3, yOffset: 0.083 }, "ring3":      { col: 2, row: 3, yOffset: 0.083 },
-    "ring4":      { col: 3, row: 3, yOffset: 0.083 }, "hpot":       { col: 4, row: 3, yOffset: 0.083 }, "revive":     { col: 5, row: 3, yOffset: 0.083 },
-    "boneFrag":   { col: 0, row: 4, yOffset: 0.083 }, "cursedRoot": { col: 1, row: 4, yOffset: 0.083 }, "shadowEss":  { col: 2, row: 4, yOffset: 0.083 },
-    "voidShard":  { col: 3, row: 4, yOffset: 0.083 }, "mpot":       { col: 4, row: 4, yOffset: 0.083 }, "gpot":       { col: 5, row: 4, yOffset: 0.083 },
-    "bloodVial":   { col: 0, row: 0, sheetKey: "extras" },
-    "veilShadows": { col: 1, row: 0, sheetKey: "extras" },
-    "arcaneSliver":{ col: 0, row: 1, sheetKey: "extras" },
-    "heartFallen": { col: 1, row: 1, sheetKey: "extras" },
+        "helmet1":     { col: 0, row: 0, yOffset: 0.083 },
+        "helmet2":     { col: 1, row: 0, yOffset: 0.083 },
+        "helmet3":     { col: 2, row: 0, yOffset: 0.083 },
+        "wizHat":      { col: 3, row: 0, yOffset: 0.083 },
+        "orbHelm":     { col: 4, row: 0, yOffset: 0.083 },
+        "staff2":      { col: 5, row: 0, yOffset: 0.083 },
+        "blade1":      { col: 0, row: 1, yOffset: 0.083 },
+        "blade2":      { col: 1, row: 1, yOffset: 0.083 },
+        "axe1":        { col: 2, row: 1, yOffset: 0.083 },
+        "sword1":      { col: 3, row: 1, yOffset: 0.083 },
+        "staff1":      { col: 4, row: 1, yOffset: 0.083 },
+        "armor1":      { col: 0, row: 2, yOffset: 0.083 },
+        "armor2":      { col: 1, row: 2, yOffset: 0.083 },
+        "robe1":       { col: 2, row: 2, yOffset: 0.083 },
+        "archArmor":   { col: 3, row: 2, yOffset: 0.083 },
+        "cursedArmor": { col: 5, row: 2, yOffset: 0.083 },
+        "ring1":       { col: 0, row: 3, yOffset: 0.083 },
+        "ring2":       { col: 1, row: 3, yOffset: 0.083 },
+        "ring3":       { col: 2, row: 3, yOffset: 0.083 },
+        "ring4":       { col: 3, row: 3, yOffset: 0.083 },
+        "hpot":        { col: 4, row: 3, yOffset: 0.083 },
+        "revive":      { col: 5, row: 3, yOffset: 0.083 },
+        "boneFrag":    { col: 0, row: 4, yOffset: 0.083 },
+        "cursedRoot":  { col: 1, row: 4, yOffset: 0.083 },
+        "shadowEss":   { col: 2, row: 4, yOffset: 0.083 },
+        "voidShard":   { col: 3, row: 4, yOffset: 0.083 },
+        "mpot":        { col: 4, row: 4, yOffset: 0.083 },
+        "gpot":        { col: 5, row: 4, yOffset: 0.083 },
+        // extras sheet has square cells — no yOffset needed
+        "bloodVial":    { col: 0, row: 0, sheetKey: "extras" },
+        "veilShadows":  { col: 1, row: 0, sheetKey: "extras" },
+        "arcaneSliver": { col: 0, row: 1, sheetKey: "extras" },
+        "heartFallen":  { col: 1, row: 1, sheetKey: "extras" },
     };
     const p = MAP[itemId];
     if (!p) return null;
     const sheet = p.sheetKey || "equipment";
-    return <Portrait sheetKey={sheet} col={p.col} row={p.row} displaySize={size} radius="6px" glow="#f0c060" style={style} />;
+    // Pass yOffset through so Portrait can center the item in its viewport
+    return <Portrait sheetKey={sheet} col={p.col} row={p.row} displaySize={size} radius="6px" glow="#f0c060" style={style} yOffset={p.yOffset || 0} />;
 }
 
 const CLASS_NAMES = {
@@ -498,7 +522,7 @@ function HallScreen({ reset }) {
     const [champions, setChampions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [copyIdx, setCopyIdx] = useState(null);
-    const [challenge, setChallenge] = useState(null); // champion to fight
+    const [challenge, setChallenge] = useState(null);
 
     useEffect(() => {
         (async () => {
@@ -652,7 +676,6 @@ export default function App() {
         const { np, newEq } = doUnequip(slot, equipped, player);
         setEquipped(newEq);
         setPlayer(np);
-        // Move to bag instead of deleting
         const alreadyInBag = inventory.some(i => i.id === item.id && i.isGear);
         if (!alreadyInBag) setInventory(inv => [...inv, { ...item, qty: 1, isGear: true }]);
         addLog(`Unequipped ${item.name} → moved to bag.`, "#aaa");
@@ -662,7 +685,6 @@ export default function App() {
         const { np: np2, newEq } = doEquip(item, equipped, player);
         setEquipped(newEq);
         setPlayer(np2);
-        // Remove new item from inventory, add old equipped item to inventory if there was one
         setInventory(inv => {
             let newInv = inv.filter(i => !(i.id === item.id && i.isGear));
             if (oldEquipped) newInv = [...newInv, { ...oldEquipped, qty: 1, isGear: true }];
@@ -833,7 +855,6 @@ export default function App() {
             addLog(`${fne.icon || ""} ${fne.name} hits ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#ff6060"); return dmg;
         };
         if (fne.style === "duel") {
-            // Champion duel — use class-appropriate abilities
             const champClass = fne.champClass || "";
             const roll = rand(1, 100);
             if (champClass === "Death Knight" && roll <= 30 && !fnb.enemy.some(b => b.tag === "duelSacrifice")) {
@@ -872,7 +893,6 @@ export default function App() {
         else if (fne.style === "defensive") { if (rand(1, 100) > 50) doHit(eAtk - 2, pDef); else { fnb.enemy.push({ stat: "def", amount: 5, turns: 2 }); addLog(`${fne.icon || "🛡️"} braces!`, "#f0a060"); } }
         else if (fne.style === "magic") { if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true); }
         else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; addLog(`☣️ Diseased Plague! 15% HP/turn x 2!`, "#cc44ff"); spawnFloat("player", "☣️", "#cc44ff"); } }
-        // Tick player debuffs BEFORE applying new ones this turn, so fresh debuffs last their full duration
         fnb.player = fnb.player.map(b => {
             if (b.tag === "holyShield") { const nt = b.turns - 1; return { ...b, turns: nt }; }
             if (b.tag === "darkSacrifice") { const nt = b.turns - 1; return { ...b, turns: nt }; }
