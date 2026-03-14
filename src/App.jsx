@@ -86,7 +86,7 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "plague_priest": { sheetKey: "zone2", col: 2, row: 1 },
         "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0, yOffset: 0.15 },
         "xaroon_dragon":      { sheetKey: "zone3", col: 1, row: 0, yOffset: 0.35 },
-        "veltharion":         { sheetKey: "zone3", col: 2, row: 0, yOffset: 0.30 },
+        "veltharion":         { sheetKey: "zone3", col: 2, row: 0, yOffset: 0.22 },
         "infernal_behemoth": { sheetKey: "zone4", col: 0, row: 0 },
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
