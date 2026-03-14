@@ -530,17 +530,49 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
             <div style={{ background: "#ffffff08", borderRadius: 10, padding: 12, textAlign: "left", width: "100%", maxWidth: 340, marginBottom: 12 }}>
                 <div style={{ color: "#f0c060", fontWeight: "bold", fontSize: 12, marginBottom: 8 }}>🎽 Final Equipment</div>
                 {["head", "weapon", "body", "ring", "trinket"].map(slot => (
-                    <div key={slot} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5, fontSize: 11 }}>
-                        <span style={{ color: "#555", textTransform: "capitalize", width: 46, flexShrink: 0 }}>{slot}:</span>
+                    <div key={slot} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, borderBottom: "1px solid #ffffff08", paddingBottom: 6 }}>
+                        <span style={{ color: "#555", textTransform: "capitalize", width: 46, flexShrink: 0, fontSize: 10 }}>{slot}:</span>
                         {equipped[slot] ? (
-                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                <ItemPortrait itemId={equipped[slot].id} size={28} />
-                                <span style={{ color: "#eee" }}>{equipped[slot].name}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+                                <ItemPortrait itemId={equipped[slot].id} size={32} />
+                                <div>
+                                    <div style={{ color: "#eee", fontSize: 11, fontWeight: "bold" }}>{equipped[slot].name}</div>
+                                    <div style={{ color: "#888", fontSize: 9 }}>{equipped[slot].desc}</div>
+                                </div>
                             </div>
-                        ) : <span style={{ color: "#333" }}>—</span>}
+                        ) : <span style={{ color: "#333", fontSize: 10 }}>—</span>}
                     </div>
                 ))}
-                {relics.map((r, i) => <div key={i} style={{ fontSize: 10, color: "#ffcc44", marginBottom: 2, display: "flex", alignItems: "center", gap: 4 }}><ItemPortrait itemId={r.id} size={24} />{r.name}</div>)}
+                {relics.length > 0 && (
+                    <div style={{ marginTop: 4 }}>
+                        <div style={{ color: "#ffcc44", fontSize: 10, fontWeight: "bold", marginBottom: 4 }}>🦴 Relics</div>
+                        {relics.map((r, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                                <ItemPortrait itemId={r.id} size={24} />
+                                <div>
+                                    <div style={{ color: "#ffcc44", fontSize: 10, fontWeight: "bold" }}>{r.name}</div>
+                                    <div style={{ color: "#888", fontSize: 9 }}>{r.desc}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {/* Final stats summary */}
+                {(() => {
+                    const ep = effStats(player, equipped);
+                    const rb = getRelicBonus();
+                    return (
+                        <div style={{ display: "flex", justifyContent: "space-around", marginTop: 10, paddingTop: 8, borderTop: "1px solid #ffffff10" }}>
+                            {[["❤️", player.maxHp, "HP"], ["⚔️", ep.atk + rb.atk, "ATK"], ["🛡️", ep.def + rb.def, "DEF"], ["💨", ep.spd + rb.spd, "SPD"], ["🎯", `${(ep.crit||2)+rb.crit}%`, "CRIT"]].map(([icon, val, label]) => (
+                                <div key={label} style={{ textAlign: "center" }}>
+                                    <div style={{ fontSize: 13 }}>{icon}</div>
+                                    <div style={{ color: "#eee", fontWeight: "bold", fontSize: 12 }}>{val}</div>
+                                    <div style={{ color: "#555", fontSize: 9 }}>{label}</div>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                })()}
             </div>
             {!saved ? (
                 <div style={{ width: "100%", maxWidth: 340, background: "#ffffff08", borderRadius: 10, padding: 12, marginBottom: 12 }}>
@@ -1508,23 +1540,23 @@ export default function App() {
                 </div>
             )}
 
-            {/* Explore / Shop / Equip */}
+            {/* Explore / Shop / Equip / Sell */}
             {!combat && !lvlUp && (
                 <div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
                         <Btn onClick={startCombat} border="#f0c060" bg="#2e2000" color="#f0c060">⚔️ Explore</Btn>
-                        <Btn onClick={() => { setShowShop(s => !s); setShowEquip(false); }} border="#60c0f0" bg="#0d1a2e" color="#60c0f0">🏪 Shop</Btn>
+                        <Btn onClick={() => { setShowShop(s => !s); setShowEquip(false); if (showShop) setShopTab("consumables"); }} border="#60c0f0" bg="#0d1a2e" color="#60c0f0">🏪 Shop</Btn>
                         <Btn onClick={() => { setShowEquip(s => !s); setShowShop(false); }} border="#c060f0" bg="#1a0d2e" color="#c060f0">🎽 Equipment</Btn>
+                        <Btn onClick={() => { setShowShop(s => { const next = !s || shopTab !== "sell"; if (next) setShopTab("sell"); return next; }); setShowEquip(false); }} border="#f0a060" bg="#2e1a0d" color="#f0a060">💰 Sell</Btn>
                     </div>
 
                     {inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
                         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
                             {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => (
                                 <div key={item.id}>
-                                    <button onClick={() => !showShop && useItemOutside(inventory.indexOf(item))}
-                                        style={{ background: showShop ? "#0d0d0d" : "#0d1a2e", border: `1px solid ${showShop ? "#33333344" : "#60c0f033"}`, color: showShop ? "#444" : "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: showShop ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, opacity: showShop ? 0.5 : 1 }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}><ItemPortrait itemId={item.id} size={20} /> Use {item.name}×{item.qty}</div>
-                                        {showShop && <div style={{ color: "#ff4444", fontSize: 8 }}>Cannot be used while shopping</div>}
+                                    <button onClick={() => useItemOutside(inventory.indexOf(item))}
+                                        style={{ background: "#0d1a2e", border: "1px solid #60c0f033", color: "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
+                                        <ItemPortrait itemId={item.id} size={20} /> Use {item.name}×{item.qty}
                                     </button>
                                 </div>
                             ))}
@@ -1539,7 +1571,7 @@ export default function App() {
                                 {shopMsg && <span style={{ color: "#60f0a0", fontSize: 10 }}>{shopMsg}</span>}
                             </div>
                             <div style={{ display: "flex", gap: 4, marginBottom: 6, flexWrap: "wrap" }}>
-                                {["consumables", "equipment", "sell"].map(t => (
+                                {["consumables", "equipment"].map(t => (
                                     <Btn key={t} onClick={() => setShopTab(t)} border={shopTab === t ? "#f0c060" : "#333"} bg={shopTab === t ? "#2e2000" : "#1a1a2e"} color={shopTab === t ? "#f0c060" : "#666"}>{t.charAt(0).toUpperCase() + t.slice(1)}</Btn>
                                 ))}
                             </div>
@@ -1552,7 +1584,7 @@ export default function App() {
                                             <button key={item.id} onClick={() => buyConsumable(item)} disabled={gold < item.cost || ro}
                                                 style={{ background: "#1a1a1a", border: "1px solid #555", color: gold < item.cost || ro ? "#444" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || ro ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost || ro ? 0.5 : 1 }}>
                                                 <ItemPortrait itemId={item.id} size={26} />
-                                                <span style={{ lineHeight: 1.3 }}>{item.name}<br /><span style={{ fontSize: 8, color: "#888" }}>{item.cost}g{ro ? " (owned)" : ""}</span></span>
+                                                <span style={{ lineHeight: 1.4 }}>{item.name}<br /><span style={{ fontSize: 9, color: "#aaa" }}>{item.desc}</span><br /><span style={{ fontSize: 8, color: "#f0c060" }}>{item.cost}g{ro ? " (owned)" : ""}</span></span>
                                             </button>
                                         );
                                     })}
