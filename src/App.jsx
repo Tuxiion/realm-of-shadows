@@ -898,25 +898,25 @@ export default function App() {
             if (ne.minorSuffix === "thorned") { const ref = Math.max(1, Math.floor(dmg * 0.15)); np.hp = clamp(np.hp - ref, 0, np.maxHp); triggerAnim("player", "poison", `-${ref}🌵`, "#88ff44"); }
         } else if (type === "ability") {
             const ab = payload;
-            if (ab.type === "holyShield") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; } if (nb.player.some(b => b.tag === "holyShield")) { addLog("⚔️ Holy Shield already active!", "#f0c060"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseDefForShield = ep.def + rb.def; const db = Math.max(1, Math.floor(baseDefForShield * 0.5)); nb.player.push({ stat: "def", amount: db, turns: 6, tag: "holyShield" }); triggerAnim("player", "shield"), `🛡️+${db}DEF`, "#f0c060"); addLog(`⚔️ Holy Shield! +${db} DEF for 6 turns!`, "#f0c060"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            if (ab.type === "holyShield") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; } if (nb.player.some(b => b.tag === "holyShield")) { addLog("⚔️ Holy Shield already active!", "#f0c060"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseDefForShield = ep.def + rb.def; const db = Math.max(1, Math.floor(baseDefForShield * 0.5)); nb.player.push({ stat: "def", amount: db, turns: 6, tag: "holyShield" }); triggerAnim("player", "shield", `🛡️+${db}DEF`, "#f0c060"); addLog(`⚔️ Holy Shield! +${db} DEF for 6 turns!`, "#f0c060"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             if (ab.type === "darkSacrifice") { const hc = Math.floor(np.hp * 0.20); if (np.hp - hc <= 0) { addLog("⚠️ Not enough HP!", "#ff6060"); setPlayer(np); return; } if (nb.player.some(b => b.tag === "darkSacrifice")) { addLog("💀 Dark Sacrifice already active!", "#cc2222"); setPlayer(np); return; } np.hp -= hc; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseAtkForSac = ep.atk + rb.atk; const baseDefForSac = ep.def + rb.def; const ab2 = Math.floor(baseAtkForSac * 0.5); const db2 = Math.floor(baseDefForSac * 0.5); nb.player.push({ stat: "atk", amount: ab2, turns: 6, tag: "darkSacrifice" }); nb.player.push({ stat: "def", amount: db2, turns: 6, tag: "darkSacrifice" }); triggerAnim("player", "power", `💀+${ab2}ATK`, "#cc2222"); addLog(`💀 Dark Sacrifice! -${hc} HP => ATK+${ab2}, DEF+${db2} x 6!`, "#cc2222"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
-            if (ab.type === "demonPact") { if (cse.demonPactBonus > 0) { addLog("👹 Demon Pact already active!", "#c060f0"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 6, tag: "demonPact" }); triggerAnim("player", "power"), "👹+30%DMG", "#c060f0"); addLog(`👹 Demon Pact! +30% dmg x 6 turns!`, "#c060f0"); nb.player = nb.player.map(b => { if (b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            if (ab.type === "demonPact") { if (cse.demonPactBonus > 0) { addLog("👹 Demon Pact already active!", "#c060f0"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 6, tag: "demonPact" }); triggerAnim("player", "power", "👹+30%DMG", "#c060f0"); addLog(`👹 Demon Pact! +30% dmg x 6 turns!`, "#c060f0"); nb.player = nb.player.map(b => { if (b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; }
             np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
             if (ab.type === "atk") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0; const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * abilBonus * spdMult * demonMult) : Math.floor((raw + fb) * abilBonus * spdMult * demonMult), ne.def); dealDmg(dmg, `✨ Your ${ab.name}`, c); const animMap = { "Divine Strike": "holy", "Hellfire": "fire", "Arcane Bolt": "arcane", "Mana Burst": "arcane", "Snipe": "arrow" }; triggerAnim("enemy", animMap[ab.name] || "slash"); if (cse.flightBonus > 0) cse.flightBonus--; }
             else if (ab.type === "soulRend") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const dmg = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.7)); dealDmg(dmg, "💀 Your Soul Rend", c); triggerAnim("enemy", "dark"); }
-            else if (ab.type === "deathSuffering") { cse.enemyDot = 4; triggerAnim("enemy", "dark"), "💀DoT", "#a0ffa0"); addLog("💀 Your Death's Suffering — 8% HP/turn x4!", "#a0ffa0"); }
-            else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal"), `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP`, "#60f0a0"); }
-            else if (ab.type === "scaleHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal"), `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP (${Math.round(pct*100)}% MaxHP)`, "#60f0a0"); }
+            else if (ab.type === "deathSuffering") { cse.enemyDot = 4; triggerAnim("enemy", "dark", "💀DoT", "#a0ffa0"); addLog("💀 Your Death's Suffering — 8% HP/turn x4!", "#a0ffa0"); }
+            else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP`, "#60f0a0"); }
+            else if (ab.type === "scaleHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP (${Math.round(pct*100)}% MaxHP)`, "#60f0a0"); }
             else if (ab.type === "drain") { const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const dmg = calcDmg(Math.floor(raw * abilBonus * spdMult * demonMult), ne.def); if (!miss()) { ne.hp -= dmg; flash("enemy"); const heal = Math.floor(dmg * healMult); np.hp = clamp(np.hp + heal, 0, np.maxHp); triggerAnim("enemy", "drain", `-${dmg}`, "#c060f0"); triggerAnim("player", "drain", `+${heal}`, "#c060f0"); addLog(`🩸 Your Soul Drain deals ${dmg} and steals ${heal} HP`, "#c060f0"); } else addLog("Your Soul Drain missed!", "#888"); }
-            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 6, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 6, tag: "arcaneBoost" }); triggerAnim("player", "arcane"), "🔮+14SPD +5MP/t", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 6!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 6, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 6, tag: "arcaneBoost" }); triggerAnim("player", "arcane", "🔮+14SPD +5MP/t", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 6!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
             else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
-            else if (ab.type === "smokeBomb") { const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 6, tag: "smokeBomb" }); triggerAnim("enemy", "smoke"), `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Your Smoke Bomb reduces ${ne.name}'s ATK by ${reduction} for 6 turns`, "#60f0a0"); }
+            else if (ab.type === "smokeBomb") { const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 6, tag: "smokeBomb" }); triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Your Smoke Bomb reduces ${ne.name}'s ATK by ${reduction} for 6 turns`, "#60f0a0"); }
             else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; const atkBonusM = Math.floor(totalAtk * 0.4); for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonusM; const d = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.6)); ne.hp -= d; tot += d; } } flash("enemy"); triggerAnim("enemy", "arrow", `-${tot}`, "#60f0a0"); addLog(`🏹 Your Lethal Volley — ${hits} hits for ${tot} total`, "#60f0a0"); }
             else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult * demonMult) : Math.floor(base * spdMult * demonMult), ne.def); dealDmg(dmg, "😇 Your Divine Wrath", c); triggerAnim("enemy", "holy"); }
-            else if (ab.type === "takeFlight") { cse.dodgeReady = true; cse.flightBonus = 2; triggerAnim("player", "flight"), "😇 Flight+Dodge", "#e8e0ff"); addLog("😇 Your Take Flight — next attack dodged, +30% dmg x2!", "#e8e0ff"); }
-            else if (ab.type === "celestialHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); np.mp = clamp(np.mp + 10, 0, np.maxMp); triggerAnim("player", "holy"), `+${h}`, "#e8e0ff"); addLog(`😇 Your Celestial Heal restores ${h} HP (${Math.round(pct*100)}%) and +10 MP`, "#e8e0ff"); }
+            else if (ab.type === "takeFlight") { cse.dodgeReady = true; cse.flightBonus = 2; triggerAnim("player", "flight", "😇 Flight+Dodge", "#e8e0ff"); addLog("😇 Your Take Flight — next attack dodged, +30% dmg x2!", "#e8e0ff"); }
+            else if (ab.type === "celestialHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); np.mp = clamp(np.mp + 10, 0, np.maxMp); triggerAnim("player", "holy", `+${h}`, "#e8e0ff"); addLog(`😇 Your Celestial Heal restores ${h} HP (${Math.round(pct*100)}%) and +10 MP`, "#e8e0ff"); }
         } else if (type === "item") {
             const item = inventory[payload]; if (!item || item.qty <= 0) return;
             np.mp = clamp(np.mp + regen, 0, np.maxMp);
@@ -946,8 +946,8 @@ export default function App() {
         const flatDR = hasP(eq, "flatDR") ? 2 : 0; const magicDR = hasP(eq, "magicDR") ? 4 : 0;
         const eAtkMod = fnb.enemy.filter(b => b.stat === "atk").reduce((s, b) => s + b.amount, 0);
         let eAtk = fne.atk + eAtkMod;
-        if (fne.affix === "infernalRage" && !fne.raged && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, atk: fne.atk + 10, raged: true }; eAtk += 10; triggerAnim("enemy", "fire"), "😤RAGE+10ATK", "#ff4400"); addLog(`🔥 Infernal Behemoth RAGES! +10 ATK!`, "#ff4400"); }
-        if (fne.affix2 === "deathMark" && !fne.deathMarked && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, deathMarked: true }; fnb.player.push({ stat: "atk", amount: -6, turns: 99 }); triggerAnim("player", "dark"), "💀DEATHMARK-6ATK", "#880000"); addLog(`💀 DEATH MARK! ATK -6 permanently!`, "#880000"); }
+        if (fne.affix === "infernalRage" && !fne.raged && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, atk: fne.atk + 10, raged: true }; eAtk += 10; triggerAnim("enemy", "fire", "😤RAGE+10ATK", "#ff4400"); addLog(`🔥 Infernal Behemoth RAGES! +10 ATK!`, "#ff4400"); }
+        if (fne.affix2 === "deathMark" && !fne.deathMarked && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, deathMarked: true }; fnb.player.push({ stat: "atk", amount: -6, turns: 99 }); triggerAnim("player", "dark", "💀DEATHMARK-6ATK", "#880000"); addLog(`💀 DEATH MARK! ATK -6 permanently!`, "#880000"); }
         if (fne.minorSuffix === "frenzied" && fne.hp <= (fne.maxHp * 0.5)) eAtk += 8;
         const doHit = (atkVal, defVal, bypassDef = false, isMagic = false) => {
             if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges!`, "#e8e0ff"); return 0; }
@@ -973,18 +973,18 @@ export default function App() {
                     const ab2 = Math.floor(eAtk * 0.5); const db2 = Math.floor(fne.def * 0.5);
                     fnb.enemy.push({ stat: "atk", amount: ab2, turns: 3, tag: "duelSacrifice" });
                     fnb.enemy.push({ stat: "def", amount: db2, turns: 3, tag: "duelSacrifice" });
-                    triggerAnim("enemy", "power"), `💀+${ab2}ATK+${db2}DEF`, "#cc2222");
+                    triggerAnim("enemy", "power", `💀+${ab2}ATK+${db2}DEF`, "#cc2222");
                     addLog(`💀 ${fne.name} uses Dark Sacrifice! ATK+${ab2}, DEF+${db2}!`, "#cc2222");
                 } else doHit(eAtk, pDef);
             } else if (champClass === "Demonic Beast" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelPact")) {
                 const pactAtk = Math.floor(eAtk * 0.30);
                 fnb.enemy.push({ stat: "atk", amount: pactAtk, turns: 4, tag: "duelPact" });
-                triggerAnim("enemy", "power"), `👹+${pactAtk}ATK`, "#c060f0");
+                triggerAnim("enemy", "power", `👹+${pactAtk}ATK`, "#c060f0");
                 addLog(`👹 ${fne.name} uses Demon Pact! +30% ATK x 4!`, "#c060f0");
             } else if (champClass === "Holy Knight" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelShield")) {
                 const db = Math.max(1, Math.floor(fne.def * 0.5));
                 fnb.enemy.push({ stat: "def", amount: db, turns: 3, tag: "duelShield" });
-                triggerAnim("enemy", "shield"), `🛡️+${db}DEF`, "#f0c060");
+                triggerAnim("enemy", "shield", `🛡️+${db}DEF`, "#f0c060");
                 addLog(`⚔️ ${fne.name} uses Holy Shield! DEF+${db} x 3!`, "#f0c060");
             } else if (champClass === "Arch Angel" && roll <= 20 && fne.hp < fne.maxHp * 0.6) {
                 const heal = Math.floor(fne.maxHp * 0.15);
@@ -1011,7 +1011,7 @@ export default function App() {
                     if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges Xaroon's Fire Breath!`, "#e8e0ff"); }
                     else {
                         const spd = ep.spd + rb.spd; const dmg = Math.max(4, spd * 2);
-                        fnp.hp -= dmg; flash("player"); triggerAnim("player", "fire"), `-${dmg}🔥`, "#ff6030");
+                        fnp.hp -= dmg; flash("player"); triggerAnim("player", "fire", `-${dmg}🔥`, "#ff6030");
                         fse.burn = 2;
                         addLog(`🐉 Xaroon breathes fire — ${dmg} dmg + Burning 2 turns!`, "#ff6030");
                     }
@@ -1033,12 +1033,12 @@ export default function App() {
                 } else {
                     // Frenzy Roar: self ATK buff
                     fnb.enemy.push({ stat: "atk", amount: 8, turns: 2, tag: "frenzyRoar" });
-                    triggerAnim("enemy", "fire"), "😤+8ATK", "#ff4400");
+                    triggerAnim("enemy", "fire", "😤+8ATK", "#ff4400");
                     addLog(`😤 Infernal Behemoth Frenzy Roar! ATK +8 for 2 turns!`, "#ff4400");
                 }
             }
         }
-        else if (fne.style === "defensive") { if (rand(1, 100) > 50) doHit(eAtk - 2, pDef); else { fnb.enemy.push({ stat: "def", amount: 5, turns: 2 }); triggerAnim("enemy", "shield"), "🛡️+5DEF", "#f0a060"); addLog(`${fne.icon || "🛡️"} ${fne.name} braces! +5 DEF for 2 turns`, "#f0a060"); } }
+        else if (fne.style === "defensive") { if (rand(1, 100) > 50) doHit(eAtk - 2, pDef); else { fnb.enemy.push({ stat: "def", amount: 5, turns: 2 }); triggerAnim("enemy", "shield", "🛡️+5DEF", "#f0a060"); addLog(`${fne.icon || "🛡️"} ${fne.name} braces! +5 DEF for 2 turns`, "#f0a060"); } }
         else if (fne.style === "magic") {
             // Demon Lord Falaxir — Hellblast + Dark Shroud
             if (fne.id === "demon_lord_falaxir" && rand(1, 100) <= 30) {
@@ -1047,13 +1047,13 @@ export default function App() {
                     if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges Hellblast!`, "#e8e0ff"); }
                     else {
                         const dmg = Math.max(1, Math.floor(eAtk * 1.3) - magicDR);
-                        fnp.hp -= dmg; flash("player"); triggerAnim("player", "fire"), `-${dmg}🔥`, "#ff4400");
+                        fnp.hp -= dmg; flash("player"); triggerAnim("player", "fire", `-${dmg}🔥`, "#ff4400");
                         addLog(`👿 Falaxir's Hellblast — ${dmg} magic dmg (ignores DEF)!`, "#ff4400");
                     }
                 } else {
                     // Dark Shroud: DEF debuff
                     fnb.player.push({ stat: "def", amount: -4, turns: 3, tag: "darkShroud" });
-                    triggerAnim("player", "dark"), "🌑-4DEF", "#cc44ff");
+                    triggerAnim("player", "dark", "🌑-4DEF", "#cc44ff");
                     addLog(`👿 Falaxir's Dark Shroud — your DEF -4 for 3 turns!`, "#cc44ff");
                 }
             }
@@ -1063,12 +1063,12 @@ export default function App() {
                     // Soul Leech: heals 15% of missing HP
                     const missing = fne.maxHp - fne.hp; const heal = Math.max(1, Math.floor(missing * 0.15));
                     fne.hp = Math.min(fne.hp + heal, fne.maxHp);
-                    triggerAnim("enemy", "drain"), `+${heal}🩸`, "#cc44ff");
+                    triggerAnim("enemy", "drain", `+${heal}🩸`, "#cc44ff");
                     addLog(`💀 Veltharion's Soul Leech — steals ${heal} HP from the void!`, "#cc44ff");
                 } else {
                     // Curse of Frailty: halves heal effectiveness
                     fse.frailCurse = (fse.frailCurse || 0) + 3;
-                    triggerAnim("player", "dark"), "💀Frail", "#aa44ff");
+                    triggerAnim("player", "dark", "💀Frail", "#aa44ff");
                     addLog(`💀 Veltharion's Curse of Frailty — your heals halved for 3 turns!`, "#aa44ff");
                 }
                 if (fnp.hp > 0 && rand(1, 100) > 30) doHit(eAtk + 3, Math.floor(pDef / 2), false, true);
@@ -1079,14 +1079,14 @@ export default function App() {
                     // Mind Shatter: ATK + DEF debuff
                     fnb.player.push({ stat: "atk", amount: -3, turns: 3, tag: "mindShatter" });
                     fnb.player.push({ stat: "def", amount: -3, turns: 3, tag: "mindShatter" });
-                    triggerAnim("player", "arcane"), "👁️Shatter", "#cc00ff");
+                    triggerAnim("player", "arcane", "👁️Shatter", "#cc00ff");
                     addLog(`👁️ Abyssal Overlord's Mind Shatter — ATK & DEF -3 for 3 turns!`, "#cc00ff");
                 } else {
                     // Void Pull: dmg scales with player's missing HP
                     if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges Void Pull!`, "#e8e0ff"); }
                     else {
                         const missingHp = fnp.maxHp - fnp.hp; const dmg = Math.max(5, Math.floor(missingHp * 0.2) - magicDR);
-                        fnp.hp -= dmg; flash("player"); triggerAnim("player", "arcane"), `-${dmg}👁️`, "#cc00ff");
+                        fnp.hp -= dmg; flash("player"); triggerAnim("player", "arcane", `-${dmg}👁️`, "#cc00ff");
                         addLog(`👁️ Void Pull — the abyss tears at your wounds for ${dmg}!`, "#cc00ff");
                     }
                 }
@@ -1096,7 +1096,7 @@ export default function App() {
             else if (fne.id === "doomreaper" && rand(1, 100) <= 25 && (fne.witherCount || 0) < 2) {
                 fne.witherCount = (fne.witherCount || 0) + 1;
                 const witherAmt = 10; fnp.maxHp = Math.max(20, fnp.maxHp - witherAmt); fnp.hp = Math.min(fnp.hp, fnp.maxHp);
-                triggerAnim("player", "dark"), `☠️-${witherAmt}MaxHP`, "#880000");
+                triggerAnim("player", "dark", `☠️-${witherAmt}MaxHP`, "#880000");
                 addLog(`☠️ Doomreaper's Wither — your Max HP reduced by ${witherAmt} permanently!`, "#880000");
                 if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true);
             }
@@ -1104,7 +1104,7 @@ export default function App() {
                 if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true);
             }
         }
-        else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; triggerAnim("player", "poison"), "☣️PLAGUE", "#cc44ff"); addLog(`☣️ Diseased Plague! 15% HP/turn x 2!`, "#cc44ff"); } }
+        else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; triggerAnim("player", "poison", "☣️PLAGUE", "#cc44ff"); addLog(`☣️ Diseased Plague! 15% HP/turn x 2!`, "#cc44ff"); } }
         fnb.player = fnb.player.map(b => {
             if (b.tag === "holyShield") { const nt = b.turns - 1; return { ...b, turns: nt }; }
             if (b.tag === "darkSacrifice") { const nt = b.turns - 1; return { ...b, turns: nt }; }
@@ -1115,9 +1115,9 @@ export default function App() {
         if (fse.frailCurse > 0) fse.frailCurse--;
         if (fnp.hp > 0) {
             if (fne.affix === "burn" && isCrit(20)) { fse.burn = 2; triggerAnim("player", "fire"); addLog(`🔥 Hellbound! Burning 2 turns!`, "#ff6030"); }
-            if (fne.affix === "atkCurse" && isCrit(15)) { fnb.player.push({ stat: "atk", amount: -4, turns: 2 }); triggerAnim("player", "debuff"), "💀-4ATK", "#aa44ff"); addLog(`💀 Undying Curse! ATK -4 x 2!`, "#aa44ff"); }
-            if (fne.affix === "soulStun" && isCrit(20)) { fse.stunned = true; triggerAnim("player", "dark"), "💀STUNNED", "#cc44cc"); addLog(`💀 SOUL STUN!`, "#cc44cc"); }
-            if (fne.minorSuffix === "venomous" && isCrit(35)) { fse.playerPoison = 2; triggerAnim("player", "poison"), "🐍POISON", "#80ff80"); addLog(`🐍 Poisoned!`, "#80ff80"); }
+            if (fne.affix === "atkCurse" && isCrit(15)) { fnb.player.push({ stat: "atk", amount: -4, turns: 2 }); triggerAnim("player", "debuff", "💀-4ATK", "#aa44ff"); addLog(`💀 Undying Curse! ATK -4 x 2!`, "#aa44ff"); }
+            if (fne.affix === "soulStun" && isCrit(20)) { fse.stunned = true; triggerAnim("player", "dark", "💀STUNNED", "#cc44cc"); addLog(`💀 SOUL STUN!`, "#cc44cc"); }
+            if (fne.minorSuffix === "venomous" && isCrit(35)) { fse.playerPoison = 2; triggerAnim("player", "poison", "🐍POISON", "#80ff80"); addLog(`🐍 Poisoned!`, "#80ff80"); }
         }
         if (fse.enemyBlind > 0) fse.enemyBlind--;
         if (hasP(eq, "reflect") && fnp.hp > 0) { const ref = Math.floor(Math.abs(np.hp - fnp.hp) * 0.1); if (ref > 0) { fne.hp -= ref; triggerAnim("enemy", "holy", `-${ref}👑`, "#f0f060"); addLog(`👑 Reflects ${ref}!`, "#f0f060"); } }
