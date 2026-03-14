@@ -37,7 +37,7 @@ const SHEET_META = {
     extras: { cols: 2, rows: 2, w: 1024, h: 1024 },
 };
 
-function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888", yOffset = 0, xOffset = 0 }) {
+function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888", yOffset = 0 }) {
     const meta = SHEET_META[sheetKey];
     if (!meta) return <div style={{ width: displaySize, height: displaySize, ...style }} />;
     const cellW = meta.w / meta.cols;
@@ -46,8 +46,7 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
     const scaledSheetW = meta.w * scale;
     const scaledSheetH = meta.h * scale;
     const scaledCellH = cellH * scale;
-    const scaledCellW = cellW * scale; // = displaySize exactly
-    const bpx = -(col * displaySize) - (xOffset * scaledCellW);
+    const bpx = -(col * displaySize);
     const bpy = -(row * scaledCellH) - (yOffset * scaledCellH);
     return (
         <div style={{ width: displaySize, height: displaySize, borderRadius: radius, overflow: "hidden", flexShrink: 0, border: `2px solid ${glow}88`, boxShadow: `0 0 10px ${glow}55`, ...style }}>
@@ -108,38 +107,38 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
 function ItemPortrait({ itemId, size = 32, style = {} }) {
     const MAP = {
         // Row 0 — helmets & staff2
-        "helmet1":     { col: 0, row: 0, xOffset: 0.41, yOffset: 0.10 },
-        "helmet2":     { col: 1, row: 0, xOffset: 0.39, yOffset: 0.10 },
-        "helmet3":     { col: 2, row: 0, xOffset: 0.34, yOffset: 0.20 },
-        "wizHat":      { col: 3, row: 0, xOffset: 0.32, yOffset: 0.15 },
-        "orbHelm":     { col: 4, row: 0, xOffset: 0.33, yOffset: 0.10 },
-        "staff2":      { col: 5, row: 0, xOffset: 0.36, yOffset: 0.10 },
+        "helmet1":     { col: 0, row: 0, yOffset: 0.10 },
+        "helmet2":     { col: 1, row: 0, yOffset: 0.10 },
+        "helmet3":     { col: 2, row: 0, yOffset: 0.20 },
+        "wizHat":      { col: 3, row: 0, yOffset: 0.15 },
+        "orbHelm":     { col: 4, row: 0, yOffset: 0.10 },
+        "staff2":      { col: 5, row: 0, yOffset: 0.10 },
         // Row 1 — weapons
-        "blade1":      { col: 0, row: 1, xOffset: 0.54, yOffset: 0.10 },
-        "blade2":      { col: 1, row: 1, xOffset: 0.52, yOffset: 0.10 },
-        "axe1":        { col: 2, row: 1, xOffset: 0.59, yOffset: 0.10 },
-        "sword1":      { col: 3, row: 1, xOffset: 0.23, yOffset: 0.15 },
-        "staff1":      { col: 4, row: 1, xOffset: 0.47, yOffset: 0.10 },
+        "blade1":      { col: 0, row: 1, yOffset: 0.10 },
+        "blade2":      { col: 1, row: 1, yOffset: 0.10 },
+        "axe1":        { col: 2, row: 1, yOffset: 0.10 },
+        "sword1":      { col: 3, row: 1, yOffset: 0.15 },
+        "staff1":      { col: 4, row: 1, yOffset: 0.10 },
         // Row 2 — body armor
-        "armor1":      { col: 0, row: 2, xOffset: 0.39, yOffset: 0.20 },
-        "armor2":      { col: 1, row: 2, xOffset: 0.36, yOffset: 0.20 },
-        "robe1":       { col: 2, row: 2, xOffset: 0.37, yOffset: 0.20 },
-        "archArmor":   { col: 3, row: 2, xOffset: 0.39, yOffset: 0.20 },
-        "cursedArmor": { col: 5, row: 2, xOffset: 0.37, yOffset: 0.20 },
+        "armor1":      { col: 0, row: 2, yOffset: 0.20 },
+        "armor2":      { col: 1, row: 2, yOffset: 0.20 },
+        "robe1":       { col: 2, row: 2, yOffset: 0.20 },
+        "archArmor":   { col: 3, row: 2, yOffset: 0.20 },
+        "cursedArmor": { col: 5, row: 2, yOffset: 0.20 },
         // Row 3 — rings, health potion, revive gem
-        "ring1":       { col: 0, row: 3, xOffset: 0.38, yOffset: 0.25 },
-        "ring2":       { col: 1, row: 3, xOffset: 0.39, yOffset: 0.20 },
-        "ring3":       { col: 2, row: 3, xOffset: 0.37, yOffset: 0.20 },
-        "ring4":       { col: 3, row: 3, xOffset: 0.36, yOffset: 0.20 },
-        "hpot":        { col: 4, row: 3, xOffset: 0.39, yOffset: 0.30 },
-        "revive":      { col: 5, row: 3, xOffset: 0.37, yOffset: 0.10 },
+        "ring1":       { col: 0, row: 3, yOffset: 0.25 },
+        "ring2":       { col: 1, row: 3, yOffset: 0.20 },
+        "ring3":       { col: 2, row: 3, yOffset: 0.20 },
+        "ring4":       { col: 3, row: 3, yOffset: 0.20 },
+        "hpot":        { col: 4, row: 3, yOffset: 0.30 },
+        "revive":      { col: 5, row: 3, yOffset: 0.10 },
         // Row 4 — relics, mana elixir, greater potion
-        "boneFrag":    { col: 0, row: 4, xOffset: 0.35, yOffset: 0.15 },
-        "cursedRoot":  { col: 1, row: 4, xOffset: 0.38, yOffset: 0.15 },
-        "shadowEss":   { col: 2, row: 4, xOffset: 0.39, yOffset: 0.15 },
-        "voidShard":   { col: 3, row: 4, xOffset: 0.39, yOffset: 0.15 },
-        "mpot":        { col: 4, row: 4, xOffset: 0.39, yOffset: 0.20 },
-        "gpot":        { col: 5, row: 4, xOffset: 0.36, yOffset: 0.20 },
+        "boneFrag":    { col: 0, row: 4, yOffset: 0.15 },
+        "cursedRoot":  { col: 1, row: 4, yOffset: 0.15 },
+        "shadowEss":   { col: 2, row: 4, yOffset: 0.15 },
+        "voidShard":   { col: 3, row: 4, yOffset: 0.15 },
+        "mpot":        { col: 4, row: 4, yOffset: 0.20 },
+        "gpot":        { col: 5, row: 4, yOffset: 0.20 },
         // extras sheet — square cells, no yOffset needed
         "bloodVial":    { col: 0, row: 0, sheetKey: "extras" },
         "veilShadows":  { col: 1, row: 0, sheetKey: "extras" },
@@ -150,7 +149,7 @@ function ItemPortrait({ itemId, size = 32, style = {} }) {
     if (!p) return null;
     const sheet = p.sheetKey || "equipment";
     // Pass yOffset through so Portrait can center the item in its viewport
-    return <Portrait sheetKey={sheet} col={p.col} row={p.row} displaySize={size} radius="6px" glow="#f0c060" style={style} yOffset={p.yOffset || 0} xOffset={p.xOffset || 0} />;
+    return <Portrait sheetKey={sheet} col={p.col} row={p.row} displaySize={size} radius="6px" glow="#f0c060" style={style} yOffset={p.yOffset || 0} />;
 }
 
 const CLASS_NAMES = {
