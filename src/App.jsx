@@ -660,7 +660,7 @@ export default function App() {
         return () => { window.removeEventListener("gotoHall", goHall); window.removeEventListener("startDuel", onStartDuel); };
     }, []);
     const headerRef = useRef(null);
-    const [headerHeight, setHeaderHeight] = useState(160);
+    const [headerHeight, setHeaderHeight] = useState(200);
     useEffect(() => {
         if (!headerRef.current) return;
         const obs = new ResizeObserver(() => {
@@ -773,10 +773,10 @@ export default function App() {
             addLog(`🗺️ Descending into ${ZONES[nz].name}...`, nz === 3 ? "#ff4400" : "#60c0f0");
         }
         setPendingVictory(afterLoot);
-        // If no loot popups will appear, clear the corpse and fire transition after a short pause
+        // If no loot popups will appear, just fire the transition after a short pause
+        // The corpse stays until startCombat clears it
         if (!loot && ne.gold <= 0) {
             setTimeout(() => {
-                setDefeatedEnemy(null);
                 if (afterLoot === "levelup") { setLvlUp(true); setPendingVictory(null); }
                 else if (afterLoot === "victory") { setScreen("victory"); setPendingVictory(null); }
                 else { setPendingVictory(null); }
@@ -1150,7 +1150,7 @@ export default function App() {
 
     // ── EXPLORE / COMBAT ───────────────────────────────────────────────────────
     return (
-        <div style={{ background: zoneData.bg, minHeight: "100vh", fontFamily: "Georgia", color: "#eee", padding: "10px 10px 20px", paddingTop: 0, transition: "background 1.2s", position: "relative" }}>
+        <div style={{ background: zoneData.bg, minHeight: "100vh", fontFamily: "Georgia", color: "#eee", padding: "10px 10px 20px", paddingTop: 0, transition: "background 1.2s", position: "relative", overflowX: "hidden" }}>
             <style>{CSS}</style>
             {lootQueue.length > 0 && (() => {
                 const loot = lootQueue[0];
@@ -1161,8 +1161,7 @@ export default function App() {
                     const remaining = lootQueue.length - 1;
                     setLootQueue(q => q.slice(1));
                     if (remaining === 0) {
-                        // All loot shown — now clear the corpse and fire deferred transition
-                        setDefeatedEnemy(null);
+                        // Fire deferred screen transition — but keep the corpse visible until Explore
                         if (pendingVictory === "levelup") { setLvlUp(true); setPendingVictory(null); }
                         else if (pendingVictory === "victory") { setScreen("victory"); setPendingVictory(null); }
                         else { setPendingVictory(null); }
@@ -1233,8 +1232,8 @@ export default function App() {
                     </div>
                 )}
             </div>
-            {/* Spacer — pushes content below the fixed header */}
-            <div style={{ height: headerHeight }} />
+            {/* Spacer — sized to exactly the fixed header so content starts below it */}
+            <div style={{ height: headerHeight + 4 }} />
 
             {/* Defeated enemy — grayed out while loot popups are shown */}
             {defeatedEnemy && !combat && (
