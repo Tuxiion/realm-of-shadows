@@ -67,7 +67,7 @@ function ClassPortrait({ className, size = 56, style = {} }) {
     const p = MAP[className];
     if (!p) return <div style={{ width: size, height: size, ...style }} />;
     const color = CLASSES[className]?.color || "#888";
-    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} glow={color} style={style} />;
+    return <Portrait sheetKey={sheet} col={p.col} row={p.row} displaySize={size} radius="6px" glow="#f0c060" style={style} yOffset={p.yOffset || 0} />;
 }
 
 function EnemyPortrait({ enemyId, size = 56, style = {} }) {
@@ -103,20 +103,20 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
 
 function ItemPortrait({ itemId, size = 32, style = {} }) {
     const MAP = {
-        "helmet1": { col: 0, row: 0 }, "helmet2": { col: 1, row: 0 }, "helmet3": { col: 2, row: 0 },
-        "wizHat": { col: 3, row: 0 }, "orbHelm": { col: 4, row: 0 }, "staff2": { col: 5, row: 0 },
-        "blade1": { col: 0, row: 1 }, "blade2": { col: 1, row: 1 }, "axe1": { col: 2, row: 1 },
-        "sword1": { col: 3, row: 1 }, "staff1": { col: 4, row: 1 },
-        "armor1": { col: 0, row: 2 }, "armor2": { col: 1, row: 2 }, "robe1": { col: 2, row: 2 },
-        "archArmor": { col: 3, row: 2 }, "cursedArmor": { col: 5, row: 2 },
-        "ring1": { col: 0, row: 3 }, "ring2": { col: 1, row: 3 }, "ring3": { col: 2, row: 3 },
-        "ring4": { col: 3, row: 3 }, "hpot": { col: 4, row: 3 }, "revive": { col: 5, row: 3 },
-        "boneFrag": { col: 0, row: 4 }, "cursedRoot": { col: 1, row: 4 }, "shadowEss": { col: 2, row: 4 },
-        "voidShard": { col: 3, row: 4 }, "mpot": { col: 4, row: 4 }, "gpot": { col: 5, row: 4 },
-        "bloodVial": { col: 0, row: 0, sheetKey: "extras" },
-        "veilShadows": { col: 1, row: 0, sheetKey: "extras" },
-        "arcaneSliver": { col: 0, row: 1, sheetKey: "extras" },
-        "heartFallen": { col: 1, row: 1, sheetKey: "extras" },
+    "helmet1":    { col: 0, row: 0, yOffset: 0.083 }, "helmet2":    { col: 1, row: 0, yOffset: 0.083 }, "helmet3":    { col: 2, row: 0, yOffset: 0.083 },
+    "wizHat":     { col: 3, row: 0, yOffset: 0.083 }, "orbHelm":    { col: 4, row: 0, yOffset: 0.083 }, "staff2":     { col: 5, row: 0, yOffset: 0.083 },
+    "blade1":     { col: 0, row: 1, yOffset: 0.083 }, "blade2":     { col: 1, row: 1, yOffset: 0.083 }, "axe1":       { col: 2, row: 1, yOffset: 0.083 },
+    "sword1":     { col: 3, row: 1, yOffset: 0.083 }, "staff1":     { col: 4, row: 1, yOffset: 0.083 },
+    "armor1":     { col: 0, row: 2, yOffset: 0.083 }, "armor2":     { col: 1, row: 2, yOffset: 0.083 }, "robe1":      { col: 2, row: 2, yOffset: 0.083 },
+    "archArmor":  { col: 3, row: 2, yOffset: 0.083 }, "cursedArmor":{ col: 5, row: 2, yOffset: 0.083 },
+    "ring1":      { col: 0, row: 3, yOffset: 0.083 }, "ring2":      { col: 1, row: 3, yOffset: 0.083 }, "ring3":      { col: 2, row: 3, yOffset: 0.083 },
+    "ring4":      { col: 3, row: 3, yOffset: 0.083 }, "hpot":       { col: 4, row: 3, yOffset: 0.083 }, "revive":     { col: 5, row: 3, yOffset: 0.083 },
+    "boneFrag":   { col: 0, row: 4, yOffset: 0.083 }, "cursedRoot": { col: 1, row: 4, yOffset: 0.083 }, "shadowEss":  { col: 2, row: 4, yOffset: 0.083 },
+    "voidShard":  { col: 3, row: 4, yOffset: 0.083 }, "mpot":       { col: 4, row: 4, yOffset: 0.083 }, "gpot":       { col: 5, row: 4, yOffset: 0.083 },
+    "bloodVial":   { col: 0, row: 0, sheetKey: "extras" },
+    "veilShadows": { col: 1, row: 0, sheetKey: "extras" },
+    "arcaneSliver":{ col: 0, row: 1, sheetKey: "extras" },
+    "heartFallen": { col: 1, row: 1, sheetKey: "extras" },
     };
     const p = MAP[itemId];
     if (!p) return null;
