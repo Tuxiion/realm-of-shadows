@@ -947,7 +947,7 @@ export default function App() {
             else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 6, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 6, tag: "arcaneBoost" }); triggerAnim("player", "arcane", "🔮+14SPD +5MP/t", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 6!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
             else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
-            else if (ab.type === "smokeBomb") { const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 6, tag: "smokeBomb" }); triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Your Smoke Bomb reduces ${ne.name}'s ATK by ${reduction} for 6 turns`, "#60f0a0"); }
+            else if (ab.type === "smokeBomb") { const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 12, tag: "smokeBomb" }); triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Your Smoke Bomb reduces ${ne.name}'s ATK by ${reduction} for 6 turns`, "#60f0a0"); }
             else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; const atkBonusM = Math.floor(totalAtk * 0.4); for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonusM; const d = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.6)); ne.hp -= d; tot += d; } } flash("enemy"); triggerAnim("enemy", "arrow", `-${tot}`, "#60f0a0"); addLog(`🏹 Your Lethal Volley — ${hits} hits for ${tot} total`, "#60f0a0"); }
             else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult * demonMult) : Math.floor(base * spdMult * demonMult), ne.def); dealDmg(dmg, "😇 Your Divine Wrath", c, "holy"); }
             else if (ab.type === "takeFlight") { cse.dodgeReady = true; cse.flightBonus = 2; triggerAnim("player", "flight", "😇 Flight+Dodge", "#e8e0ff"); addLog("😇 Your Take Flight — next attack dodged, +30% dmg x2!", "#e8e0ff"); }
@@ -1483,6 +1483,11 @@ export default function App() {
                                 {enemy.raged && <StatusPill label="😤RAGED" color="#ff4400" />}
                                 {enemy.deathMarked && <StatusPill label="💀DMARK" color="#880000" />}
                                 {se.enemyBlind > 0 && <StatusPill label={`🌑Blind(${se.enemyBlind})`} color="#ff88ff" />}
+                                {buffs.enemy.filter(b => b.amount < 0).map((b, i) => {
+                                    const rounds = Math.ceil(b.turns / 2);
+                                    const icon = b.tag === "smokeBomb" ? "💨" : "⬇️";
+                                    return <StatusPill key={`ed${i}`} label={`${icon}${b.stat.toUpperCase()}${b.amount}(${rounds})`} color="#60f0a0" />;
+                                })}
                             </div>
                             <div style={{ fontSize: 9, color: "#555", marginTop: 2 }}>ATK {enemy.atk} · DEF {enemy.def}</div>
                         </div>
