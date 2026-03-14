@@ -881,10 +881,12 @@ export default function App() {
         const healMult = ne.minorSuffix === "cursed" ? 0.7 : (cse.frailCurse > 0 ? 0.5 : 1.0);
         const demonMult = 1 + (cse.demonPactBonus || 0);
 
-        const dealDmg = (dmg, label, critHit) => {
+        const dealDmg = (dmg, label, critHit, animType = "slash") => {
             if (ne.minorSuffix === "shadowed" && isCrit(20)) { triggerAnim("enemy", null, "DODGE!", "#8888ff"); addLog(`🌑 ${ne.name} dodges your attack!`, "#8888ff"); return 0; }
             if (miss()) { triggerAnim("player", null, "MISS!", "#888"); addLog(`You missed!`, "#888"); return 0; }
-            ne.hp -= dmg; flash("enemy"); triggerAnim("enemy", critHit ? "slash" : "slash", `-${dmg}`, critHit ? "#ffdd00" : "#ff4444");
+            ne.hp -= dmg; flash("enemy");
+            const dmgLabel = `${critHit ? "⚡" : ""}-${dmg}`;
+            triggerAnim("enemy", animType, dmgLabel, critHit ? "#ffdd00" : "#ff4444");
             addLog(`${label} hits for ${dmg}${critHit ? " 🎯 CRIT!" : ""}`, critHit ? "#ffdd00" : "#60f060"); return dmg;
         };
 
@@ -893,7 +895,7 @@ export default function App() {
             const c = isCrit(totalCrit); const raw = rand(totalAtk - 2, totalAtk + 5);
             const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0;
             const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * demonMult) : (raw + fb) * demonMult | 0, ne.def);
-            dealDmg(dmg, "⚔️ Your attack", c); triggerAnim("enemy", "slash"); if (cse.flightBonus > 0) cse.flightBonus--;
+            dealDmg(dmg, "⚔️ Your attack", c); if (cse.flightBonus > 0) cse.flightBonus--;
             if (hasP(eq, "lifesteal")) { np.hp = clamp(np.hp + 5, 0, np.maxHp); triggerAnim("player", "drain", "+5🩸", "#ff6090"); }
             if (hasP(eq, "lifesteal2")) { np.hp = clamp(np.hp + 8, 0, np.maxHp); triggerAnim("player", "drain", "+8🩸", "#cc2222"); }
             if (ne.minorSuffix === "thorned") { const ref = Math.max(1, Math.floor(dmg * 0.15)); np.hp = clamp(np.hp - ref, 0, np.maxHp); triggerAnim("player", "poison", `-${ref}🌵`, "#88ff44"); }
@@ -904,8 +906,8 @@ export default function App() {
             if (ab.type === "demonPact") { if (cse.demonPactBonus > 0) { addLog("👹 Demon Pact already active!", "#c060f0"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 6, tag: "demonPact" }); triggerAnim("player", "power", "👹+30%DMG", "#c060f0"); addLog(`👹 Demon Pact! +30% dmg x 6 turns!`, "#c060f0"); nb.player = nb.player.map(b => { if (b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; }
             np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
-            if (ab.type === "atk") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0; const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * abilBonus * spdMult * demonMult) : Math.floor((raw + fb) * abilBonus * spdMult * demonMult), ne.def); dealDmg(dmg, `✨ Your ${ab.name}`, c); const animMap = { "Divine Strike": "holy", "Hellfire": "fire", "Arcane Bolt": "arcane", "Mana Burst": "arcane", "Snipe": "arrow" }; triggerAnim("enemy", animMap[ab.name] || "slash"); if (cse.flightBonus > 0) cse.flightBonus--; }
-            else if (ab.type === "soulRend") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const dmg = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.7)); dealDmg(dmg, "💀 Your Soul Rend", c); triggerAnim("enemy", "dark"); }
+            if (ab.type === "atk") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0; const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * abilBonus * spdMult * demonMult) : Math.floor((raw + fb) * abilBonus * spdMult * demonMult), ne.def); const animMap = { "Divine Strike": "holy", "Hellfire": "fire", "Arcane Bolt": "arcane", "Mana Burst": "arcane", "Snipe": "arrow" }; const animType = animMap[ab.name] || "slash"; dealDmg(dmg, `✨ Your ${ab.name}`, c, animType); if (cse.flightBonus > 0) cse.flightBonus--; }
+            else if (ab.type === "soulRend") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const dmg = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.7)); dealDmg(dmg, "💀 Your Soul Rend", c, "dark"); }
             else if (ab.type === "deathSuffering") { cse.enemyDot = 4; triggerAnim("enemy", "dark", "💀DoT", "#a0ffa0"); addLog("💀 Your Death's Suffering — 8% HP/turn x4!", "#a0ffa0"); }
             else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP`, "#60f0a0"); }
             else if (ab.type === "scaleHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP (${Math.round(pct*100)}% MaxHP)`, "#60f0a0"); }
@@ -915,7 +917,7 @@ export default function App() {
             else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
             else if (ab.type === "smokeBomb") { const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 6, tag: "smokeBomb" }); triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Your Smoke Bomb reduces ${ne.name}'s ATK by ${reduction} for 6 turns`, "#60f0a0"); }
             else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; const atkBonusM = Math.floor(totalAtk * 0.4); for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonusM; const d = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.6)); ne.hp -= d; tot += d; } } flash("enemy"); triggerAnim("enemy", "arrow", `-${tot}`, "#60f0a0"); addLog(`🏹 Your Lethal Volley — ${hits} hits for ${tot} total`, "#60f0a0"); }
-            else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult * demonMult) : Math.floor(base * spdMult * demonMult), ne.def); dealDmg(dmg, "😇 Your Divine Wrath", c); triggerAnim("enemy", "holy"); }
+            else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult * demonMult) : Math.floor(base * spdMult * demonMult), ne.def); dealDmg(dmg, "😇 Your Divine Wrath", c, "holy"); }
             else if (ab.type === "takeFlight") { cse.dodgeReady = true; cse.flightBonus = 2; triggerAnim("player", "flight", "😇 Flight+Dodge", "#e8e0ff"); addLog("😇 Your Take Flight — next attack dodged, +30% dmg x2!", "#e8e0ff"); }
             else if (ab.type === "celestialHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); np.mp = clamp(np.mp + 10, 0, np.maxMp); triggerAnim("player", "holy", `+${h}`, "#e8e0ff"); addLog(`😇 Your Celestial Heal restores ${h} HP (${Math.round(pct*100)}%) and +10 MP`, "#e8e0ff"); }
         } else if (type === "item") {
@@ -960,7 +962,9 @@ export default function App() {
             // Determine anim type from enemy style — must be declared BEFORE use
             const eStyle = fne.style || "aggressive";
             const eAnimType = isMagic ? "arcane" : eStyle === "plague" ? "poison" : "slash";
-            flash("player"); fnp.hp -= dmg; triggerAnim("player", eAnimType, `-${dmg}`, c ? "#ff2200" : "#ff6060");
+            const eAnimEmoji = { slash: "⚔️", arcane: "🔮", poison: "☣️", fire: "🔥" }[eAnimType] || "⚔️";
+            flash("player"); fnp.hp -= dmg;
+            triggerAnim("player", eAnimType, `${eAnimEmoji}${c ? "⚡" : ""}-${dmg}`, c ? "#ff2200" : "#ff6060");
             addLog(`${fne.icon || ""} ${fne.name} hits you for ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#ff6060"); return dmg;
         };
         if (fne.style === "duel") {
