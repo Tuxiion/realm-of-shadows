@@ -269,9 +269,9 @@ const ENEMIES_BY_ZONE = [
 ];
 
 const CONSUMABLES = [
-    { id: "hpot", name: "Health Potion", icon: "🧪", cost: 10, effect: "heal", amount: 40, desc: "Restore 40 HP" },
-    { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 25, effect: "heal", amount: 100, desc: "Restore 100 HP" },
-    { id: "mpot", name: "Mana Elixir", icon: "💧", cost: 15, effect: "mp", amount: 30, desc: "Restore 30 MP" },
+    { id: "hpot", name: "Health Potion", icon: "🧪", cost: 30, effect: "heal", amount: 40, desc: "Restore 40 HP" },
+    { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 15, effect: "heal", amount: 100, desc: "Restore 100 HP" },
+    { id: "mpot", name: "Mana Elixir", icon: "💧", cost: 50, effect: "mp", amount: 50, desc: "Restore 50 MP" },
     { id: "revive", name: "Revive Gem", icon: "💎", cost: 50, effect: "revive", amount: 100, desc: "Revive: +100 HP, +30 MP" },
 ];
 
@@ -963,6 +963,7 @@ export default function App() {
             else { np.mp = clamp(np.mp + regen, 0, np.maxMp); addLog("Couldn't escape!", "#ff6060"); }
         }
         nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost" || b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
+        nb.enemy = nb.enemy.map(b => ({ ...b, turns: b.turns - 1 })).filter(b => b.turns > 0);
         setSe(cse); setSavedEnemy({ ...ne });
         if (ne.hp <= 0) {
             // Show the killing blow animation before transitioning — update enemy so the flash/anim renders
