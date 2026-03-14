@@ -107,38 +107,38 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
 function ItemPortrait({ itemId, size = 32, style = {} }) {
     const MAP = {
         // Row 0 — helmets & staff2
-        "helmet1":     { col: 0, row: 0, yOffset: 0.10 },
-        "helmet2":     { col: 1, row: 0, yOffset: 0.10 },
-        "helmet3":     { col: 2, row: 0, yOffset: 0.20 },
-        "wizHat":      { col: 3, row: 0, yOffset: 0.15 },
-        "orbHelm":     { col: 4, row: 0, yOffset: 0.10 },
-        "staff2":      { col: 5, row: 0, yOffset: 0.10 },
+        "helmet1":     { col: 0, row: 0, yOffset: 0.125 },
+        "helmet2":     { col: 1, row: 0, yOffset: 0.125 },
+        "helmet3":     { col: 2, row: 0, yOffset: 0.175 },
+        "wizHat":      { col: 3, row: 0, yOffset: 0.125 },
+        "orbHelm":     { col: 4, row: 0, yOffset: 0.125 },
+        "staff2":      { col: 5, row: 0, yOffset: 0.125 },
         // Row 1 — weapons
-        "blade1":      { col: 0, row: 1, yOffset: 0.10 },
-        "blade2":      { col: 1, row: 1, yOffset: 0.10 },
-        "axe1":        { col: 2, row: 1, yOffset: 0.10 },
-        "sword1":      { col: 3, row: 1, yOffset: 0.15 },
-        "staff1":      { col: 4, row: 1, yOffset: 0.10 },
+        "blade1":      { col: 0, row: 1, yOffset: 0.100 },
+        "blade2":      { col: 1, row: 1, yOffset: 0.100 },
+        "axe1":        { col: 2, row: 1, yOffset: 0.100 },
+        "sword1":      { col: 3, row: 1, yOffset: 0.150 },
+        "staff1":      { col: 4, row: 1, yOffset: 0.125 },
         // Row 2 — body armor
-        "armor1":      { col: 0, row: 2, yOffset: 0.20 },
-        "armor2":      { col: 1, row: 2, yOffset: 0.20 },
-        "robe1":       { col: 2, row: 2, yOffset: 0.20 },
-        "archArmor":   { col: 3, row: 2, yOffset: 0.20 },
-        "cursedArmor": { col: 5, row: 2, yOffset: 0.20 },
+        "armor1":      { col: 0, row: 2, yOffset: 0.175 },
+        "armor2":      { col: 1, row: 2, yOffset: 0.175 },
+        "robe1":       { col: 2, row: 2, yOffset: 0.175 },
+        "archArmor":   { col: 3, row: 2, yOffset: 0.175 },
+        "cursedArmor": { col: 5, row: 2, yOffset: 0.175 },
         // Row 3 — rings, health potion, revive gem
-        "ring1":       { col: 0, row: 3, yOffset: 0.25 },
-        "ring2":       { col: 1, row: 3, yOffset: 0.20 },
-        "ring3":       { col: 2, row: 3, yOffset: 0.20 },
-        "ring4":       { col: 3, row: 3, yOffset: 0.20 },
-        "hpot":        { col: 4, row: 3, yOffset: 0.30 },
-        "revive":      { col: 5, row: 3, yOffset: 0.10 },
+        "ring1":       { col: 0, row: 3, yOffset: 0.225 },
+        "ring2":       { col: 1, row: 3, yOffset: 0.175 },
+        "ring3":       { col: 2, row: 3, yOffset: 0.175 },
+        "ring4":       { col: 3, row: 3, yOffset: 0.175 },
+        "hpot":        { col: 4, row: 3, yOffset: 0.275 },
+        "revive":      { col: 5, row: 3, yOffset: 0.075 },
         // Row 4 — relics, mana elixir, greater potion
-        "boneFrag":    { col: 0, row: 4, yOffset: 0.15 },
-        "cursedRoot":  { col: 1, row: 4, yOffset: 0.15 },
-        "shadowEss":   { col: 2, row: 4, yOffset: 0.15 },
-        "voidShard":   { col: 3, row: 4, yOffset: 0.15 },
-        "mpot":        { col: 4, row: 4, yOffset: 0.20 },
-        "gpot":        { col: 5, row: 4, yOffset: 0.20 },
+        "boneFrag":    { col: 0, row: 4, yOffset: 0.125 },
+        "cursedRoot":  { col: 1, row: 4, yOffset: 0.150 },
+        "shadowEss":   { col: 2, row: 4, yOffset: 0.150 },
+        "voidShard":   { col: 3, row: 4, yOffset: 0.150 },
+        "mpot":        { col: 4, row: 4, yOffset: 0.175 },
+        "gpot":        { col: 5, row: 4, yOffset: 0.175 },
         // extras sheet — square cells, no yOffset needed
         "bloodVial":    { col: 0, row: 0, sheetKey: "extras" },
         "veilShadows":  { col: 1, row: 0, sheetKey: "extras" },
@@ -621,6 +621,8 @@ export default function App() {
     const [trinketUsed, setTrinketUsed] = useState(false);
     const [hitFlash, setHitFlash] = useState(null);
     const [challengeOnVictory, setChallengeOnVictory] = useState(null);
+    const [defeatedEnemy, setDefeatedEnemy] = useState(null); // holds slain enemy while loot shows
+    const [pendingVictory, setPendingVictory] = useState(null); // deferred post-loot action
 
     // Hall nav event + challenge URL parsing
     useEffect(() => {
@@ -668,7 +670,7 @@ export default function App() {
         setLootQueue(q => [...q, { msg, icon, desc, type: type || "item" }]);
     };
 
-    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setPlayerFloats([]); setEnemyFloats([]); setTrinketUsed(false); setHitFlash(null); };
+    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setPlayerFloats([]); setEnemyFloats([]); setTrinketUsed(false); setHitFlash(null); setDefeatedEnemy(null); setPendingVictory(null); };
 
     const selectClass = cls => { setPendingCls(cls); setCharName(""); setScreen("naming"); };
     const randomName = () => { const n = CLASS_NAMES[pendingCls]; setCharName(n[rand(0, n.length - 1)]); };
@@ -746,12 +748,29 @@ export default function App() {
         const loot = rand(1, 100) <= 65 ? LOOT_TABLES[zone][rand(0, LOOT_TABLES[zone].length - 1)] : null;
         const { np: fnp, inv: finv, g: fg, rl: frl } = applyLoot(loot, np, eq, inv, earnedGold, rl);
         const newEnc = encounters + 1; setEncounters(newEnc); setXp(earnedXp); setGold(fg); setInventory(finv); setRelics(frl);
+        // Keep the dead enemy visible (grayed out) while loot popups show
+        setDefeatedEnemy({ ...ne });
         setCombat(false); setEnemy(null); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false });
         setFinalLog(l => l.length ? l : [...log]);
-        if (earnedXp >= level * 60) { setPlayer(fnp); setBuffs(nb); setLvlUp(true); return; }
-        if (newEnc >= 12) { setPlayer(fnp); setScreen("victory"); return; }
-        if (newEnc % 3 === 0) { const nz = Math.min(3, zone + 1); setZone(nz); addLog(`🗺️ Descending into ${ZONES[nz].name}...`, nz === 3 ? "#ff4400" : "#60c0f0"); }
         setPlayer(fnp); setBuffs(nb);
+        // Store what should happen after all loot popups are dismissed
+        let afterLoot = null;
+        if (earnedXp >= level * 60) afterLoot = "levelup";
+        else if (newEnc >= 12) afterLoot = "victory";
+        else if (newEnc % 3 === 0) {
+            const nz = Math.min(3, zone + 1); setZone(nz);
+            addLog(`🗺️ Descending into ${ZONES[nz].name}...`, nz === 3 ? "#ff4400" : "#60c0f0");
+        }
+        setPendingVictory(afterLoot);
+        // If no loot popups will appear, clear the corpse and fire transition after a short pause
+        if (!loot && ne.gold <= 0) {
+            setTimeout(() => {
+                setDefeatedEnemy(null);
+                if (afterLoot === "levelup") { setLvlUp(true); setPendingVictory(null); }
+                else if (afterLoot === "victory") { setScreen("victory"); setPendingVictory(null); }
+                else { setPendingVictory(null); }
+            }, 1800);
+        }
     };
 
     const useTrinket = () => {
@@ -1127,16 +1146,27 @@ export default function App() {
                 const typeColors = { gold: "#f0c060", equip: "#c060f0", bag: "#60a0ff", relic: "#ffcc44", consumable: "#60f0a0" };
                 const typeLabels = { gold: "Gold!", equip: "Equipped!", bag: "Saved to Bag", relic: "Relic Found!", consumable: "Item Found!" };
                 const color = typeColors[loot.type] || "#c060f0";
+                const dismissLoot = () => {
+                    const remaining = lootQueue.length - 1;
+                    setLootQueue(q => q.slice(1));
+                    if (remaining === 0) {
+                        // All loot shown — now clear the corpse and fire deferred transition
+                        setDefeatedEnemy(null);
+                        if (pendingVictory === "levelup") { setLvlUp(true); setPendingVictory(null); }
+                        else if (pendingVictory === "victory") { setScreen("victory"); setPendingVictory(null); }
+                        else { setPendingVictory(null); }
+                    }
+                };
                 return (
                     <div style={{ position: "fixed", inset: 0, background: "#00000088", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
-                        onClick={() => setLootQueue(q => q.slice(1))}>
+                        onClick={dismissLoot}>
                         <div style={{ background: "linear-gradient(160deg,#0d0d1a,#1a1020)", border: `2px solid ${color}66`, borderRadius: 16, padding: "24px 28px", textAlign: "center", maxWidth: 260, width: "90%", boxShadow: `0 0 40px ${color}44`, animation: "fadeIn 0.2s" }}
                             onClick={e => e.stopPropagation()}>
                             <div style={{ fontSize: 10, color: color, letterSpacing: 2, marginBottom: 8, fontWeight: "bold" }}>{typeLabels[loot.type] || "LOOT!"}</div>
                             <div style={{ fontSize: 52, marginBottom: 8, filter: `drop-shadow(0 0 12px ${color}88)` }}>{loot.icon}</div>
                             <div style={{ color: "#eee", fontWeight: "bold", fontSize: 15, marginBottom: 4 }}>{loot.msg}</div>
                             {loot.desc && <div style={{ color: "#666", fontSize: 10, marginBottom: 16 }}>{loot.desc}</div>}
-                            <button onClick={() => setLootQueue(q => q.slice(1))}
+                            <button onClick={dismissLoot}
                                 style={{ padding: "8px 28px", background: `linear-gradient(90deg,${color}44,${color}88)`, color: "#fff", border: `1px solid ${color}`, borderRadius: 8, fontSize: 12, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
                                 ✓ Continue{lootQueue.length > 1 ? ` (${lootQueue.length - 1} more)` : ""}
                             </button>
@@ -1190,6 +1220,19 @@ export default function App() {
                         {hasP(equipped, "cursedPlate") && <span style={{ color: "#cc2222" }}>💀-3/t</span>}
                     </div>
                     <StatusPills />
+                </div>
+            )}
+
+            {/* Defeated enemy — grayed out while loot popups are shown */}
+            {defeatedEnemy && !combat && (
+                <div style={{ background: "#00000050", border: "1px solid #44444433", borderRadius: 12, padding: "8px 10px", marginBottom: 5, filter: "grayscale(100%) brightness(0.45)", opacity: 0.7, transition: "opacity 0.4s" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <EnemyPortrait enemyId={getEnemyPortraitId(defeatedEnemy)} size={72} />
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 11, color: "#888", fontWeight: "bold", marginBottom: 2 }}>☠️ {defeatedEnemy.name} — Defeated</div>
+                            <AnimatedBar val={0} max={defeatedEnemy.maxHp} color="#444" label="💔 HP" floats={[]} />
+                        </div>
+                    </div>
                 </div>
             )}
 
