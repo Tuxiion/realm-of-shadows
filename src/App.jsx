@@ -84,9 +84,9 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "stone_golem": { sheetKey: "zone2", col: 0, row: 1 },
         "shadow_assassin": { sheetKey: "zone2", col: 1, row: 1 },
         "plague_priest": { sheetKey: "zone2", col: 2, row: 1 },
-        "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0 },
-        "xaroon_dragon": { sheetKey: "zone3", col: 1, row: 0, yOffset: 0.35 },
-        "veltharion": { sheetKey: "zone3", col: 2, row: 0 },
+        "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0, yOffset: 0.15 },
+        "xaroon_dragon":      { sheetKey: "zone3", col: 1, row: 0, yOffset: 0.35 },
+        "veltharion":         { sheetKey: "zone3", col: 2, row: 0, yOffset: 0.30 },
         "infernal_behemoth": { sheetKey: "zone4", col: 0, row: 0 },
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
@@ -269,9 +269,9 @@ const ENEMIES_BY_ZONE = [
 ];
 
 const CONSUMABLES = [
-    { id: "hpot", name: "Health Potion", icon: "🧪", cost: 30, effect: "heal", amount: 40, desc: "Restore 40 HP" },
-    { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 15, effect: "heal", amount: 100, desc: "Restore 100 HP" },
-    { id: "mpot", name: "Mana Elixir", icon: "💧", cost: 50, effect: "mp", amount: 50, desc: "Restore 50 MP" },
+    { id: "hpot", name: "Health Potion", icon: "🧪", cost: 15, effect: "heal", amount: 40, desc: "Restore 40 HP" },
+    { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 30, effect: "heal", amount: 100, desc: "Restore 100 HP" },
+    { id: "mpot", name: "Mana Elixir", icon: "💧", cost: 15, effect: "mp", amount: 50, desc: "Restore 50 MP" },
     { id: "revive", name: "Revive Gem", icon: "💎", cost: 50, effect: "revive", amount: 100, desc: "Revive: +100 HP, +30 MP" },
 ];
 
@@ -956,7 +956,7 @@ export default function App() {
             const item = inventory[payload]; if (!item || item.qty <= 0) return;
             np.mp = clamp(np.mp + regen, 0, np.maxMp);
             if (item.effect === "heal") { const h = Math.floor(item.amount * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h} HP`, "#60f0a0"); addLog(`You use ${item.icon} ${item.name} — restored ${h} HP`, "#60f0a0"); }
-            else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); addLog(`You use ${item.icon} ${item.name} — restored ${item.amount} MP`, "#60c0f0"); }
+            else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); addLog(`You use ${item.icon} ${item.name} — restored ${item.amount} MP`, "#60c0f0"); }
             inv = inventory.map((it, i) => i === payload ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0); setInventory(inv);
         } else if (type === "flee") {
             if (rand(1, 100) > 40) { addLog("🏃 Fled!", "#f0c060"); setCombat(false); setEnemy(null); setPlayer(np); return; }
@@ -1165,7 +1165,7 @@ export default function App() {
         setEnemy(fne); setPlayer(fnp); setBuffs(fnb); setSe(fse); setTurn("player");
     };
 
-    const useItemOutside = idx => { const item = inventory[idx]; if (!item || item.qty <= 0 || item.effect === "revive") return; let np = { ...player }; if (item.effect === "heal") { np.hp = clamp(np.hp + item.amount, 0, np.maxHp); triggerAnim("player", "heal", `+${item.amount}`, "#60f0a0"); } else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); } setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); };
+    const useItemOutside = idx => { const item = inventory[idx]; if (!item || item.qty <= 0 || item.effect === "revive") return; let np = { ...player }; if (item.effect === "heal") { np.hp = clamp(np.hp + item.amount, 0, np.maxHp); triggerAnim("player", "heal", `+${item.amount}`, "#60f0a0"); } else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); } setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); };
     const hasRevive = inventory.some(i => i.id === "revive" && i.qty > 0);
     const useRevive = () => { const idx = inventory.findIndex(i => i.id === "revive" && i.qty > 0); if (idx === -1) return; const e = { ...savedEnemy }; let np = { ...player, hp: clamp(100, 0, player.maxHp), mp: clamp((player.mp || 0) + 30, 0, player.maxMp) }; setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); setEnemy(e); setCombat(true); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate"), frailCurse: 0 }); setTurn("player"); setScreen("explore"); setTrinketUsed(false); addLog(`💎 Revived! ${e.name} has ${Math.max(0, e.hp)} HP!`, "#c060f0"); };
     const buyConsumable = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } if (item.id === "revive" && hasRevive) { setShopMsg("Already have a Revive Gem!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); setInventory(inv => { const ex = inv.find(i => i.id === item.id && !i.isGear); return ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }]; }); setShopMsg(`Bought ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
