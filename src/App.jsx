@@ -848,7 +848,7 @@ export default function App() {
         if (cse.burn > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.burn--; spawnFloat("player", "-3🔥", "#ff6030"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
         if (cse.playerPoison > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.playerPoison--; spawnFloat("player", "-3🐍", "#80ff80"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
         if (cse.plagueDot > 0) { const pd = Math.max(1, Math.floor(np.maxHp * 0.15)); np.hp = clamp(np.hp - pd, 0, np.maxHp); cse.plagueDot--; spawnFloat("player", `-${pd}☣️`, "#cc44ff"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
-        if (cse.enemyDot > 0 && ne.hp > 0) { const dd = Math.max(1, Math.floor(ne.maxHp * 0.08)); ne.hp -= dd; cse.enemyDot--; spawnFloat("enemy", `-${dd}💀`, "#a0ffa0"); if (ne.hp <= 0) { resolveVictory(np, ne, nb, inv, g, eq, cse, rl); return; } }
+        if (cse.enemyDot > 0 && ne.hp > 0) { const dd = Math.max(1, Math.floor(ne.maxHp * 0.08)); ne.hp -= dd; cse.enemyDot--; spawnFloat("enemy", `-${dd}💀`, "#a0ffa0"); if (ne.hp <= 0) { setEnemy(ne); setPlayer(np); setTimeout(() => resolveVictory(np, ne, nb, inv, g, eq, cse, rl), 700); return; } }
         const regenBuff = nb.player.filter(b => b.stat === "manaRegen" && b.amount > 0).reduce((s, b) => s + b.amount, 0);
         const regen = (ep.manaRegen || 5) + rb.manaRegen + regenBuff; np.mp = clamp(np.mp + regen, 0, np.maxMp);
         const abilBonus = hasP(eq, "abilityBonus") ? 1.15 : 1.0;
@@ -902,7 +902,12 @@ export default function App() {
         }
         nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost" || b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
         setSe(cse); setSavedEnemy({ ...ne });
-        if (ne.hp <= 0) { resolveVictory(np, ne, nb, inv, g, eq, cse, rl); return; }
+        if (ne.hp <= 0) {
+            // Show the killing blow animation before transitioning — update enemy so the flash/anim renders
+            setEnemy(ne); setPlayer(np); setBuffs(nb);
+            setTimeout(() => resolveVictory(np, ne, nb, inv, g, eq, cse, rl), 700);
+            return;
+        }
         setPlayer(np); setEnemy(ne); setBuffs(nb); setTurn("enemy");
         setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900);
     };
