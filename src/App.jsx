@@ -101,41 +101,45 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
     return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} radius="12px" glow="#cc4444" style={style} yOffset={p.yOffset || 0} />;
 }
 
-// ── FIX: yOffset: 0.083 centers all equipment-sheet items vertically.
-// The equipment sheet cells are 170×205px (20% taller than wide), so without
-// the offset every item was top-biased by ~17px in source coordinates.
-// yOffset = (cellH/cellW - 1) / (2 * cellH/cellW) = 0.1/1.2 ≈ 0.083
+// ── Per-item yOffset values tuned by visual inspection of each sprite cell.
+// The equipment sheet cells are 170×205px (non-square), and each item artwork
+// is positioned differently within its cell, so each needs its own offset.
 function ItemPortrait({ itemId, size = 32, style = {} }) {
     const MAP = {
-        "helmet1":     { col: 0, row: 0, yOffset: 0.083 },
-        "helmet2":     { col: 1, row: 0, yOffset: 0.083 },
-        "helmet3":     { col: 2, row: 0, yOffset: 0.083 },
-        "wizHat":      { col: 3, row: 0, yOffset: 0.083 },
-        "orbHelm":     { col: 4, row: 0, yOffset: 0.083 },
-        "staff2":      { col: 5, row: 0, yOffset: 0.083 },
-        "blade1":      { col: 0, row: 1, yOffset: 0.083 },
-        "blade2":      { col: 1, row: 1, yOffset: 0.083 },
-        "axe1":        { col: 2, row: 1, yOffset: 0.083 },
-        "sword1":      { col: 3, row: 1, yOffset: 0.083 },
-        "staff1":      { col: 4, row: 1, yOffset: 0.083 },
-        "armor1":      { col: 0, row: 2, yOffset: 0.083 },
-        "armor2":      { col: 1, row: 2, yOffset: 0.083 },
-        "robe1":       { col: 2, row: 2, yOffset: 0.083 },
-        "archArmor":   { col: 3, row: 2, yOffset: 0.083 },
-        "cursedArmor": { col: 5, row: 2, yOffset: 0.083 },
-        "ring1":       { col: 0, row: 3, yOffset: 0.083 },
-        "ring2":       { col: 1, row: 3, yOffset: 0.083 },
-        "ring3":       { col: 2, row: 3, yOffset: 0.083 },
-        "ring4":       { col: 3, row: 3, yOffset: 0.083 },
-        "hpot":        { col: 4, row: 3, yOffset: 0.083 },
-        "revive":      { col: 5, row: 3, yOffset: 0.083 },
-        "boneFrag":    { col: 0, row: 4, yOffset: 0.083 },
-        "cursedRoot":  { col: 1, row: 4, yOffset: 0.083 },
-        "shadowEss":   { col: 2, row: 4, yOffset: 0.083 },
-        "voidShard":   { col: 3, row: 4, yOffset: 0.083 },
-        "mpot":        { col: 4, row: 4, yOffset: 0.083 },
-        "gpot":        { col: 5, row: 4, yOffset: 0.083 },
-        // extras sheet has square cells — no yOffset needed
+        // Row 0 — helmets & staff2
+        "helmet1":     { col: 0, row: 0, yOffset: 0.20 },
+        "helmet2":     { col: 1, row: 0, yOffset: 0.20 },
+        "helmet3":     { col: 2, row: 0, yOffset: 0.20 },
+        "wizHat":      { col: 3, row: 0, yOffset: 0.25 },
+        "orbHelm":     { col: 4, row: 0, yOffset: 0.20 },
+        "staff2":      { col: 5, row: 0, yOffset: 0.20 },
+        // Row 1 — weapons
+        "blade1":      { col: 0, row: 1, yOffset: 0.15 },
+        "blade2":      { col: 1, row: 1, yOffset: 0.15 },
+        "axe1":        { col: 2, row: 1, yOffset: 0.15 },
+        "sword1":      { col: 3, row: 1, yOffset: 0.20 },
+        "staff1":      { col: 4, row: 1, yOffset: 0.15 },
+        // Row 2 — body armor
+        "armor1":      { col: 0, row: 2, yOffset: 0.25 },
+        "armor2":      { col: 1, row: 2, yOffset: 0.25 },
+        "robe1":       { col: 2, row: 2, yOffset: 0.25 },
+        "archArmor":   { col: 3, row: 2, yOffset: 0.25 },
+        "cursedArmor": { col: 5, row: 2, yOffset: 0.25 },
+        // Row 3 — rings, health potion, revive gem
+        "ring1":       { col: 0, row: 3, yOffset: 0.30 },
+        "ring2":       { col: 1, row: 3, yOffset: 0.25 },
+        "ring3":       { col: 2, row: 3, yOffset: 0.25 },
+        "ring4":       { col: 3, row: 3, yOffset: 0.25 },
+        "hpot":        { col: 4, row: 3, yOffset: 0.30 },
+        "revive":      { col: 5, row: 3, yOffset: 0.15 },
+        // Row 4 — relics, mana elixir, greater potion
+        "boneFrag":    { col: 0, row: 4, yOffset: 0.20 },
+        "cursedRoot":  { col: 1, row: 4, yOffset: 0.20 },
+        "shadowEss":   { col: 2, row: 4, yOffset: 0.20 },
+        "voidShard":   { col: 3, row: 4, yOffset: 0.20 },
+        "mpot":        { col: 4, row: 4, yOffset: 0.25 },
+        "gpot":        { col: 5, row: 4, yOffset: 0.25 },
+        // extras sheet — square cells, no yOffset needed
         "bloodVial":    { col: 0, row: 0, sheetKey: "extras" },
         "veilShadows":  { col: 1, row: 0, sheetKey: "extras" },
         "arcaneSliver": { col: 0, row: 1, sheetKey: "extras" },
