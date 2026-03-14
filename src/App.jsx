@@ -37,7 +37,7 @@ const SHEET_META = {
     extras: { cols: 2, rows: 2, w: 1024, h: 1024 },
 };
 
-function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888" }) {
+function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888", yOffset = 0 }) {
     const meta = SHEET_META[sheetKey];
     if (!meta) return <div style={{ width: displaySize, height: displaySize, ...style }} />;
     const cellW = meta.w / meta.cols;
@@ -47,7 +47,7 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
     const scaledSheetH = meta.h * scale;
     const scaledCellH = cellH * scale;
     const bpx = -(col * displaySize);
-    const bpy = -(row * scaledCellH);
+    const bpy = -(row * scaledCellH) - (yOffset * scaledCellH);
     return (
         <div style={{ width: displaySize, height: displaySize, borderRadius: radius, overflow: "hidden", flexShrink: 0, border: `2px solid ${glow}88`, boxShadow: `0 0 10px ${glow}55`, ...style }}>
             <div style={{ width: scaledSheetW, height: scaledSheetH, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`, backgroundPosition: `${bpx}px ${bpy}px`, backgroundRepeat: "no-repeat" }} />
@@ -85,7 +85,7 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "shadow_assassin": { sheetKey: "zone2", col: 1, row: 1 },
         "plague_priest": { sheetKey: "zone2", col: 2, row: 1 },
         "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0 },
-        "xaroon_dragon": { sheetKey: "zone3", col: 1, row: 0 },
+        "xaroon_dragon": { sheetKey: "zone3", col: 1, row: 0, yOffset: 0.35 },
         "veltharion": { sheetKey: "zone3", col: 2, row: 0 },
         "infernal_behemoth": { sheetKey: "zone4", col: 0, row: 0 },
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
@@ -98,7 +98,7 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         if (clsKey) return <ClassPortrait className={clsKey} size={size} style={{ borderRadius: "12px", ...style }} />;
         return <div style={{ width: size, height: size, borderRadius: "12px", background: "#222", ...style }} />;
     }
-    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} radius="12px" glow="#cc4444" style={style} />;
+    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} radius="12px" glow="#cc4444" style={style} yOffset={p.yOffset || 0} />;
 }
 
 function ItemPortrait({ itemId, size = 32, style = {} }) {
@@ -646,7 +646,17 @@ export default function App() {
     const randomName = () => { const n = CLASS_NAMES[pendingCls]; setCharName(n[rand(0, n.length - 1)]); };
     const confirmName = () => { const name = charName.trim() || CLASS_NAMES[pendingCls][rand(0, 9)]; const title = `${name}, the ${pendingCls}`; setPlayerTitle(title); setPlayerClass(pendingCls); setPlayer({ ...CLASSES[pendingCls].stats }); setLog([{ msg: `${title} enters the Whispering Forest...`, color: "#f0c060" }]); setScreen("explore"); };
 
-    const unequipSlot = slot => { const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); addLog(`Unequipped ${equipped[slot]?.name}.`, "#aaa"); };
+    const unequipSlot = slot => {
+        const item = equipped[slot];
+        if (!item) return;
+        const { np, newEq } = doUnequip(slot, equipped, player);
+        setEquipped(newEq);
+        setPlayer(np);
+        // Move to bag instead of deleting
+        const alreadyInBag = inventory.some(i => i.id === item.id && i.isGear);
+        if (!alreadyInBag) setInventory(inv => [...inv, { ...item, qty: 1, isGear: true }]);
+        addLog(`Unequipped ${item.name} → moved to bag.`, "#aaa");
+    };
     const equipFromBag = (item) => {
         const oldEquipped = equipped[item.slot];
         const { np: np2, newEq } = doEquip(item, equipped, player);
@@ -1245,10 +1255,15 @@ export default function App() {
                     {inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
                         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
                             {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => (
-                                <button key={item.id} onClick={() => useItemOutside(inventory.indexOf(item))}
-                                    style={{ background: "#0d1a2e", border: "1px solid #60c0f033", color: "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
-                                    <ItemPortrait itemId={item.id} size={20} /> Use {item.name}×{item.qty}
-                                </button>
+                                <div key={item.id} style={{ position: "relative" }}
+                                    onMouseEnter={e => { if (showShop) { const t = e.currentTarget.querySelector(".shop-tooltip"); if (t) t.style.display = "block"; }}}
+                                    onMouseLeave={e => { const t = e.currentTarget.querySelector(".shop-tooltip"); if (t) t.style.display = "none"; }}>
+                                    <button onClick={() => !showShop && useItemOutside(inventory.indexOf(item))}
+                                        style={{ background: showShop ? "#0d0d0d" : "#0d1a2e", border: `1px solid ${showShop ? "#33333344" : "#60c0f033"}`, color: showShop ? "#444" : "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: showShop ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4, opacity: showShop ? 0.4 : 1 }}>
+                                        <ItemPortrait itemId={item.id} size={20} /> Use {item.name}×{item.qty}
+                                    </button>
+                                    {showShop && <div className="shop-tooltip" style={{ display: "none", position: "absolute", bottom: "110%", left: "50%", transform: "translateX(-50%)", background: "#1a1a2e", border: "1px solid #555", borderRadius: 6, padding: "3px 8px", fontSize: 9, color: "#aaa", whiteSpace: "nowrap", zIndex: 99 }}>Cannot use while shopping</div>}
+                                </div>
                             ))}
                         </div>
                     )}
