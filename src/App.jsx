@@ -1262,7 +1262,7 @@ export default function App() {
                                         style={{ background: showShop ? "#0d0d0d" : "#0d1a2e", border: `1px solid ${showShop ? "#33333344" : "#60c0f033"}`, color: showShop ? "#444" : "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: showShop ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4, opacity: showShop ? 0.4 : 1 }}>
                                         <ItemPortrait itemId={item.id} size={20} /> Use {item.name}×{item.qty}
                                     </button>
-                                    {showShop && <div className="shop-tooltip" style={{ display: "none", position: "absolute", bottom: "110%", left: "50%", transform: "translateX(-50%)", background: "#1a1a2e", border: "1px solid #555", borderRadius: 6, padding: "3px 8px", fontSize: 9, color: "#aaa", whiteSpace: "nowrap", zIndex: 99 }}>Cannot use while shopping</div>}
+                                    {showShop && <div className="shop-tooltip" style={{ display: "none", position: "absolute", bottom: "110%", left: "50%", transform: "translateX(-50%)", background: "#1a1a2e", border: "1px solid #555", borderRadius: 6, padding: "3px 8px", fontSize: 9, color: "#aaa", whiteSpace: "nowrap", zIndex: 99 }}>Cannot be used while shopping</div>}
                                 </div>
                             ))}
                         </div>
@@ -1375,7 +1375,7 @@ export default function App() {
                                                 <div style={{ color: "#ddd" }}>{equipped[slot].name}</div>
                                                 <div style={{ color: "#aaa", fontSize: 11 }}>{equipped[slot].desc}</div>
                                             </div>
-                                            <Btn onClick={() => unequipSlot(slot)} border="#ff6060" bg="#2e0d0d" color="#ff6060" style={{ fontSize: 9, padding: "2px 6px" }}>Remove</Btn>
+                                            <Btn onClick={() => unequipSlot(slot)} border="#ff6060" bg="#2e0d0d" color="#ff6060" style={{ fontSize: 9, padding: "2px 6px" }}>Move to Bag</Btn>
                                         </div>
                                     ) : (
                                         <span style={{ color: "#333", fontSize: 9 }}>
