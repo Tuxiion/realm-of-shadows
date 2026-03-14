@@ -108,7 +108,7 @@ function ItemPortrait({ itemId, size = 32, style = {} }) {
         "blade1": { col: 0, row: 1 }, "blade2": { col: 1, row: 1 }, "axe1": { col: 2, row: 1 },
         "sword1": { col: 3, row: 1 }, "staff1": { col: 4, row: 1 },
         "armor1": { col: 0, row: 2 }, "armor2": { col: 1, row: 2 }, "robe1": { col: 2, row: 2 },
-        "archArmor": { col: 3, row: 2 }, "cursedArmor": { col: 4, row: 2 },
+        "archArmor": { col: 3, row: 2 }, "cursedArmor": { col: 5, row: 2 },
         "ring1": { col: 0, row: 3 }, "ring2": { col: 1, row: 3 }, "ring3": { col: 2, row: 3 },
         "ring4": { col: 3, row: 3 }, "hpot": { col: 4, row: 3 }, "revive": { col: 5, row: 3 },
         "boneFrag": { col: 0, row: 4 }, "cursedRoot": { col: 1, row: 4 }, "shadowEss": { col: 2, row: 4 },
