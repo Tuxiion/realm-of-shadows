@@ -1255,14 +1255,12 @@ export default function App() {
                     {inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
                         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
                             {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => (
-                                <div key={item.id} style={{ position: "relative" }}
-                                    onMouseEnter={e => { if (showShop) { const t = e.currentTarget.querySelector(".shop-tooltip"); if (t) t.style.display = "block"; }}}
-                                    onMouseLeave={e => { const t = e.currentTarget.querySelector(".shop-tooltip"); if (t) t.style.display = "none"; }}>
+                                <div key={item.id}>
                                     <button onClick={() => !showShop && useItemOutside(inventory.indexOf(item))}
-                                        style={{ background: showShop ? "#0d0d0d" : "#0d1a2e", border: `1px solid ${showShop ? "#33333344" : "#60c0f033"}`, color: showShop ? "#444" : "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: showShop ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4, opacity: showShop ? 0.4 : 1 }}>
-                                        <ItemPortrait itemId={item.id} size={20} /> Use {item.name}×{item.qty}
+                                        style={{ background: showShop ? "#0d0d0d" : "#0d1a2e", border: `1px solid ${showShop ? "#33333344" : "#60c0f033"}`, color: showShop ? "#444" : "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: showShop ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, opacity: showShop ? 0.5 : 1 }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}><ItemPortrait itemId={item.id} size={20} /> Use {item.name}×{item.qty}</div>
+                                        {showShop && <div style={{ color: "#ff4444", fontSize: 8 }}>Cannot be used while shopping</div>}
                                     </button>
-                                    {showShop && <div className="shop-tooltip" style={{ display: "none", position: "absolute", bottom: "110%", left: "50%", transform: "translateX(-50%)", background: "#1a1a2e", border: "1px solid #555", borderRadius: 6, padding: "3px 8px", fontSize: 9, color: "#aaa", whiteSpace: "nowrap", zIndex: 99 }}>Cannot be used while shopping</div>}
                                 </div>
                             ))}
                         </div>
