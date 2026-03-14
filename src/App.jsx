@@ -404,7 +404,9 @@ function CombatAnimOverlay({ anim }) {
                 filter: "drop-shadow(0 0 8px #0008)",
                 pointerEvents: "none",
             }}>
-                {cfg?.emoji && <span style={{ fontSize: 28, lineHeight: 1 }}>{cfg.emoji}</span>}
+                {/* Only show the type emoji if the label doesn't already contain one */}
+                {cfg?.emoji && !anim.label && <span style={{ fontSize: 28, lineHeight: 1 }}>{cfg.emoji}</span>}
+                {cfg?.emoji && anim.label && !/\p{Emoji}/u.test(anim.label.charAt(0)) && <span style={{ fontSize: 28, lineHeight: 1 }}>{cfg.emoji}</span>}
                 {anim.label && (
                     <span style={{
                         fontSize: 18, fontWeight: "bold", fontFamily: "Georgia",
@@ -956,11 +958,10 @@ export default function App() {
             const c = isCrit(fne.crit || 5); const raw = rand(atkVal, atkVal + 4);
             const dr = isMagic ? magicDR : flatDR;
             const dmg = bypassDef ? Math.max(1, raw) : Math.max(0, calcDmg(c ? Math.floor(raw * 1.5) : raw, defVal) - dr);
-            flash("player"); fnp.hp -= dmg; triggerAnim("player", eAnimType, `-${dmg}`, c ? "#ff2200" : "#ff6060");
-            // Animate based on enemy style/type
+            // Determine anim type from enemy style — must be declared BEFORE use
             const eStyle = fne.style || "aggressive";
-            const eAnimType = eStyle === "magic" ? "arcane" : eStyle === "plague" ? "poison" : eStyle === "duel" ? "slash" : "slash";
-            triggerAnim("player", eAnimType);
+            const eAnimType = isMagic ? "arcane" : eStyle === "plague" ? "poison" : "slash";
+            flash("player"); fnp.hp -= dmg; triggerAnim("player", eAnimType, `-${dmg}`, c ? "#ff2200" : "#ff6060");
             addLog(`${fne.icon || ""} ${fne.name} hits you for ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#ff6060"); return dmg;
         };
         if (fne.style === "duel") {
