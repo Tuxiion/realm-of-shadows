@@ -404,9 +404,8 @@ function CombatAnimOverlay({ anim }) {
                 filter: "drop-shadow(0 0 8px #0008)",
                 pointerEvents: "none",
             }}>
-                {/* Only show the type emoji if the label doesn't already contain one */}
+                {/* Show type emoji only when there's no label — label carries its own emoji */}
                 {cfg?.emoji && !anim.label && <span style={{ fontSize: 28, lineHeight: 1 }}>{cfg.emoji}</span>}
-                {cfg?.emoji && anim.label && !/\p{Emoji}/u.test(anim.label.charAt(0)) && <span style={{ fontSize: 28, lineHeight: 1 }}>{cfg.emoji}</span>}
                 {anim.label && (
                     <span style={{
                         fontSize: 18, fontWeight: "bold", fontFamily: "Georgia",
