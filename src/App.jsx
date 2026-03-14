@@ -434,6 +434,23 @@ const initEq = () => ({ head: null, weapon: null, body: null, ring: null, trinke
 const CSS = `
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #000; overflow-x: hidden; }
+    #root {
+        max-width: 600px;
+        margin: 0 auto;
+        min-height: 100vh;
+    }
+    @media (min-width: 900px) {
+        #root { zoom: 1.4; }
+    }
+    @media (min-width: 1200px) {
+        #root { zoom: 1.8; }
+    }
+    @media (min-width: 1600px) {
+        #root { zoom: 2.2; }
+    }
+    @media (min-width: 2000px) {
+        #root { zoom: 2.6; }
+    }
     @keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
     @keyframes particleRise{0%{opacity:0;transform:translateY(0)}20%{opacity:1}80%{opacity:.6}100%{opacity:0;transform:translateY(-120px)}}
     @keyframes glow{0%,100%{text-shadow:0 0 10px #f0c06088,0 0 20px #f0c06044}50%{text-shadow:0 0 20px #f0c060cc,0 0 40px #f0c06088}}
@@ -578,8 +595,9 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
                 <div style={{ width: "100%", maxWidth: 340, background: "#ffffff08", borderRadius: 10, padding: 12, marginBottom: 12 }}>
                     <div style={{ color: "#f0c060", fontWeight: "bold", fontSize: 12, marginBottom: 6 }}>⚔️ Immortalize Your Champion</div>
                     <div style={{ color: "#666", fontSize: 10, marginBottom: 8 }}>Save to the global Hall of Champions and challenge others!</div>
-                    <input value={champName} onChange={e => setChampName(e.target.value)} placeholder={playerTitle} maxLength={32}
-                        style={{ width: "100%", padding: "6px 10px", background: "#0d0d1a", border: "1px solid #f0c06055", borderRadius: 6, color: "#eee", fontFamily: "Georgia", fontSize: 11, marginBottom: 8, boxSizing: "border-box" }} />
+                    <input value={champName} onChange={e => setChampName(e.target.value.slice(0, 20))} placeholder={playerTitle} maxLength={20}
+                        style={{ width: "100%", padding: "6px 10px", background: "#0d0d1a", border: "1px solid #f0c06055", borderRadius: 6, color: "#eee", fontFamily: "Georgia", fontSize: 11, marginBottom: 2, boxSizing: "border-box" }} />
+                    <div style={{ textAlign: "right", fontSize: 9, color: champName.length >= 20 ? "#ff6060" : "#444", marginBottom: 6 }}>{champName.length}/20</div>
                     <button onClick={handleSave} disabled={saving || encounters > 12}
                         style={{ width: "100%", padding: "8px", background: saving ? "#333" : "linear-gradient(90deg,#8a6000,#f0c060)", color: saving ? "#666" : "#0d0d0a", border: "none", borderRadius: 7, fontSize: 12, cursor: saving ? "default" : "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
                         {encounters > 12 ? "⚠️ Duel winners cannot save (beat main game only)" : saving ? "Saving..." : "🏆 Save to Hall of Champions"}
@@ -1403,7 +1421,7 @@ export default function App() {
             })()}
 
             {/* Fixed header — stays at top while page scrolls */}
-            <div ref={headerRef} style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: zoneData.bg, padding: "8px 10px 4px", borderBottom: "1px solid #ffffff08", boxShadow: "0 2px 12px #00000088" }}>
+            <div ref={headerRef} style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 600, zIndex: 100, background: zoneData.bg, padding: "8px 10px 4px", borderBottom: "1px solid #ffffff08", boxShadow: "0 2px 12px #00000088" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, background: "#00000070", borderRadius: 10, padding: "5px 10px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         {playerClass && <ClassPortrait className={playerClass} size={32} />}
