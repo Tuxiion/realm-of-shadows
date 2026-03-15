@@ -769,8 +769,16 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
         if (!savedChamp) return;
         const encoded = btoa(JSON.stringify(savedChamp));
         const url = `${window.location.origin}${window.location.pathname}?challenge=${encoded}`;
-        navigator.clipboard.writeText(url);
+        // Copy to clipboard AND show the URL so they can share it
+        navigator.clipboard?.writeText(url).catch(() => {});
         setCopyMsg("Copied!"); setTimeout(() => setCopyMsg(""), 2000);
+    };
+
+    const handleOpenChallenge = () => {
+        if (!savedChamp) return;
+        const encoded = btoa(JSON.stringify(savedChamp));
+        const url = `${window.location.origin}${window.location.pathname}?challenge=${encoded}`;
+        window.open(url, "_blank");
     };
 
     const cls = CLASSES[playerClass];
@@ -845,11 +853,17 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
             ) : (
                 <div style={{ width: "100%", maxWidth: 340, background: "#ffffff08", borderRadius: 10, padding: 12, marginBottom: 12, textAlign: "center" }}>
                     <div style={{ color: "#60f060", fontSize: 12, marginBottom: 6 }}>{saveMsg}</div>
-                    <div style={{ color: "#666", fontSize: 10, marginBottom: 8 }}>Share this link to challenge others:</div>
-                    <button onClick={handleCopyLink}
-                        style={{ width: "100%", padding: "8px", background: "linear-gradient(90deg,#004488,#0080ff)", color: "#fff", border: "none", borderRadius: 7, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
-                        {copyMsg ? "✅ " + copyMsg : "📋 Copy Challenge Link"}
-                    </button>
+                    <div style={{ color: "#666", fontSize: 10, marginBottom: 8 }}>Challenge others with your champion:</div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={handleOpenChallenge}
+                            style={{ flex: 1, padding: "8px", background: "linear-gradient(90deg,#880000,#cc2222)", color: "#fff", border: "none", borderRadius: 7, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
+                            ⚔️ Open Challenge
+                        </button>
+                        <button onClick={handleCopyLink}
+                            style={{ padding: "8px 12px", background: "linear-gradient(90deg,#004488,#0080ff)", color: "#fff", border: "none", borderRadius: 7, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
+                            {copyMsg ? "✅" : "📋"}
+                        </button>
+                    </div>
                 </div>
             )}
             {challengeOnVictory && (
@@ -876,7 +890,6 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
 function HallScreen({ reset }) {
     const [champions, setChampions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [copyIdx, setCopyIdx] = useState(null);
     const [challenge, setChallenge] = useState(null);
 
     useEffect(() => {
@@ -890,11 +903,10 @@ function HallScreen({ reset }) {
         })();
     }, []);
 
-    const handleCopyChallenge = (champ, i) => {
+    const handleChallenge = (champ) => {
         const encoded = btoa(JSON.stringify(champ));
         const url = `${window.location.origin}${window.location.pathname}?challenge=${encoded}`;
-        navigator.clipboard.writeText(url);
-        setCopyIdx(i); setTimeout(() => setCopyIdx(null), 2000);
+        window.location.href = url;
     };
 
     const cls = challenge ? CLASSES[challenge.playerClass] : null;
@@ -920,9 +932,9 @@ function HallScreen({ reset }) {
                                     <div style={{ color: "#555", fontSize: 9 }}>Lv.{champ.level} · {champ.encounters} battles · {champ.date}</div>
                                     <div style={{ color: "#777", fontSize: 9, marginTop: 2 }}>❤️{champ.stats?.hp} ⚔️{champ.stats?.atk} 🛡️{champ.stats?.def} 💨{champ.stats?.spd} 🎯{champ.stats?.crit}% ✨{champ.stats?.manaRegen}/t</div>
                                 </div>
-                                <button onClick={() => handleCopyChallenge(champ, i)}
-                                    style={{ padding: "6px 10px", background: copyIdx === i ? "linear-gradient(90deg,#006600,#00aa00)" : "linear-gradient(90deg,#880000,#cc2222)", color: "#fff", border: "none", borderRadius: 7, fontSize: 10, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold", whiteSpace: "nowrap" }}>
-                                    {copyIdx === i ? "✅ Copied!" : "⚔️ Challenge"}
+                                <button onClick={() => handleChallenge(champ)}
+                                    style={{ padding: "6px 10px", background: "linear-gradient(90deg,#880000,#cc2222)", color: "#fff", border: "none", borderRadius: 7, fontSize: 10, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold", whiteSpace: "nowrap" }}>
+                                    ⚔️ Challenge
                                 </button>
                             </div>
                         );
@@ -936,7 +948,21 @@ function HallScreen({ reset }) {
 }
 
 export default function App() {
-    const [screen, setScreen] = useState("title");
+    // Parse challenge link synchronously on first render — avoids the useEffect race condition
+    const [challengeOnVictory, setChallengeOnVictory] = useState(() => {
+        try {
+            const enc = new URLSearchParams(window.location.search).get("challenge");
+            if (enc) return JSON.parse(atob(enc));
+        } catch {}
+        return null;
+    });
+    const [screen, setScreen] = useState(() => {
+        try {
+            const enc = new URLSearchParams(window.location.search).get("challenge");
+            if (enc) { JSON.parse(atob(enc)); return "challengeIntro"; }
+        } catch {}
+        return "title";
+    });
     const [pendingCls, setPendingCls] = useState(null);
     const [charName, setCharName] = useState("");
     const [playerClass, setPlayerClass] = useState(null);
@@ -1000,23 +1026,15 @@ export default function App() {
             setScreen("explore");
         };
         window.addEventListener("startDuel", onStartDuel);
-        // Parse challenge link
-        try {
-            const params = new URLSearchParams(window.location.search);
-            const enc = params.get("challenge");
-            if (enc) {
-                const champ = JSON.parse(atob(enc));
-                setChallengeOnVictory(champ);
-                setScreen("challengeIntro");
-                // Clean URL without breaking back button
-                window.history.replaceState({}, "", window.location.pathname);
-            }
-        } catch (e) {
-            console.warn("Invalid challenge link:", e);
-        }
+        // URL is parsed synchronously at state init above — no need to do it here
         return () => { window.removeEventListener("gotoHall", goHall); window.removeEventListener("startDuel", onStartDuel); };
     }, []);
-    const headerRef = useRef(null);
+    // Clean challenge URL from address bar after parsing
+    useEffect(() => {
+        if (window.location.search.includes("challenge=")) {
+            window.history.replaceState({}, "", window.location.pathname);
+        }
+    }, []);
     const [headerHeight, setHeaderHeight] = useState(200);
     useEffect(() => {
         if (!headerRef.current) return;
