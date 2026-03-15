@@ -1008,8 +1008,12 @@ export default function App() {
                 const champ = JSON.parse(atob(enc));
                 setChallengeOnVictory(champ);
                 setScreen("challengeIntro");
+                // Clean URL without breaking back button
+                window.history.replaceState({}, "", window.location.pathname);
             }
-        } catch {}
+        } catch (e) {
+            console.warn("Invalid challenge link:", e);
+        }
         return () => { window.removeEventListener("gotoHall", goHall); window.removeEventListener("startDuel", onStartDuel); };
     }, []);
     const headerRef = useRef(null);
@@ -1547,7 +1551,8 @@ export default function App() {
     };
 
 
-    if (screen === "challengeIntro" && challengeOnVictory) {
+    if (screen === "challengeIntro") {
+        if (!challengeOnVictory) { setScreen("title"); return null; }
         const champ = challengeOnVictory;
         const cls = CLASSES[champ.playerClass];
         return (
@@ -1588,14 +1593,18 @@ export default function App() {
                         <div style={{ textAlign: "center" }}><div style={{ color: "#f0f060", fontSize: 13 }}>🎯</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.crit}%</div><div style={{ color: "#555", fontSize: 9 }}>CRIT</div></div>
                     </div>
                 </div>
-                <p style={{ color: "#666", fontSize: 11, textAlign: "center", marginBottom: 16, maxWidth: 300 }}>
-                    Beat the game first to accept this challenge — then return to fight this champion!
+                <p style={{ color: "#888", fontSize: 11, textAlign: "center", marginBottom: 6, maxWidth: 300, lineHeight: 1.6 }}>
+                    To accept this challenge, you must first <strong style={{ color: "#f0c060" }}>beat the game</strong>.<br />
+                    Conquer all 12 battles — then you'll face this champion on the victory screen!
+                </p>
+                <p style={{ color: "#555", fontSize: 10, textAlign: "center", marginBottom: 16, maxWidth: 300 }}>
+                    Your score will be recorded if you win.
                 </p>
                 <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={() => setScreen("title")} style={{ padding: "8px 20px", background: "linear-gradient(90deg,#880000,#cc2222)", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
+                    <button onClick={() => setScreen("title")} style={{ padding: "10px 24px", background: "linear-gradient(90deg,#880000,#cc2222)", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold", boxShadow: "0 0 16px #ff000044" }}>
                         ⚔️ Accept Challenge
                     </button>
-                    <button onClick={() => { setChallengeOnVictory(null); setScreen("title"); window.history.replaceState({}, "", window.location.pathname); }} style={{ padding: "8px 16px", background: "#ffffff10", color: "#888", border: "1px solid #333", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia" }}>
+                    <button onClick={() => { setChallengeOnVictory(null); setScreen("title"); }} style={{ padding: "8px 16px", background: "#ffffff10", color: "#888", border: "1px solid #333", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia" }}>
                         Decline
                     </button>
                 </div>
@@ -1923,17 +1932,23 @@ export default function App() {
                         <Btn onClick={() => { setShowShop(s => { const next = !s || shopTab !== "sell"; if (next) setShopTab("sell"); return next; }); setShowEquip(false); playSfx('tab'); }} border="#f0a060" bg="#2e1a0d" color="#f0a060">💰 Sell</Btn>
                     </div>
 
-                    {!showShop && inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
+                    {inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
                         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
-                            {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => (
-                                <div key={item.id}>
-                                    <button onClick={() => useItemOutside(inventory.indexOf(item))}
-                                        style={{ background: "#0d1a2e", border: "1px solid #60c0f033", color: "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
-                                        <ItemPortrait itemId={item.id} size={20} />
-                                        <span>Use {item.name}×{item.qty}{item.desc && <span style={{ color: "#60c0f055", fontSize: 9 }}> · {item.desc}</span>}</span>
-                                    </button>
-                                </div>
-                            ))}
+                            {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => {
+                                const disabled = showShop;
+                                return (
+                                    <div key={item.id}>
+                                        <button onClick={() => !disabled && useItemOutside(inventory.indexOf(item))}
+                                            style={{ background: disabled ? "#0d0d0d" : "#0d1a2e", border: `1px solid ${disabled ? "#33333344" : "#60c0f033"}`, color: disabled ? "#444" : "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: disabled ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4, opacity: disabled ? 0.5 : 1 }}>
+                                            <ItemPortrait itemId={item.id} size={20} />
+                                            <span style={{ lineHeight: 1.4 }}>
+                                                Use {item.name}×{item.qty}
+                                                {item.desc && <><br /><span style={{ fontSize: 8, color: disabled ? "#333" : "#60c0f055" }}>{item.desc}</span></>}
+                                            </span>
+                                        </button>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
 
@@ -1954,11 +1969,17 @@ export default function App() {
                                 <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                                     {CONSUMABLES.map(item => {
                                         const ro = item.id === "revive" && hasRevive;
+                                        const owned = inventory.find(i => i.id === item.id && !i.isGear)?.qty || 0;
                                         return (
                                             <button key={item.id} onClick={() => buyConsumable(item)} disabled={gold < item.cost || ro}
                                                 style={{ background: "#1a1a1a", border: "1px solid #555", color: gold < item.cost || ro ? "#444" : "#ddd", borderRadius: 8, padding: "6px 8px", cursor: gold < item.cost || ro ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 5, opacity: gold < item.cost || ro ? 0.5 : 1 }}>
                                                 <ItemPortrait itemId={item.id} size={26} />
-                                                <span style={{ lineHeight: 1.4 }}>{item.name}<br /><span style={{ fontSize: 9, color: "#aaa" }}>{item.desc}</span><br /><span style={{ fontSize: 8, color: "#f0c060" }}>{item.cost}g{ro ? " (owned)" : ""}</span></span>
+                                                <span style={{ lineHeight: 1.4 }}>
+                                                    {item.name}
+                                                    {owned > 0 && <span style={{ color: "#f0c06099", fontSize: 8 }}> ×{owned}</span>}
+                                                    <br /><span style={{ fontSize: 9, color: "#aaa" }}>{item.desc}</span>
+                                                    <br /><span style={{ fontSize: 8, color: "#f0c060" }}>{item.cost}g{ro ? " (owned)" : ""}</span>
+                                                </span>
                                             </button>
                                         );
                                     })}
