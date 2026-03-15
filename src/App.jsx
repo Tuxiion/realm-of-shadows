@@ -1009,12 +1009,37 @@ export default function App() {
         window.addEventListener("gotoHall", goHall);
         const onStartDuel = (e) => {
             const champ = e.detail;
+            const cls = CLASSES[champ.playerClass] || {};
+            const s = champ.stats || {};
+            // Rebuild equipment bonus from saved IDs
+            const eqBonus = { atk: 0, def: 0, maxHp: 0, maxMp: 0, crit: 0, manaRegen: 0, spd: 0 };
+            const passives = [];
+            Object.values(champ.equippedIds || {}).forEach(id => {
+                const it = [...EQUIPMENT, ...TRINKETS].find(e => e.id === id);
+                if (it?.stats) Object.entries(it.stats).forEach(([k, v]) => { eqBonus[k] = (eqBonus[k] || 0) + v; });
+                if (it?.passive) passives.push(it.passive);
+            });
+            const maxMp = (cls.stats?.maxMp || 50) + (eqBonus.maxMp || 0);
+            const manaRegen = (cls.stats?.manaRegen || 5) + (eqBonus.manaRegen || 0);
             const champEnemy = {
                 name: champ.playerTitle,
                 id: champ.playerClass?.toLowerCase().replace(/ /g, "_") || "champion",
-                hp: champ.stats.hp, maxHp: champ.stats.hp,
-                atk: champ.stats.atk, def: champ.stats.def,
-                xp: 0, gold: 0, style: "duel", champClass: champ.playerClass, crit: champ.stats.crit || 5,
+                hp: s.hp || s.maxHp || 100,
+                maxHp: s.maxHp || s.hp || 100,
+                mp: maxMp,          // start at full MP
+                maxMp,
+                manaRegen,
+                atk: s.atk || 10,
+                def: s.def || 5,
+                spd: s.spd || 8,
+                crit: s.crit || 5,
+                xp: 0, gold: 0,
+                style: "duel",
+                champClass: champ.playerClass,
+                champAbilities: cls.abilities || [],
+                passives,           // equipment passives (lifesteal, reflect, abilityBonus, etc.)
+                duelOpened: false,
+                duelHealed: false,
             };
             setEnemy(champEnemy);
             setSavedEnemy({ ...champEnemy });
@@ -1036,6 +1061,7 @@ export default function App() {
         }
     }, []);
     const [headerHeight, setHeaderHeight] = useState(200);
+    const headerRef = useRef(null);
     useEffect(() => {
         if (!headerRef.current) return;
         const obs = new ResizeObserver(() => {
@@ -1306,98 +1332,231 @@ export default function App() {
         };
         if (fne.style === "duel") {
             const champClass = fne.champClass || "";
-            const isFirstTurn = !fne.duelOpened;
+            const abilities = fne.champAbilities || [];
+            const passives = fne.passives || [];
+            const hasPassive = (p) => passives.includes(p);
             const lowHp = fne.hp < fne.maxHp * 0.30;
-            const canHeal = lowHp && !fne.duelHealed;
 
-            // Heal with Greater Potion if low HP (once only)
-            if (canHeal) {
+            // Tick mana regen each turn
+            if (fne.maxMp && fne.mp !== undefined) {
+                fne.mp = Math.min(fne.maxMp, (fne.mp || 0) + (fne.manaRegen || 5));
+            }
+
+            // Priority 1: Greater Potion heal at <30% HP (once only)
+            if (lowHp && !fne.duelHealed) {
                 fne.duelHealed = true;
                 const heal = Math.min(100, fne.maxHp - fne.hp);
                 fne.hp = Math.min(fne.hp + 100, fne.maxHp);
                 triggerAnim("enemy", "heal", `+${heal}💊`, "#60f0a0");
                 addLog(`💊 ${fne.name} drinks a Greater Potion! +${heal} HP!`, "#60f0a0");
-                fne.duelOpened = true; // counts as their opening move too
             }
-            // First turn — always use signature buff
-            else if (isFirstTurn) {
+            // Priority 2: Opening buff on turn 1
+            else if (!fne.duelOpened) {
                 fne.duelOpened = true;
+                duelOpeningBuff();
+            }
+            // Priority 3: Use highest-cost affordable ability
+            else {
+                duelUseAbility();
+            }
+
+            // Apply equipment passives on hit received (reflect)
+            if (hasPassive("reflect")) {
+                const dmgTaken = Math.abs((fnp.hp || 0) - (ep?.hp || 0));
+                if (dmgTaken > 0) {
+                    const ref = Math.floor(dmgTaken * 0.10);
+                    if (ref > 0) { fne.hp = Math.max(0, fne.hp - ref); triggerAnim("enemy", "holy", `-${ref}👑`, "#f0f060"); addLog(`👑 Reflected ${ref} damage back!`, "#f0f060"); }
+                }
+            }
+
+            setEnemy(fne);
+
+            function duelOpeningBuff() {
                 if (champClass === "Death Knight") {
                     const hc = Math.floor(fne.hp * 0.20);
                     if (fne.hp - hc > 0) {
                         fne.hp -= hc;
-                        const ab2 = Math.floor(eAtk * 0.5); const db2 = Math.floor(fne.def * 0.5);
-                        fnb.enemy.push({ stat: "atk", amount: ab2, turns: 3, tag: "duelSacrifice" });
-                        fnb.enemy.push({ stat: "def", amount: db2, turns: 3, tag: "duelSacrifice" });
+                        const ab2 = Math.floor(eAtk * 0.5), db2 = Math.floor(fne.def * 0.5);
+                        fnb.enemy.push({ stat: "atk", amount: ab2, turns: 6, tag: "duelSacrifice" });
+                        fnb.enemy.push({ stat: "def", amount: db2, turns: 6, tag: "duelSacrifice" });
                         triggerAnim("enemy", "power", `💀+${ab2}ATK`, "#cc2222");
                         addLog(`💀 ${fne.name} opens with Dark Sacrifice! ATK+${ab2}, DEF+${db2}!`, "#cc2222");
                     } else doHit(eAtk, pDef);
                 } else if (champClass === "Demonic Beast") {
                     const pactAtk = Math.floor(eAtk * 0.30);
-                    fnb.enemy.push({ stat: "atk", amount: pactAtk, turns: 4, tag: "duelPact" });
+                    fnb.enemy.push({ stat: "atk", amount: pactAtk, turns: 6, tag: "duelPact" });
                     triggerAnim("enemy", "power", `👹+${pactAtk}ATK`, "#c060f0");
-                    addLog(`👹 ${fne.name} opens with Demon Pact! +30% ATK x 4!`, "#c060f0");
+                    addLog(`👹 ${fne.name} opens with Demon Pact! +30% ATK x 6!`, "#c060f0");
                 } else if (champClass === "Holy Knight") {
                     const db = Math.max(1, Math.floor(fne.def * 0.5));
-                    fnb.enemy.push({ stat: "def", amount: db, turns: 3, tag: "duelShield" });
+                    fnb.enemy.push({ stat: "def", amount: db, turns: 6, tag: "duelShield" });
                     triggerAnim("enemy", "shield", `🛡️+${db}DEF`, "#f0c060");
-                    addLog(`⚔️ ${fne.name} opens with Holy Shield! DEF+${db} x 3!`, "#f0c060");
+                    addLog(`⚔️ ${fne.name} opens with Holy Shield! DEF+${db} x 6!`, "#f0c060");
                 } else if (champClass === "Arch Angel") {
-                    cse.dodgeReady = true;
+                    fnb.enemy.push({ stat: "def", amount: Math.floor(fne.def * 0.3), turns: 4, tag: "duelArcane" });
                     triggerAnim("enemy", "flight", "😇 Flight!", "#e8e0ff");
-                    addLog(`😇 ${fne.name} opens with Take Flight! Next attack dodged!`, "#e8e0ff");
+                    addLog(`😇 ${fne.name} opens with Take Flight! Next hit dodged!`, "#e8e0ff");
                 } else if (champClass === "Arcane Magician") {
-                    fnb.enemy.push({ stat: "spd", amount: 10, turns: 4, tag: "duelArcane" });
+                    fnb.enemy.push({ stat: "spd", amount: 10, turns: 6, tag: "duelArcane" });
                     triggerAnim("enemy", "arcane", "🔮+10SPD", "#60c0f0");
-                    addLog(`🔮 ${fne.name} opens with Arcane Surge! +10 SPD x 4!`, "#60c0f0");
+                    addLog(`🔮 ${fne.name} opens with Arcane Surge! +10 SPD x 6!`, "#60c0f0");
                 } else if (champClass === "Ranged Assassin") {
-                    // Ranged opens with a high-crit snipe
-                    const c = isCrit((fne.crit || 5) + 20);
-                    const raw = rand(eAtk, eAtk + 6);
-                    const dmg = Math.max(0, calcDmg(c ? Math.floor(raw * 1.7) : raw, Math.floor(pDef * 0.4)));
-                    flash("player"); fnp.hp -= dmg; triggerAnim("player", "arrow", `-${dmg}`, c ? "#ff2200" : "#ff6060");
-                    addLog(`🏹 ${fne.name} opens with a deadly snipe for ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#60f0a0");
+                    // Smoke bomb opener
+                    const reduction = Math.floor(eAtk * 0.30);
+                    fnb.enemy.push({ stat: "atk", amount: -reduction, turns: 12, tag: "smokeBomb" });
+                    triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0");
+                    addLog(`💨 ${fne.name} opens with Smoke Bomb! Your ATK -${reduction}!`, "#60f0a0");
                 } else doHit(eAtk, pDef);
             }
-            // Subsequent turns — use abilities at their normal rate
-            else {
-                const roll = rand(1, 100);
-                if (champClass === "Death Knight" && roll <= 30 && !fnb.enemy.some(b => b.tag === "duelSacrifice")) {
-                    const hc = Math.floor(fne.hp * 0.20);
-                    if (fne.hp - hc > 0) {
-                        fne.hp -= hc;
-                        const ab2 = Math.floor(eAtk * 0.5); const db2 = Math.floor(fne.def * 0.5);
-                        fnb.enemy.push({ stat: "atk", amount: ab2, turns: 3, tag: "duelSacrifice" });
-                        fnb.enemy.push({ stat: "def", amount: db2, turns: 3, tag: "duelSacrifice" });
-                        triggerAnim("enemy", "power", `💀+${ab2}ATK`, "#cc2222");
-                        addLog(`💀 ${fne.name} uses Dark Sacrifice! ATK+${ab2}, DEF+${db2}!`, "#cc2222");
-                    } else doHit(eAtk, pDef);
-                } else if (champClass === "Demonic Beast" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelPact")) {
-                    const pactAtk = Math.floor(eAtk * 0.30);
-                    fnb.enemy.push({ stat: "atk", amount: pactAtk, turns: 4, tag: "duelPact" });
-                    triggerAnim("enemy", "power", `👹+${pactAtk}ATK`, "#c060f0");
-                    addLog(`👹 ${fne.name} uses Demon Pact! +30% ATK x 4!`, "#c060f0");
-                } else if (champClass === "Holy Knight" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelShield")) {
-                    const db = Math.max(1, Math.floor(fne.def * 0.5));
-                    fnb.enemy.push({ stat: "def", amount: db, turns: 3, tag: "duelShield" });
-                    triggerAnim("enemy", "shield", `🛡️+${db}DEF`, "#f0c060");
-                    addLog(`⚔️ ${fne.name} uses Holy Shield! DEF+${db} x 3!`, "#f0c060");
-                } else if (champClass === "Arch Angel" && roll <= 20 && fne.hp < fne.maxHp * 0.6) {
-                    const heal = Math.floor(fne.maxHp * 0.15);
-                    fne.hp = Math.min(fne.hp + heal, fne.maxHp);
-                    triggerAnim("enemy", "heal", `+${heal}`, "#e8e0ff"); addLog(`😇 ${fne.name} heals ${heal} HP!`, "#e8e0ff");
-                } else if (champClass === "Arcane Magician" && roll <= 35) {
-                    doHit(Math.floor(eAtk * 1.4), Math.floor(pDef * 0.6), false, true);
-                    addLog(`🔮 ${fne.name} casts a spell!`, "#60c0f0");
-                } else if (champClass === "Ranged Assassin" && roll <= 30) {
-                    const c = isCrit((fne.crit || 5) + 15);
-                    const raw = rand(eAtk, eAtk + 4);
-                    const dmg = Math.max(0, calcDmg(c ? Math.floor(raw * 1.5) : raw, Math.floor(pDef * 0.5)));
-                    flash("player"); fnp.hp -= dmg; triggerAnim("player", "arrow", `-${dmg}`, c ? "#ff2200" : "#ff6060");
-                    addLog(`🏹 ${fne.name} snipes you for ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#60f0a0");
-                } else doHit(eAtk, pDef);
+
+            function duelUseAbility() {
+                const mp = fne.mp || 0;
+                const abilBonus = hasPassive("abilityBonus") ? 1.15 : 1.0;
+
+                // Sort abilities by cost descending — always try the highest-cost first
+                const sorted = [...abilities].sort((a, b) => b.cost - a.cost);
+
+                for (const ab of sorted) {
+                    if (ab.cost > mp) continue; // can't afford
+
+                    // Skip buff abilities already active
+                    if (ab.type === "demonPact" && fnb.enemy.some(b => b.tag === "duelPact")) continue;
+                    if (ab.type === "holyShield" && fnb.enemy.some(b => b.tag === "duelShield")) continue;
+                    if (ab.type === "arcaneBoost" && fnb.enemy.some(b => b.tag === "duelArcane")) continue;
+                    if (ab.type === "smokeBomb" && fnb.enemy.some(b => b.tag === "smokeBomb")) continue;
+                    if (ab.type === "deathSuffering" && fse.enemyDot > 0) continue;
+                    if (ab.type === "takeFlight" && fse.duelDodge) continue;
+
+                    // Use this ability
+                    fne.mp = Math.max(0, mp - ab.cost);
+                    duelExecuteAbility(ab, abilBonus);
+                    return;
+                }
+
+                // No affordable ability — use basic attack
+                doHit(eAtk, pDef);
+                if (hasPassive("lifesteal")) { fne.hp = Math.min(fne.hp + 5, fne.maxHp); triggerAnim("enemy", "drain", "+5🩸", "#cc2222"); }
+                if (hasPassive("lifesteal2")) { fne.hp = Math.min(fne.hp + 8, fne.maxHp); triggerAnim("enemy", "drain", "+8🩸", "#cc2222"); }
             }
-            setEnemy(fne);
+
+            function duelExecuteAbility(ab, abilBonus) {
+                const spdMult = 1 + ((fne.spd || 8) * 0.015);
+                const atkBonus = Math.floor(eAtk * 0.4);
+                switch (ab.type) {
+                    case "atk": {
+                        const c = isCrit(fne.crit || 5);
+                        const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus;
+                        const dmg = calcDmg(c ? Math.floor(raw * 1.5 * abilBonus * spdMult) : Math.floor(raw * abilBonus * spdMult), pDef);
+                        const animMap = { "Divine Strike": "holy", "Hellfire": "fire", "Arcane Bolt": "arcane", "Mana Burst": "arcane", "Snipe": "arrow" };
+                        if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges ${ab.name}!`, "#e8e0ff"); break; }
+                        flash("player"); fnp.hp -= dmg; triggerAnim("player", animMap[ab.name] || "slash", `${c?"⚡":""}-${dmg}`, c ? "#ffdd00" : "#ff4444");
+                        addLog(`✨ ${fne.name} uses ${ab.name} for ${dmg}!${c ? " 🎯 CRIT!" : ""}`, c ? "#ffdd00" : "#ff6060");
+                        if (hasPassive("lifesteal")) { fne.hp = Math.min(fne.hp + 5, fne.maxHp); }
+                        break;
+                    }
+                    case "soulRend": {
+                        const c = isCrit(fne.crit || 5);
+                        const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus;
+                        const dmg = calcDmg(c ? Math.floor(raw * 1.5 * spdMult) : Math.floor(raw * spdMult), Math.floor(pDef * 0.7));
+                        if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges Soul Rend!`, "#e8e0ff"); break; }
+                        flash("player"); fnp.hp -= dmg; triggerAnim("player", "dark", `${c?"⚡":""}-${dmg}`, c ? "#ffdd00" : "#ff4444");
+                        addLog(`💀 ${fne.name} Soul Rend for ${dmg}!${c ? " CRIT!" : ""}`, c ? "#ffdd00" : "#ff6060");
+                        break;
+                    }
+                    case "drain": {
+                        const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus;
+                        const dmg = calcDmg(Math.floor(raw * abilBonus * spdMult), pDef);
+                        flash("player"); fnp.hp -= dmg;
+                        const stolen = Math.floor(dmg * 0.5);
+                        fne.hp = Math.min(fne.hp + stolen, fne.maxHp);
+                        triggerAnim("player", "drain", `-${dmg}`, "#c060f0");
+                        triggerAnim("enemy", "drain", `+${stolen}🩸`, "#c060f0");
+                        addLog(`🩸 ${fne.name} Soul Drains for ${dmg}, steals ${stolen} HP!`, "#c060f0");
+                        break;
+                    }
+                    case "multi": {
+                        const hits = rand(2, 3); let tot = 0;
+                        for (let i = 0; i < hits; i++) {
+                            const c = isCrit(fne.crit || 5);
+                            const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus;
+                            const d = calcDmg(c ? Math.floor(raw * 1.5 * spdMult) : Math.floor(raw * spdMult), Math.floor(pDef * 0.6));
+                            fnp.hp -= d; tot += d;
+                        }
+                        flash("player"); triggerAnim("player", "arrow", `-${tot}`, "#ff4444");
+                        addLog(`🏹 ${fne.name} Lethal Volley — ${hits} hits for ${tot}!`, "#ff6060");
+                        break;
+                    }
+                    case "divineWrath": {
+                        const base = Math.floor(fne.maxHp * 0.20);
+                        const c = isCrit(fne.crit || 5);
+                        const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult) : Math.floor(base * spdMult), pDef);
+                        flash("player"); fnp.hp -= dmg; triggerAnim("player", "holy", `${c?"⚡":""}-${dmg}`, c ? "#ffdd00" : "#ff8888");
+                        addLog(`😇 ${fne.name} Divine Wrath for ${dmg}!${c ? " CRIT!" : ""}`, "#ff8888");
+                        break;
+                    }
+                    case "deathSuffering": {
+                        fse.enemyDot = 4;
+                        triggerAnim("enemy", "dark", "💀DoT", "#a0ffa0");
+                        addLog(`💀 ${fne.name} casts Death's Suffering — 8% HP/turn x4!`, "#a0ffa0");
+                        break;
+                    }
+                    case "holyShield": {
+                        const db = Math.max(1, Math.floor(fne.def * 0.5));
+                        fnb.enemy.push({ stat: "def", amount: db, turns: 6, tag: "duelShield" });
+                        triggerAnim("enemy", "shield", `🛡️+${db}DEF`, "#f0c060");
+                        addLog(`⚔️ ${fne.name} Holy Shield! DEF+${db} x 6!`, "#f0c060");
+                        break;
+                    }
+                    case "darkSacrifice": {
+                        const hc = Math.floor(fne.hp * 0.20);
+                        if (fne.hp - hc > 0) {
+                            fne.hp -= hc;
+                            const ab2 = Math.floor(eAtk * 0.5), db2 = Math.floor(fne.def * 0.5);
+                            fnb.enemy.push({ stat: "atk", amount: ab2, turns: 6, tag: "duelSacrifice" });
+                            fnb.enemy.push({ stat: "def", amount: db2, turns: 6, tag: "duelSacrifice" });
+                            triggerAnim("enemy", "power", `💀+${ab2}ATK`, "#cc2222");
+                            addLog(`💀 ${fne.name} Dark Sacrifice! ATK+${ab2}, DEF+${db2}!`, "#cc2222");
+                        } else doHit(eAtk, pDef);
+                        break;
+                    }
+                    case "demonPact": {
+                        const pactAtk = Math.floor(eAtk * 0.30);
+                        fnb.enemy.push({ stat: "atk", amount: pactAtk, turns: 6, tag: "duelPact" });
+                        triggerAnim("enemy", "power", `👹+${pactAtk}ATK`, "#c060f0");
+                        addLog(`👹 ${fne.name} Demon Pact! +30% ATK x 6!`, "#c060f0");
+                        break;
+                    }
+                    case "arcaneBoost": {
+                        fnb.enemy.push({ stat: "spd", amount: 10, turns: 6, tag: "duelArcane" });
+                        triggerAnim("enemy", "arcane", "🔮+10SPD", "#60c0f0");
+                        addLog(`🔮 ${fne.name} Arcane Surge! +10 SPD x 6!`, "#60c0f0");
+                        break;
+                    }
+                    case "smokeBomb": {
+                        const reduction = Math.floor(eAtk * 0.30);
+                        fnb.enemy.push({ stat: "atk", amount: -reduction, turns: 12, tag: "smokeBomb" });
+                        triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0");
+                        addLog(`💨 ${fne.name} Smoke Bomb! Your ATK -${reduction}!`, "#60f0a0");
+                        break;
+                    }
+                    case "takeFlight": {
+                        fse.duelDodge = true;
+                        triggerAnim("enemy", "flight", "😇 Flight!", "#e8e0ff");
+                        addLog(`😇 ${fne.name} Take Flight! Next attack dodged!`, "#e8e0ff");
+                        break;
+                    }
+                    case "scaleHeal": case "heal": case "celestialHeal": {
+                        const pct = ab.type === "celestialHeal" ? rand(15, 22) / 100 : (ab.damage ? rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100 : 0.2);
+                        const h = Math.floor(fne.maxHp * pct);
+                        fne.hp = Math.min(fne.hp + h, fne.maxHp);
+                        triggerAnim("enemy", "heal", `+${h}`, "#60f0a0");
+                        addLog(`💚 ${fne.name} heals ${h} HP with ${ab.name}!`, "#60f0a0");
+                        break;
+                    }
+                    default:
+                        doHit(eAtk, pDef);
+                }
+            }
         } else if (fne.style === "aggressive") {
             // Xaroon the Dragon — Fire Breath + Wing Slam
             if (fne.id === "xaroon_dragon" && rand(1, 100) <= 30) {
@@ -1887,6 +2046,9 @@ export default function App() {
                         </div>
                     </div>
                     <AnimatedBar val={enemy.hp} max={enemy.maxHp} color={zone === 3 ? "#cc3300" : enemy.elite ? "#ff8800" : "#e05050"} label="💔 Enemy HP" />
+                    {enemy.style === "duel" && enemy.maxMp > 0 && (
+                        <AnimatedBar val={enemy.mp || 0} max={enemy.maxMp} color="#4080ff" label="💙 MP" />
+                    )}
                 </div>
             )}
 
