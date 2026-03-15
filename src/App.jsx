@@ -562,11 +562,14 @@ const SFX = {
 const ANIM_SFX = { slash: "attack", fire: "fire", arcane: "arcane", holy: "holy", dark: "dark", drain: "drain", arrow: "arrow", heal: "heal", poison: "poison", shield: "shield", power: "power", smoke: "smoke", debuff: "debuff", flight: "flight" };
 
 // Zone music player
-// Zone music player — screen-aware, plays from title through all screens
-// Victory track: /realm-of-shadows/assets/sounds/victory.mp3
-function useMusicPlayer(zone, screen, muteMusic) {
+// Zone music player — plays from title through all screens with crossfade
+// Victory track: public/assets/sounds/victory.mp3 (case-sensitive on server)
+function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
     const audioRef = useRef(null);
-    const trackRef = useRef(null); // current track path
+    const trackRef = useRef(null);
+    const volumeRef = useRef(musicVolume);
+    const fadersRef = useRef([]);
+    volumeRef.current = musicVolume;
 
     const MUSIC = [
         "/realm-of-shadows/assets/sounds/zone1.mp3",
@@ -576,57 +579,78 @@ function useMusicPlayer(zone, screen, muteMusic) {
     ];
     const VICTORY_TRACK = "/realm-of-shadows/assets/sounds/victory.mp3";
 
-    // Determine which track should play based on screen
-    const getTrack = () => {
-        if (screen === "victory") return VICTORY_TRACK;
-        if (screen === "gameover") return null; // silence on death
-        return MUSIC[zone] || MUSIC[0];
+    const getTrack = (sc, z) => {
+        if (sc === "victory") return VICTORY_TRACK;
+        if (sc === "gameover") return MUSIC[0]; // keep zone1 on gameover/revive screen
+        return MUSIC[z] || MUSIC[0];
     };
 
-    const fadeAndSwitch = (newTrack) => {
+    const clearFaders = () => { fadersRef.current.forEach(clearInterval); fadersRef.current = []; };
+
+    const fadeAndSwitch = (newTrack, muted) => {
+        clearFaders();
         const old = audioRef.current;
         if (old) {
-            // Fade out old track over 800ms
             const startVol = old.volume;
             const step = startVol / 16;
             let ticks = 0;
-            const fade = setInterval(() => {
+            const fader = setInterval(() => {
                 ticks++;
-                if (old.volume > step) old.volume = Math.max(0, old.volume - step);
-                if (ticks >= 16) { clearInterval(fade); old.pause(); old.src = ""; }
+                old.volume = Math.max(0, old.volume - step);
+                if (ticks >= 16) { clearInterval(fader); try { old.pause(); } catch(e){} }
             }, 50);
+            fadersRef.current.push(fader);
         }
         audioRef.current = null;
-        if (!newTrack || muteMusic) return;
-        try {
-            const audio = new Audio(newTrack);
-            audio.loop = true; audio.volume = 0;
-            audio.play().catch(() => {});
-            audioRef.current = audio;
-            trackRef.current = newTrack;
-            // Fade in over 800ms
-            let ticks = 0;
-            const fadeIn = setInterval(() => {
-                ticks++;
-                if (audio.volume < 0.35 - 0.35/16) audio.volume = Math.min(0.35, audio.volume + 0.35/16);
-                if (ticks >= 16) clearInterval(fadeIn);
-            }, 50);
-        } catch (e) {}
+        trackRef.current = null;
+        if (!newTrack || muted) return;
+        const audio = new Audio(newTrack);
+        audio.loop = true;
+        audio.volume = 0;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(() => {
+                // Autoplay blocked — attach one-time user gesture listener
+                const unlock = () => { audio.play().catch(() => {}); document.removeEventListener("click", unlock); document.removeEventListener("keydown", unlock); };
+                document.addEventListener("click", unlock);
+                document.addEventListener("keydown", unlock);
+            });
+        }
+        audioRef.current = audio;
+        trackRef.current = newTrack;
+        const target = volumeRef.current;
+        let ticks = 0;
+        const fadeIn = setInterval(() => {
+            ticks++;
+            if (audio.volume < target - target/16) audio.volume = Math.min(target, audio.volume + target/16);
+            if (ticks >= 16) { audio.volume = target; clearInterval(fadeIn); }
+        }, 50);
+        fadersRef.current.push(fadeIn);
     };
 
+    // Zone or screen change → crossfade
     useEffect(() => {
-        const desired = getTrack();
-        if (desired !== trackRef.current) fadeAndSwitch(desired);
+        const desired = getTrack(screen, zone);
+        if (desired !== trackRef.current) fadeAndSwitch(desired, muteMusic);
     }, [zone, screen]);
 
+    // Mute toggle
     useEffect(() => {
         if (muteMusic) {
-            if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; audioRef.current = null; trackRef.current = null; }
+            clearFaders();
+            if (audioRef.current) { try { audioRef.current.pause(); } catch(e){} audioRef.current = null; trackRef.current = null; }
         } else {
-            const desired = getTrack();
-            if (desired && !audioRef.current) fadeAndSwitch(desired);
+            const desired = getTrack(screen, zone);
+            if (!audioRef.current) fadeAndSwitch(desired, false);
         }
     }, [muteMusic]);
+
+    // Volume change — apply live without restarting track
+    useEffect(() => {
+        if (audioRef.current && !muteMusic) {
+            audioRef.current.volume = Math.min(1, Math.max(0, musicVolume));
+        }
+    }, [musicVolume]);
 
     return audioRef;
 }
@@ -884,6 +908,7 @@ export default function App() {
     const [showEquip, setShowEquip] = useState(false);
     const [muteSfx, setMuteSfx] = useState(false);
     const [muteMusic, setMuteMusic] = useState(false);
+    const [musicVolume, setMusicVolume] = useState(0.35);
     const [lvlUp, setLvlUp] = useState(false);
     const [lootNotif, setLootNotif] = useState(null);
     const [lootQueue, setLootQueue] = useState([]);
@@ -960,7 +985,7 @@ export default function App() {
     const playSfx = (key) => { if (!muteSfx) SFX[key]?.(); };
 
     // Zone music
-    useMusicPlayer(zone, screen, muteMusic);
+    useMusicPlayer(zone, screen, muteMusic, musicVolume);
     const notify = (msg, icon, desc, type) => {
         playSfx('loot');
         setLootQueue(q => [...q, { msg, icon, desc, type: type || "item" }]);
@@ -1361,7 +1386,7 @@ export default function App() {
     const hasRevive = inventory.some(i => i.id === "revive" && i.qty > 0);
     const useRevive = () => { const idx = inventory.findIndex(i => i.id === "revive" && i.qty > 0); if (idx === -1) return; const e = { ...savedEnemy }; let np = { ...player, hp: clamp(100, 0, player.maxHp), mp: clamp((player.mp || 0) + 30, 0, player.maxMp) }; setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); setEnemy(e); setCombat(true); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate"), frailCurse: 0 }); setTurn("player"); setScreen("explore"); setTrinketUsed(false); addLog(`💎 Revived! ${e.name} has ${Math.max(0, e.hp)} HP!`, "#c060f0"); };
     const buyConsumable = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } if (item.id === "revive" && hasRevive) { setShopMsg("Already have a Revive Gem!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); setInventory(inv => { const ex = inv.find(i => i.id === item.id && !i.isGear); return ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }]; }); playSfx('buy'); setShopMsg(`Bought ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
-    const buyEquipment = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); const { np, newEq } = doEquip(item, equipped, player); setEquipped(newEq); setPlayer(np); setShopMsg(`Equipped ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
+    const buyEquipment = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); const { np, newEq } = doEquip(item, equipped, player); setEquipped(newEq); setPlayer(np); playSfx('buy'); setShopMsg(`Equipped ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
     const sellItem = (item, idx) => { const price = item.sellPrice || Math.floor(item.cost / 2); setGold(g => g + price); setInventory(inv => inv.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setShopMsg(`Sold for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellEquipped = slot => { const item = equipped[slot]; if (!item) return; const price = item.sellPrice || Math.floor(item.cost / 2); const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); setGold(g => g + price); setShopMsg(`Sold ${item.name} for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellRelic = idx => { const r = relics[idx]; if (!r) return; setGold(g => g + r.sellPrice); setRelics(rl => rl.filter((_, i) => i !== idx)); setShopMsg(`Sold ${r.name} for ${r.sellPrice}g`); setTimeout(() => setShopMsg(""), 2000); };
@@ -1402,12 +1427,31 @@ export default function App() {
     };
 
 
+    // Persistent music controls — shown on every screen
+    const MusicControls = () => (
+        <div style={{ position: "fixed", bottom: 10, right: 10, zIndex: 200, display: "flex", alignItems: "center", gap: 4, background: "#00000066", borderRadius: 20, padding: "4px 10px", backdropFilter: "blur(4px)" }}>
+            <button onClick={() => setMuteMusic(m => !m)} title={muteMusic ? "Unmute music" : "Mute music"}
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, opacity: muteMusic ? 0.35 : 0.8, padding: "0 2px", lineHeight: 1 }}>
+                {muteMusic ? "🔇" : "🎵"}
+            </button>
+            <input type="range" min="0" max="1" step="0.05" value={musicVolume}
+                onChange={e => setMusicVolume(parseFloat(e.target.value))}
+                title="Music volume"
+                style={{ width: 52, accentColor: "#f0c060", cursor: "pointer", opacity: muteMusic ? 0.25 : 0.75 }} />
+            <button onClick={() => setMuteSfx(m => !m)} title={muteSfx ? "Unmute SFX" : "Mute SFX"}
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, opacity: muteSfx ? 0.35 : 0.8, padding: "0 2px", lineHeight: 1 }}>
+                {muteSfx ? "🔕" : "🔔"}
+            </button>
+        </div>
+    );
+
     if (screen === "challengeIntro" && challengeOnVictory) {
         const champ = challengeOnVictory;
         const cls = CLASSES[champ.playerClass];
         return (
             <div style={{ background: "linear-gradient(160deg,#0a0005,#1a0010,#0d000a)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
                 <style>{CSS}</style>
+                <MusicControls />
                 <div style={{ fontSize: 42, filter: "drop-shadow(0 0 16px #ff006699)", marginBottom: 8 }}>⚔️</div>
                 <h2 style={{ color: "#ff4466", fontSize: 18, animation: "glow 2s infinite", marginBottom: 12 }}>You Have Been Challenged!</h2>
                 <div style={{ background: "#ffffff08", borderRadius: 14, padding: 16, textAlign: "center", marginBottom: 16, width: "100%", maxWidth: 320 }}>
@@ -1457,7 +1501,8 @@ export default function App() {
         );
     }
 
-    if (screen === "title") return (
+    if (screen === "title") return (<>
+            <MusicControls />
         <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 16, position: "relative", overflow: "hidden" }}>
             <style>{CSS}</style>
             <Particles />
@@ -1486,7 +1531,7 @@ export default function App() {
     );
 
     if (screen === "naming") {
-        const cd = CLASSES[pendingCls]; return (
+        const cd = CLASSES[pendingCls]; return (<><MusicControls />
             <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
                 <style>{CSS}</style>
                 <div style={{ textAlign: "center", animation: "fadeIn 0.4s ease-out" }}>
@@ -1505,10 +1550,10 @@ export default function App() {
                     <div style={{ marginTop: 14 }}><Btn onClick={() => setScreen("title")} border="#444" bg="#0d0d1a">← Back</Btn></div>
                 </div>
             </div>
-        );
+        </>);
     }
 
-    if (screen === "gameover") return (
+    if (screen === "gameover") return (<><MusicControls />
         <div style={{ background: "linear-gradient(160deg,#0d0000,#1a0000)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
             <style>{CSS}</style>
             <div style={{ textAlign: "center", animation: "fadeIn 0.5s" }}>
@@ -1529,11 +1574,11 @@ export default function App() {
                 </div>
             </div>
         </div>
-    );
+    </>);
 
-    if (screen === "victory") return <VictoryScreen player={player} playerTitle={playerTitle} playerClass={playerClass} level={level} gold={gold} encounters={encounters} equipped={equipped} relics={relics} effStats={effStats} getRelicBonus={getRelicBonus} reset={reset} challengeOnVictory={challengeOnVictory} />;
+    if (screen === "victory") return <><MusicControls /><VictoryScreen player={player} playerTitle={playerTitle} playerClass={playerClass} level={level} gold={gold} encounters={encounters} equipped={equipped} relics={relics} effStats={effStats} getRelicBonus={getRelicBonus} reset={reset} challengeOnVictory={challengeOnVictory} /></>;
 
-    if (screen === "hall") return <HallScreen reset={reset} />;
+    if (screen === "hall") return <><MusicControls /><HallScreen reset={reset} /></>;
 
     if (lvlUp) return (
         <div style={{ background: "linear-gradient(160deg,#0a0a00,#1a1800)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
@@ -1607,14 +1652,6 @@ export default function App() {
                         <span style={{ color: "#f0c060", fontWeight: "bold" }}>💰{gold}</span>
                         <span style={{ color: "#a0c0ff" }}>Lv.{level}</span>
                         <span style={{ color: "#555" }}>⚔️{encounters}/12</span>
-                        <button onClick={() => setMuteMusic(m => !m)} title={muteMusic ? "Unmute music" : "Mute music"}
-                            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, opacity: muteMusic ? 0.4 : 0.85, padding: "0 2px", lineHeight: 1 }}>
-                            {muteMusic ? "🔇" : "🎵"}
-                        </button>
-                        <button onClick={() => setMuteSfx(m => !m)} title={muteSfx ? "Unmute SFX" : "Mute SFX"}
-                            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, opacity: muteSfx ? 0.4 : 0.85, padding: "0 2px", lineHeight: 1 }}>
-                            {muteSfx ? "🔕" : "🔔"}
-                        </button>
                     </div>
                 </div>
                 {/* XP bar */}
