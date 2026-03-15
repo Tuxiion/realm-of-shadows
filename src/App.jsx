@@ -1427,23 +1427,59 @@ export default function App() {
     };
 
 
-    // Persistent music controls — shown on every screen
-    const MusicControls = () => (
-        <div style={{ position: "fixed", bottom: 10, right: 10, zIndex: 200, display: "flex", alignItems: "center", gap: 4, background: "#00000066", borderRadius: 20, padding: "4px 10px", backdropFilter: "blur(4px)" }}>
-            <button onClick={() => setMuteMusic(m => !m)} title={muteMusic ? "Unmute music" : "Mute music"}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, opacity: muteMusic ? 0.35 : 0.8, padding: "0 2px", lineHeight: 1 }}>
-                {muteMusic ? "🔇" : "🎵"}
-            </button>
-            <input type="range" min="0" max="1" step="0.05" value={musicVolume}
-                onChange={e => setMusicVolume(parseFloat(e.target.value))}
-                title="Music volume"
-                style={{ width: 52, accentColor: "#f0c060", cursor: "pointer", opacity: muteMusic ? 0.25 : 0.75 }} />
-            <button onClick={() => setMuteSfx(m => !m)} title={muteSfx ? "Unmute SFX" : "Mute SFX"}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, opacity: muteSfx ? 0.35 : 0.8, padding: "0 2px", lineHeight: 1 }}>
-                {muteSfx ? "🔕" : "🔔"}
-            </button>
-        </div>
-    );
+    // Persistent music controls — shown on every screen, bottom-right corner
+    const MusicControls = () => {
+        const sliderRef = useRef(null);
+        const dragging = useRef(false);
+
+        const updateVolume = (clientX) => {
+            const rect = sliderRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            const pct = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+            setMusicVolume(Math.round(pct * 20) / 20); // snap to 5% steps
+        };
+
+        const onMouseDown = (e) => { dragging.current = true; updateVolume(e.clientX); };
+        const onMouseMove = (e) => { if (dragging.current) updateVolume(e.clientX); };
+        const onMouseUp   = () => { dragging.current = false; };
+        const onTouchStart = (e) => { dragging.current = true; updateVolume(e.touches[0].clientX); };
+        const onTouchMove  = (e) => { if (dragging.current) { e.preventDefault(); updateVolume(e.touches[0].clientX); } };
+        const onTouchEnd   = () => { dragging.current = false; };
+
+        useEffect(() => {
+            window.addEventListener("mousemove", onMouseMove);
+            window.addEventListener("mouseup", onMouseUp);
+            return () => { window.removeEventListener("mousemove", onMouseMove); window.removeEventListener("mouseup", onMouseUp); };
+        }, []);
+
+        return (
+            <div style={{ position: "fixed", bottom: 10, right: 10, zIndex: 200, display: "flex", alignItems: "center", gap: 5, background: "#00000077", borderRadius: 22, padding: "5px 10px", backdropFilter: "blur(6px)", userSelect: "none" }}>
+                {/* Music mute */}
+                <button onClick={() => setMuteMusic(m => !m)} title={muteMusic ? "Unmute music" : "Mute music"}
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, opacity: muteMusic ? 0.35 : 0.85, padding: "0 2px", lineHeight: 1 }}>
+                    {muteMusic ? "🔇" : "🎵"}
+                </button>
+                {/* Draggable volume bar */}
+                <div ref={sliderRef}
+                    onMouseDown={onMouseDown}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                    title={`Volume: ${Math.round(musicVolume * 100)}%`}
+                    style={{ width: 54, height: 6, background: "#ffffff22", borderRadius: 4, cursor: "pointer", position: "relative", opacity: muteMusic ? 0.25 : 0.85 }}>
+                    {/* Fill */}
+                    <div style={{ width: `${musicVolume * 100}%`, height: "100%", background: "linear-gradient(90deg,#f0c06088,#f0c060)", borderRadius: 4, pointerEvents: "none" }} />
+                    {/* Thumb */}
+                    <div style={{ position: "absolute", top: "50%", left: `${musicVolume * 100}%`, transform: "translate(-50%, -50%)", width: 12, height: 12, background: "#f0c060", borderRadius: "50%", boxShadow: "0 0 4px #f0c06099", pointerEvents: "none" }} />
+                </div>
+                {/* SFX mute */}
+                <button onClick={() => setMuteSfx(m => !m)} title={muteSfx ? "Unmute SFX" : "Mute SFX"}
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, opacity: muteSfx ? 0.35 : 0.85, padding: "0 2px", lineHeight: 1 }}>
+                    {muteSfx ? "🔕" : "🔔"}
+                </button>
+            </div>
+        );
+    };
 
     if (screen === "challengeIntro" && challengeOnVictory) {
         const champ = challengeOnVictory;
@@ -1583,6 +1619,7 @@ export default function App() {
     if (lvlUp) return (
         <div style={{ background: "linear-gradient(160deg,#0a0a00,#1a1800)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
             <style>{CSS}</style>
+            <MusicControls />
             <div style={{ fontSize: 40, filter: "drop-shadow(0 0 14px #f0f06099)" }}>🌟</div>
             <h2 style={{ color: "#f0f060", marginBottom: 3, textShadow: "0 0 16px #f0f060" }}>Level Up!</h2>
             <p style={{ color: "#888", marginBottom: 14, fontSize: 11 }}>{playerTitle} — Level {level + 1}. Choose a bonus:</p>
@@ -1605,6 +1642,7 @@ export default function App() {
     return (
         <div style={{ background: zoneData.bg, minHeight: "100vh", fontFamily: "Georgia", color: "#eee", padding: "10px 10px 20px", paddingTop: 0, transition: "background 1.2s", position: "relative", overflowX: "hidden" }}>
             <style>{CSS}</style>
+            <MusicControls />
             {lootQueue.length > 0 && (() => {
                 const loot = lootQueue[0];
                 const typeColors = { gold: "#f0c060", equip: "#c060f0", bag: "#60a0ff", relic: "#ffcc44", consumable: "#60f0a0" };
