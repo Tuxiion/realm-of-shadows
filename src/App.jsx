@@ -908,7 +908,7 @@ export default function App() {
     const [showEquip, setShowEquip] = useState(false);
     const [muteSfx, setMuteSfx] = useState(false);
     const [muteMusic, setMuteMusic] = useState(false);
-    const [musicVolume, setMusicVolume] = useState(0.35);
+    const [musicVolume, setMusicVolume] = useState(0.20);
     const [lvlUp, setLvlUp] = useState(false);
     const [lootNotif, setLootNotif] = useState(null);
     const [lootQueue, setLootQueue] = useState([]);
@@ -1436,7 +1436,7 @@ export default function App() {
             const rect = sliderRef.current?.getBoundingClientRect();
             if (!rect) return;
             const pct = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-            setMusicVolume(Math.round(pct * 20) / 20); // snap to 5% steps
+            setMusicVolume(Math.min(1, Math.max(0, pct)));
         };
 
         const onMouseDown = (e) => { dragging.current = true; updateVolume(e.clientX); };
