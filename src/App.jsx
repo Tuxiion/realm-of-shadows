@@ -86,7 +86,7 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "plague_priest": { sheetKey: "zone2", col: 2, row: 1 },
         "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0, yOffset: 0.15 },
         "xaroon_dragon":      { sheetKey: "zone3", col: 1, row: 0, yOffset: 0.35 },
-        "veltharion":         { sheetKey: "zone3", col: 2, row: 0, yOffset: 0.22 },
+        "veltharion":         { sheetKey: "zone3", col: 2, row: 0, yOffset: 0.15 },
         "infernal_behemoth": { sheetKey: "zone4", col: 0, row: 0 },
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
@@ -327,7 +327,7 @@ const EQUIPMENT = [
     { id: "wizHat", name: "Wizard's Peaked Hat", icon: "🧙", slot: "head", cost: 80, stats: { maxMp: 35, spd: 8 }, desc: "+35 MP, +8 SPD" },
     { id: "orbHelm", name: "Orbim's Blessed Helm", icon: "🛡️", slot: "head", cost: 160, stats: { def: 14, maxHp: 40 }, desc: "+14 DEF, +40 HP, +2 HP/turn", passive: "holyAura" },
     { id: "blade1", name: "Shadow Blade", icon: "🗡️", slot: "weapon", cost: 50, stats: { atk: 6 }, desc: "+6 ATK" },
-    { id: "blade2", name: "Blade of Saxav", icon: "🩸", slot: "weapon", cost: 130, stats: { atk: 10 }, desc: "+10 ATK, steals 5 HP", passive: "lifesteal" },
+    { id: "blade2", name: "Blade of Saxav", icon: "🩸", slot: "weapon", cost: 110, stats: { atk: 10 }, desc: "+10 ATK, steals 5 HP", passive: "lifesteal" },
     { id: "axe1", name: "Graveborn Cleaver", icon: "🪓", slot: "weapon", cost: 140, stats: { atk: 14 }, desc: "+14 ATK, steals 8 HP", passive: "lifesteal2" },
     { id: "sword1", name: "Valdris's Judgement", icon: "⚔️", slot: "weapon", cost: 120, stats: { atk: 8, crit: 6 }, desc: "+8 ATK, +6% Crit, +ability dmg", passive: "abilityBonus" },
     { id: "staff1", name: "Arcane Staff", icon: "🔮", slot: "weapon", cost: 50, stats: { manaRegen: 5, maxMp: 20, spd: 5 }, desc: "+5 MP/turn, +20 MP, +5 SPD" },
@@ -581,6 +581,7 @@ function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
 
     const getTrack = (sc, z) => {
         if (sc === "victory") return VICTORY_TRACK;
+        if (sc === "duelVictory") return MUSIC[0];
         if (sc === "gameover") return MUSIC[0];
         if (sc === "challengeIntro") return MUSIC[0];
         return MUSIC[z] || MUSIC[0];
@@ -917,7 +918,7 @@ function HallScreen({ reset }) {
                                 <div style={{ flex: 1 }}>
                                     <div style={{ color: c?.color || "#f0c060", fontWeight: "bold", fontSize: 12 }}>{champ.playerTitle}</div>
                                     <div style={{ color: "#555", fontSize: 9 }}>Lv.{champ.level} · {champ.encounters} battles · {champ.date}</div>
-                                    <div style={{ color: "#777", fontSize: 9, marginTop: 2 }}>❤️{champ.stats?.hp} ⚔️{champ.stats?.atk} 🛡️{champ.stats?.def} 💨{champ.stats?.spd}</div>
+                                    <div style={{ color: "#777", fontSize: 9, marginTop: 2 }}>❤️{champ.stats?.hp} ⚔️{champ.stats?.atk} 🛡️{champ.stats?.def} 💨{champ.stats?.spd} 🎯{champ.stats?.crit}% ✨{champ.stats?.manaRegen}/t</div>
                                 </div>
                                 <button onClick={() => handleCopyChallenge(champ, i)}
                                     style={{ padding: "6px 10px", background: copyIdx === i ? "linear-gradient(90deg,#006600,#00aa00)" : "linear-gradient(90deg,#880000,#cc2222)", color: "#fff", border: "none", borderRadius: 7, fontSize: 10, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold", whiteSpace: "nowrap" }}>
@@ -972,7 +973,7 @@ export default function App() {
     const [trinketUsed, setTrinketUsed] = useState(false);
     const [hitFlash, setHitFlash] = useState(null);
     const [combatAnim, setCombatAnim] = useState(null); // { target: "enemy"|"player", type: "slash"|"fire"|"arcane"|"holy"|"dark"|"poison"|"arrow"|"heal"|"drain" }
-    const [challengeOnVictory, setChallengeOnVictory] = useState(null);
+    const [duelVictory, setDuelVictory] = useState(null); // stores defeated champ name when duel is won
     const [defeatedEnemy, setDefeatedEnemy] = useState(null); // holds slain enemy while loot shows
     const [pendingVictory, setPendingVictory] = useState(null); // deferred post-loot action
 
@@ -1046,7 +1047,7 @@ export default function App() {
         setLootQueue(q => [...q, { msg, icon, desc, type: type || "item" }]);
     };
 
-    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0 }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setTrinketUsed(false); setHitFlash(null); setCombatAnim(null); setDefeatedEnemy(null); setPendingVictory(null); };
+    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0 }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setTrinketUsed(false); setHitFlash(null); setCombatAnim(null); setDefeatedEnemy(null); setPendingVictory(null); setDuelVictory(null); };
 
     const selectClass = cls => { setPendingCls(cls); setCharName(""); setScreen("naming"); };
     const randomName = () => { const n = CLASS_NAMES[pendingCls]; setCharName(n[rand(0, n.length - 1)]); };
@@ -1117,6 +1118,15 @@ export default function App() {
     const isCrit = pct => rand(1, 100) <= pct;
 
     const resolveVictory = (np, ne, nb, inv, g, eq, cse, rl) => {
+        // Duel victory — special screen
+        if (ne.style === "duel") {
+            addLog(`🏆 ${ne.name} defeated in the duel!`, "#ff4466");
+            setDuelVictory(ne.name);
+            setCombat(false);
+            setPlayer(np); setBuffs(nb); setSe(cse);
+            setScreen("duelVictory");
+            return;
+        }
         addLog(`🏆 ${ne.name} defeated! +${ne.xp} XP, +${ne.gold} Gold`, "#f0c060"); if (ne.gold > 0) notify(`+${ne.gold} Gold`, "🪙", null, "gold");
         const hpRec = Math.floor(np.maxHp * (rand(15, 20) / 100)); const mpRec = Math.floor(np.maxMp * (rand(15, 20) / 100));
         np.hp = clamp(np.hp + hpRec, 0, np.maxHp); np.mp = clamp(np.mp + mpRec, 0, np.maxMp);
@@ -1274,43 +1284,98 @@ export default function App() {
         };
         if (fne.style === "duel") {
             const champClass = fne.champClass || "";
-            const roll = rand(1, 100);
-            if (champClass === "Death Knight" && roll <= 30 && !fnb.enemy.some(b => b.tag === "duelSacrifice")) {
-                const hc = Math.floor(fne.hp * 0.20);
-                if (fne.hp - hc > 0) {
-                    fne.hp -= hc;
-                    const ab2 = Math.floor(eAtk * 0.5); const db2 = Math.floor(fne.def * 0.5);
-                    fnb.enemy.push({ stat: "atk", amount: ab2, turns: 3, tag: "duelSacrifice" });
-                    fnb.enemy.push({ stat: "def", amount: db2, turns: 3, tag: "duelSacrifice" });
-                    triggerAnim("enemy", "power", `💀+${ab2}ATK+${db2}DEF`, "#cc2222");
-                    addLog(`💀 ${fne.name} uses Dark Sacrifice! ATK+${ab2}, DEF+${db2}!`, "#cc2222");
-                } else doHit(eAtk, pDef);
-            } else if (champClass === "Demonic Beast" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelPact")) {
-                const pactAtk = Math.floor(eAtk * 0.30);
-                fnb.enemy.push({ stat: "atk", amount: pactAtk, turns: 4, tag: "duelPact" });
-                triggerAnim("enemy", "power", `👹+${pactAtk}ATK`, "#c060f0");
-                addLog(`👹 ${fne.name} uses Demon Pact! +30% ATK x 4!`, "#c060f0");
-            } else if (champClass === "Holy Knight" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelShield")) {
-                const db = Math.max(1, Math.floor(fne.def * 0.5));
-                fnb.enemy.push({ stat: "def", amount: db, turns: 3, tag: "duelShield" });
-                triggerAnim("enemy", "shield", `🛡️+${db}DEF`, "#f0c060");
-                addLog(`⚔️ ${fne.name} uses Holy Shield! DEF+${db} x 3!`, "#f0c060");
-            } else if (champClass === "Arch Angel" && roll <= 20 && fne.hp < fne.maxHp * 0.6) {
-                const heal = Math.floor(fne.maxHp * 0.15);
-                fne.hp = Math.min(fne.hp + heal, fne.maxHp);
-                triggerAnim("enemy", "heal", `+${heal}`, "#e8e0ff"); addLog(`😇 ${fne.name} heals ${heal} HP!`, "#e8e0ff");
-            } else if (champClass === "Arcane Magician" && roll <= 35) {
-                doHit(Math.floor(eAtk * 1.4), Math.floor(pDef * 0.6), false, true);
-                addLog(`🔮 ${fne.name} casts a spell!`, "#60c0f0");
-            } else if (champClass === "Ranged Assassin" && roll <= 30) {
-                const c = isCrit((fne.crit || 5) + 15);
-                const raw = rand(eAtk, eAtk + 4);
-                const dmg = Math.max(0, calcDmg(c ? Math.floor(raw * 1.5) : raw, Math.floor(pDef * 0.5)));
-                flash("player"); fnp.hp -= dmg; triggerAnim("player", "arrow", `-${dmg}`, c ? "#ff2200" : "#ff6060");
-                addLog(`🏹 ${fne.name} snipes you for ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#60f0a0");
-            } else {
-                doHit(eAtk, pDef);
+            const isFirstTurn = !fne.duelOpened;
+            const lowHp = fne.hp < fne.maxHp * 0.30;
+            const canHeal = lowHp && !fne.duelHealed;
+
+            // Heal with Greater Potion if low HP (once only)
+            if (canHeal) {
+                fne.duelHealed = true;
+                const heal = Math.min(100, fne.maxHp - fne.hp);
+                fne.hp = Math.min(fne.hp + 100, fne.maxHp);
+                triggerAnim("enemy", "heal", `+${heal}💊`, "#60f0a0");
+                addLog(`💊 ${fne.name} drinks a Greater Potion! +${heal} HP!`, "#60f0a0");
+                fne.duelOpened = true; // counts as their opening move too
             }
+            // First turn — always use signature buff
+            else if (isFirstTurn) {
+                fne.duelOpened = true;
+                if (champClass === "Death Knight") {
+                    const hc = Math.floor(fne.hp * 0.20);
+                    if (fne.hp - hc > 0) {
+                        fne.hp -= hc;
+                        const ab2 = Math.floor(eAtk * 0.5); const db2 = Math.floor(fne.def * 0.5);
+                        fnb.enemy.push({ stat: "atk", amount: ab2, turns: 3, tag: "duelSacrifice" });
+                        fnb.enemy.push({ stat: "def", amount: db2, turns: 3, tag: "duelSacrifice" });
+                        triggerAnim("enemy", "power", `💀+${ab2}ATK`, "#cc2222");
+                        addLog(`💀 ${fne.name} opens with Dark Sacrifice! ATK+${ab2}, DEF+${db2}!`, "#cc2222");
+                    } else doHit(eAtk, pDef);
+                } else if (champClass === "Demonic Beast") {
+                    const pactAtk = Math.floor(eAtk * 0.30);
+                    fnb.enemy.push({ stat: "atk", amount: pactAtk, turns: 4, tag: "duelPact" });
+                    triggerAnim("enemy", "power", `👹+${pactAtk}ATK`, "#c060f0");
+                    addLog(`👹 ${fne.name} opens with Demon Pact! +30% ATK x 4!`, "#c060f0");
+                } else if (champClass === "Holy Knight") {
+                    const db = Math.max(1, Math.floor(fne.def * 0.5));
+                    fnb.enemy.push({ stat: "def", amount: db, turns: 3, tag: "duelShield" });
+                    triggerAnim("enemy", "shield", `🛡️+${db}DEF`, "#f0c060");
+                    addLog(`⚔️ ${fne.name} opens with Holy Shield! DEF+${db} x 3!`, "#f0c060");
+                } else if (champClass === "Arch Angel") {
+                    cse.dodgeReady = true;
+                    triggerAnim("enemy", "flight", "😇 Flight!", "#e8e0ff");
+                    addLog(`😇 ${fne.name} opens with Take Flight! Next attack dodged!`, "#e8e0ff");
+                } else if (champClass === "Arcane Magician") {
+                    fnb.enemy.push({ stat: "spd", amount: 10, turns: 4, tag: "duelArcane" });
+                    triggerAnim("enemy", "arcane", "🔮+10SPD", "#60c0f0");
+                    addLog(`🔮 ${fne.name} opens with Arcane Surge! +10 SPD x 4!`, "#60c0f0");
+                } else if (champClass === "Ranged Assassin") {
+                    // Ranged opens with a high-crit snipe
+                    const c = isCrit((fne.crit || 5) + 20);
+                    const raw = rand(eAtk, eAtk + 6);
+                    const dmg = Math.max(0, calcDmg(c ? Math.floor(raw * 1.7) : raw, Math.floor(pDef * 0.4)));
+                    flash("player"); fnp.hp -= dmg; triggerAnim("player", "arrow", `-${dmg}`, c ? "#ff2200" : "#ff6060");
+                    addLog(`🏹 ${fne.name} opens with a deadly snipe for ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#60f0a0");
+                } else doHit(eAtk, pDef);
+            }
+            // Subsequent turns — use abilities at their normal rate
+            else {
+                const roll = rand(1, 100);
+                if (champClass === "Death Knight" && roll <= 30 && !fnb.enemy.some(b => b.tag === "duelSacrifice")) {
+                    const hc = Math.floor(fne.hp * 0.20);
+                    if (fne.hp - hc > 0) {
+                        fne.hp -= hc;
+                        const ab2 = Math.floor(eAtk * 0.5); const db2 = Math.floor(fne.def * 0.5);
+                        fnb.enemy.push({ stat: "atk", amount: ab2, turns: 3, tag: "duelSacrifice" });
+                        fnb.enemy.push({ stat: "def", amount: db2, turns: 3, tag: "duelSacrifice" });
+                        triggerAnim("enemy", "power", `💀+${ab2}ATK`, "#cc2222");
+                        addLog(`💀 ${fne.name} uses Dark Sacrifice! ATK+${ab2}, DEF+${db2}!`, "#cc2222");
+                    } else doHit(eAtk, pDef);
+                } else if (champClass === "Demonic Beast" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelPact")) {
+                    const pactAtk = Math.floor(eAtk * 0.30);
+                    fnb.enemy.push({ stat: "atk", amount: pactAtk, turns: 4, tag: "duelPact" });
+                    triggerAnim("enemy", "power", `👹+${pactAtk}ATK`, "#c060f0");
+                    addLog(`👹 ${fne.name} uses Demon Pact! +30% ATK x 4!`, "#c060f0");
+                } else if (champClass === "Holy Knight" && roll <= 25 && !fnb.enemy.some(b => b.tag === "duelShield")) {
+                    const db = Math.max(1, Math.floor(fne.def * 0.5));
+                    fnb.enemy.push({ stat: "def", amount: db, turns: 3, tag: "duelShield" });
+                    triggerAnim("enemy", "shield", `🛡️+${db}DEF`, "#f0c060");
+                    addLog(`⚔️ ${fne.name} uses Holy Shield! DEF+${db} x 3!`, "#f0c060");
+                } else if (champClass === "Arch Angel" && roll <= 20 && fne.hp < fne.maxHp * 0.6) {
+                    const heal = Math.floor(fne.maxHp * 0.15);
+                    fne.hp = Math.min(fne.hp + heal, fne.maxHp);
+                    triggerAnim("enemy", "heal", `+${heal}`, "#e8e0ff"); addLog(`😇 ${fne.name} heals ${heal} HP!`, "#e8e0ff");
+                } else if (champClass === "Arcane Magician" && roll <= 35) {
+                    doHit(Math.floor(eAtk * 1.4), Math.floor(pDef * 0.6), false, true);
+                    addLog(`🔮 ${fne.name} casts a spell!`, "#60c0f0");
+                } else if (champClass === "Ranged Assassin" && roll <= 30) {
+                    const c = isCrit((fne.crit || 5) + 15);
+                    const raw = rand(eAtk, eAtk + 4);
+                    const dmg = Math.max(0, calcDmg(c ? Math.floor(raw * 1.5) : raw, Math.floor(pDef * 0.5)));
+                    flash("player"); fnp.hp -= dmg; triggerAnim("player", "arrow", `-${dmg}`, c ? "#ff2200" : "#ff6060");
+                    addLog(`🏹 ${fne.name} snipes you for ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#60f0a0");
+                } else doHit(eAtk, pDef);
+            }
+            setEnemy(fne);
         } else if (fne.style === "aggressive") {
             // Xaroon the Dragon — Fire Breath + Wing Slam
             if (fne.id === "xaroon_dragon" && rand(1, 100) <= 30) {
@@ -1613,6 +1678,32 @@ export default function App() {
         </div>
     </>);
 
+    if (screen === "duelVictory") {
+        const challengeLink = challengeOnVictory ? window.location.href.split("?")[0] + `?challenge=${btoa(JSON.stringify(challengeOnVictory))}` : null;
+        const proofText = `I defeated ${duelVictory} in Realm of Shadows! ${challengeLink || window.location.href}`;
+        const [copied, setCopied] = useState(false);
+        return (<><MusicControls musicVolume={musicVolume} setMusicVolume={setMusicVolume} muteMusic={muteMusic} setMuteMusic={setMuteMusic} muteSfx={muteSfx} setMuteSfx={setMuteSfx} />
+            <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20, textAlign: "center" }}>
+                <style>{CSS}</style>
+                <div style={{ fontSize: 52, filter: "drop-shadow(0 0 20px #ff446699)", marginBottom: 8 }}>⚔️</div>
+                <h2 style={{ color: "#ff4466", fontSize: 22, animation: "glow 2s infinite", marginBottom: 4 }}>Challenge Defeated!</h2>
+                <p style={{ color: "#ccc", marginBottom: 4 }}>{playerTitle}</p>
+                <p style={{ color: "#ff446699", fontSize: 12, marginBottom: 16 }}>conquered {duelVictory}</p>
+                {playerClass && <ClassPortrait className={playerClass} size={90} style={{ margin: "0 auto 16px" }} />}
+                <div style={{ background: "#ffffff08", border: "1px solid #ff446633", borderRadius: 12, padding: 14, width: "100%", maxWidth: 320, marginBottom: 14 }}>
+                    <div style={{ color: "#ff4466", fontWeight: "bold", fontSize: 11, marginBottom: 8 }}>🔗 Proof of Victory</div>
+                    <div style={{ color: "#888", fontSize: 10, marginBottom: 10, wordBreak: "break-all", lineHeight: 1.5 }}>{proofText}</div>
+                    <button onClick={() => { navigator.clipboard?.writeText(proofText).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 2500); }}
+                        style={{ width: "100%", padding: "8px", background: copied ? "linear-gradient(90deg,#006600,#00aa00)" : "linear-gradient(90deg,#880033,#ff4466)", color: "#fff", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
+                        {copied ? "✅ Copied to clipboard!" : "📋 Copy proof link"}
+                    </button>
+                </div>
+                <button onClick={() => { setDuelVictory(null); setScreen("title"); }}
+                    style={{ padding: "8px 24px", background: "#ffffff10", color: "#888", border: "1px solid #333", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia" }}>← Back to Menu</button>
+            </div>
+        </>);
+    }
+
     if (screen === "victory") return <><MusicControls musicVolume={musicVolume} setMusicVolume={setMusicVolume} muteMusic={muteMusic} setMuteMusic={setMuteMusic} muteSfx={muteSfx} setMuteSfx={setMuteSfx} /><VictoryScreen player={player} playerTitle={playerTitle} playerClass={playerClass} level={level} gold={gold} encounters={encounters} equipped={equipped} relics={relics} effStats={effStats} getRelicBonus={getRelicBonus} reset={reset} challengeOnVictory={challengeOnVictory} /></>;
 
     if (screen === "hall") return <><MusicControls musicVolume={musicVolume} setMusicVolume={setMusicVolume} muteMusic={muteMusic} setMuteMusic={setMuteMusic} muteSfx={muteSfx} setMuteSfx={setMuteSfx} /><HallScreen reset={reset} /></>;
@@ -1832,13 +1923,14 @@ export default function App() {
                         <Btn onClick={() => { setShowShop(s => { const next = !s || shopTab !== "sell"; if (next) setShopTab("sell"); return next; }); setShowEquip(false); playSfx('tab'); }} border="#f0a060" bg="#2e1a0d" color="#f0a060">💰 Sell</Btn>
                     </div>
 
-                    {inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
+                    {!showShop && inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
                         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
                             {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => (
                                 <div key={item.id}>
                                     <button onClick={() => useItemOutside(inventory.indexOf(item))}
                                         style={{ background: "#0d1a2e", border: "1px solid #60c0f033", color: "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
-                                        <ItemPortrait itemId={item.id} size={20} /> Use {item.name}×{item.qty}
+                                        <ItemPortrait itemId={item.id} size={20} />
+                                        <span>Use {item.name}×{item.qty}{item.desc && <span style={{ color: "#60c0f055", fontSize: 9 }}> · {item.desc}</span>}</span>
                                     </button>
                                 </div>
                             ))}
