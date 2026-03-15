@@ -153,12 +153,42 @@ function ItemPortrait({ itemId, size = 32, style = {} }) {
 }
 
 const CLASS_NAMES = {
-    "Holy Knight": ["Valdris", "Seraphon", "Aurelion", "Belthar", "Dawnsworn", "Kaelthas", "Solarius", "Brightmere", "Aldric", "Luminar"],
-    "Demonic Beast": ["Malachar", "Vexaroth", "Duskbane", "Zyr'ak", "Noctiver", "Hexulon", "Draeven", "Voidcaller", "Grimthar", "Soulrend"],
-    "Arcane Magician": ["Syndrel", "Evorath", "Lumivex", "Aetherion", "Zylindra", "Mystvar", "Coravex", "Arcanis", "Velindra", "Runewick"],
-    "Ranged Assassin": ["Tharix", "Veylan", "Shadowfen", "Nyxara", "Quilrath", "Slivren", "Duskwhisper", "Caeldris", "Wraithe", "Silentmark"],
-    "Arch Angel": ["Seraphiel", "Auranthos", "Luminex", "Celestara", "Dawnwing", "Solveran", "Radiantus", "Auriel", "Skywarden", "Exaltis"],
-    "Death Knight": ["Morthis", "Gravenbane", "Duskravel", "Soulcleave", "Vorn", "Ashgrasp", "Necrath", "Dreadmaw", "Korvel", "Bonesworn"],
+    "Holy Knight": [
+        "Valdris", "Seraphon", "Aurelion", "Belthar", "Dawnsworn",
+        "Solarius", "Brightmere", "Aldric", "Luminar", "Theron",
+        "Vaelthas", "Orvandel", "Caelindra", "Stormveil", "Ironvow",
+        "Goldenwrath", "Ashenveil", "Dawnbreaker", "Solenne", "Halveth",
+    ],
+    "Demonic Beast": [
+        "Malachar", "Vexaroth", "Duskbane", "Zyr'ak", "Noctiver",
+        "Hexulon", "Draeven", "Voidcaller", "Grimthar", "Soulrend",
+        "Kraelvor", "Ashfang", "Skolveth", "Brimrak", "Devorath",
+        "Hellmaw", "Cinderax", "Gorvash", "Thornspite", "Vyrax",
+    ],
+    "Arcane Magician": [
+        "Syndrel", "Evorath", "Lumivex", "Aetherion", "Zylindra",
+        "Mystvar", "Coravex", "Arcanis", "Velindra", "Runewick",
+        "Thessival", "Orbindra", "Wavecrest", "Glyphvane", "Aelarith",
+        "Vortivex", "Starlace", "Whisperune", "Nullvex", "Prismara",
+    ],
+    "Ranged Assassin": [
+        "Tharix", "Veylan", "Shadowfen", "Nyxara", "Quilrath",
+        "Slivren", "Duskwhisper", "Caeldris", "Wraithe", "Silentmark",
+        "Ashveil", "Thornstep", "Ghostnock", "Vexshroud", "Rimevane",
+        "Hollowshot", "Mirethis", "Dagenmoor", "Swiftbane", "Voidstep",
+    ],
+    "Arch Angel": [
+        "Seraphiel", "Auranthos", "Luminex", "Celestara", "Dawnwing",
+        "Solveran", "Radiantus", "Skywarden", "Exaltis", "Halcyonis",
+        "Veilborne", "Etherwind", "Gloravel", "Purevane", "Ascendris",
+        "Lightveil", "Caelindris", "Starbearer", "Thornhalo", "Ardenwing",
+    ],
+    "Death Knight": [
+        "Morthis", "Gravenbane", "Duskravel", "Soulcleave", "Vorn",
+        "Ashgrasp", "Necrath", "Dreadmaw", "Korvel", "Bonesworn",
+        "Wraithbane", "Coldvein", "Marrowthane", "Skullvex", "Grimdark",
+        "Hexbane", "Deathveil", "Blightmore", "Soulcrown", "Ravenmort",
+    ],
 };
 
 const CLASSES = {
@@ -454,7 +484,105 @@ const CSS = `
     @keyframes debuffAnim{0%{opacity:0;transform:scale(1.1)}20%{opacity:1;transform:scale(0.95)}55%{opacity:0.9;transform:scale(1)}85%{opacity:0.5}100%{opacity:0;transform:scale(0.85) translateY(5px)}}
   `;
 
-// ── Helper: build champion object from game state ──────────────────────────
+// ── Sound System ─────────────────────────────────────────────────────────────
+// Uses Web Audio API for procedural SFX (no external files needed).
+// Music: place zone audio files at /realm-of-shadows/assets/sounds/zone1.mp3 etc.
+// SFX files (optional overrides): /realm-of-shadows/assets/sounds/sfx_*.mp3
+
+const AudioCtx = typeof window !== "undefined" ? (window.AudioContext || window.webkitAudioContext) : null;
+let _actx = null;
+const getCtx = () => { if (!_actx && AudioCtx) { _actx = new AudioCtx(); } return _actx; };
+
+function playTone({ freq = 440, freq2 = null, type = "sine", duration = 0.15, volume = 0.18, attack = 0.01, decay = 0.1, delay = 0 } = {}) {
+    try {
+        const ctx = getCtx(); if (!ctx) return;
+        const t = ctx.currentTime + delay;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t);
+        if (freq2) osc.frequency.exponentialRampToValueAtTime(freq2, t + duration);
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(volume, t + attack);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+        osc.start(t); osc.stop(t + duration + 0.05);
+    } catch (e) {}
+}
+
+function playNoise({ duration = 0.1, volume = 0.12, freq = 800, delay = 0 } = {}) {
+    try {
+        const ctx = getCtx(); if (!ctx) return;
+        const t = ctx.currentTime + delay;
+        const bufSize = ctx.sampleRate * duration;
+        const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const filter = ctx.createBiquadFilter();
+        filter.type = "bandpass"; filter.frequency.value = freq; filter.Q.value = 0.5;
+        const gain = ctx.createGain();
+        src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(volume, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+        src.start(t); src.stop(t + duration + 0.05);
+    } catch (e) {}
+}
+
+const SFX = {
+    attack:    () => { playTone({ freq: 200, freq2: 80, type: "sawtooth", duration: 0.12, volume: 0.15 }); playNoise({ freq: 600, duration: 0.08, volume: 0.1 }); },
+    crit:      () => { playTone({ freq: 300, freq2: 600, type: "sawtooth", duration: 0.08, volume: 0.2 }); playTone({ freq: 600, freq2: 900, type: "square", duration: 0.12, volume: 0.15, delay: 0.05 }); playNoise({ freq: 1200, duration: 0.1, volume: 0.15, delay: 0.02 }); },
+    fire:      () => { playNoise({ freq: 400, duration: 0.25, volume: 0.18 }); playTone({ freq: 150, freq2: 80, type: "sawtooth", duration: 0.2, volume: 0.12 }); },
+    arcane:    () => { playTone({ freq: 600, freq2: 900, type: "sine", duration: 0.15, volume: 0.15 }); playTone({ freq: 800, freq2: 500, type: "sine", duration: 0.2, volume: 0.1, delay: 0.08 }); },
+    holy:      () => { [523, 659, 784].forEach((f, i) => playTone({ freq: f, type: "sine", duration: 0.25, volume: 0.1, delay: i * 0.06 })); },
+    dark:      () => { playTone({ freq: 100, freq2: 60, type: "sawtooth", duration: 0.3, volume: 0.2 }); playNoise({ freq: 200, duration: 0.2, volume: 0.1, delay: 0.05 }); },
+    arrow:     () => { playNoise({ freq: 2000, duration: 0.06, volume: 0.12 }); playTone({ freq: 400, freq2: 200, type: "sawtooth", duration: 0.1, volume: 0.1, delay: 0.03 }); },
+    heal:      () => { [440, 554, 659].forEach((f, i) => playTone({ freq: f, type: "sine", duration: 0.3, volume: 0.1, attack: 0.05, delay: i * 0.07 })); },
+    drink:     () => { playNoise({ freq: 800, duration: 0.06, volume: 0.08 }); playNoise({ freq: 400, duration: 0.08, volume: 0.08, delay: 0.06 }); playTone({ freq: 300, freq2: 250, type: "sine", duration: 0.15, volume: 0.07, delay: 0.1 }); },
+    mana:      () => { playTone({ freq: 700, freq2: 1000, type: "sine", duration: 0.2, volume: 0.12 }); playTone({ freq: 900, freq2: 700, type: "sine", duration: 0.15, volume: 0.08, delay: 0.1 }); },
+    shield:    () => { playNoise({ freq: 1500, duration: 0.05, volume: 0.1 }); playTone({ freq: 250, freq2: 300, type: "square", duration: 0.2, volume: 0.12, delay: 0.03 }); },
+    power:     () => { playTone({ freq: 120, freq2: 80, type: "sawtooth", duration: 0.2, volume: 0.2 }); playNoise({ freq: 500, duration: 0.15, volume: 0.12, delay: 0.05 }); },
+    smoke:     () => { playNoise({ freq: 600, duration: 0.15, volume: 0.1 }); playNoise({ freq: 300, duration: 0.2, volume: 0.08, delay: 0.08 }); },
+    poison:    () => { playTone({ freq: 200, freq2: 150, type: "sawtooth", duration: 0.2, volume: 0.1 }); playNoise({ freq: 400, duration: 0.15, volume: 0.08, delay: 0.05 }); },
+    drain:     () => { playTone({ freq: 300, freq2: 500, type: "sine", duration: 0.25, volume: 0.12 }); playTone({ freq: 200, freq2: 100, type: "sawtooth", duration: 0.2, volume: 0.1, delay: 0.1 }); },
+    debuff:    () => { playTone({ freq: 250, freq2: 180, type: "sawtooth", duration: 0.2, volume: 0.12 }); },
+    miss:      () => { playNoise({ freq: 300, duration: 0.08, volume: 0.06 }); },
+    levelup:   () => { [523, 659, 784, 1047].forEach((f, i) => playTone({ freq: f, type: "sine", duration: 0.3, volume: 0.12, delay: i * 0.08 })); },
+    victory:   () => { [523, 659, 784, 659, 1047].forEach((f, i) => playTone({ freq: f, type: "sine", duration: 0.35, volume: 0.13, delay: i * 0.1 })); },
+    loot:      () => { playTone({ freq: 800, freq2: 1000, type: "sine", duration: 0.12, volume: 0.1 }); playTone({ freq: 1000, type: "sine", duration: 0.15, volume: 0.08, delay: 0.1 }); },
+    gameover:  () => { [400, 300, 200, 120].forEach((f, i) => playTone({ freq: f, type: "sawtooth", duration: 0.4, volume: 0.15, delay: i * 0.15 })); },
+    explore:   () => { playNoise({ freq: 1000, duration: 0.05, volume: 0.07 }); playTone({ freq: 350, freq2: 400, type: "sine", duration: 0.1, volume: 0.08, delay: 0.03 }); },
+    flight:    () => { [600, 700, 800, 900].forEach((f, i) => playTone({ freq: f, type: "sine", duration: 0.15, volume: 0.08, delay: i * 0.04 })); },
+};
+
+// Map animType → sfx key
+const ANIM_SFX = { slash: "attack", fire: "fire", arcane: "arcane", holy: "holy", dark: "dark", drain: "drain", arrow: "arrow", heal: "heal", poison: "poison", shield: "shield", power: "power", smoke: "smoke", debuff: "debuff", flight: "flight" };
+
+// Zone music player
+function useMusicPlayer(zone, combat) {
+    const audioRef = useRef(null);
+    const currentZone = useRef(-1);
+    const MUSIC = [
+        "/realm-of-shadows/assets/sounds/zone1.mp3",
+        "/realm-of-shadows/assets/sounds/zone2.mp3",
+        "/realm-of-shadows/assets/sounds/zone3.mp3",
+        "/realm-of-shadows/assets/sounds/zone4.mp3",
+    ];
+    useEffect(() => {
+        if (currentZone.current === zone && audioRef.current) return;
+        currentZone.current = zone;
+        if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+        try {
+            const audio = new Audio(MUSIC[zone]);
+            audio.loop = true; audio.volume = 0.35;
+            audio.play().catch(() => {}); // Autoplay may be blocked — fine
+            audioRef.current = audio;
+        } catch (e) {}
+        return () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } };
+    }, [zone]);
+    return audioRef;
+}
 function buildChampion(playerTitle, playerClass, level, gold, encounters, player, equipped, relics, effStatsFn, getRelicBonusFn) {
     const ep = effStatsFn(player, equipped);
     const rb = getRelicBonusFn();
@@ -772,8 +900,18 @@ export default function App() {
     const triggerAnim = (target, type, label = null, labelColor = null) => {
         setCombatAnim({ target, type, label, labelColor });
         setTimeout(() => setCombatAnim(null), 750);
+        // Play matching sound effect
+        if (type && ANIM_SFX[type]) SFX[ANIM_SFX[type]]?.();
+        else if (!type && label) {
+            if (label.includes("MISS")) SFX.miss();
+            else if (label.includes("DODGE")) SFX.miss();
+        }
     };
+
+    // Zone music
+    useMusicPlayer(zone, combat);
     const notify = (msg, icon, desc, type) => {
+        SFX.loot();
         setLootQueue(q => [...q, { msg, icon, desc, type: type || "item" }]);
     };
 
@@ -781,7 +919,7 @@ export default function App() {
 
     const selectClass = cls => { setPendingCls(cls); setCharName(""); setScreen("naming"); };
     const randomName = () => { const n = CLASS_NAMES[pendingCls]; setCharName(n[rand(0, n.length - 1)]); };
-    const confirmName = () => { const name = charName.trim() || CLASS_NAMES[pendingCls][rand(0, 9)]; const title = `${name}, the ${pendingCls}`; setPlayerTitle(title); setPlayerClass(pendingCls); setPlayer({ ...CLASSES[pendingCls].stats }); setLog([{ msg: `${title} enters the Whispering Forest...`, color: "#f0c060" }]); setScreen("explore"); };
+    const confirmName = () => { const names = CLASS_NAMES[pendingCls]; const name = charName.trim() || names[rand(0, names.length - 1)]; const title = `${name}, the ${pendingCls}`; setPlayerTitle(title); setPlayerClass(pendingCls); setPlayer({ ...CLASSES[pendingCls].stats }); setLog([{ msg: `${title} enters the Whispering Forest...`, color: "#f0c060" }]); setScreen("explore"); };
 
     const unequipSlot = slot => {
         const item = equipped[slot];
@@ -832,6 +970,7 @@ export default function App() {
     };
 
     const startCombat = () => {
+        SFX.explore();
         if (lvlUp) return;
         const e = getNextEnemy(zone, defeatedUniques); if (!e) return;
         let ef = { ...e }; if (ef.minorSuffix === "armored") ef = { ...ef, def: ef.def + 6 };
@@ -874,8 +1013,8 @@ export default function App() {
         // The corpse stays until startCombat clears it
         if (!loot && ne.gold <= 0) {
             setTimeout(() => {
-                if (afterLoot === "levelup") { setLvlUp(true); setPendingVictory(null); }
-                else if (afterLoot === "victory") { setScreen("victory"); setPendingVictory(null); }
+                if (afterLoot === "levelup") { SFX.levelup(); setLvlUp(true); setPendingVictory(null); }
+                else if (afterLoot === "victory") { SFX.victory(); setScreen("victory"); setPendingVictory(null); }
                 else { setPendingVictory(null); }
             }, 1800);
         }
@@ -902,10 +1041,10 @@ export default function App() {
         const spdMult = 1 + totalSpd * 0.015;
         const totalCrit = (ep.crit || 2) + rb.crit;
         if (hasP(eq, "holyAura")) { np.hp = clamp(np.hp + 2, 0, np.maxHp); triggerAnim("player", "heal", "+2✨", "#f0f060"); }
-        if (cse.cursedPlateOn) { np.hp = clamp(np.hp - 3, 0, np.maxHp); triggerAnim("player", "dark", "-3💀", "#cc2222"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
-        if (cse.burn > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.burn--; triggerAnim("player", "fire", "-3🔥", "#ff6030"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
-        if (cse.playerPoison > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.playerPoison--; triggerAnim("player", "poison", "-3🐍", "#80ff80"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
-        if (cse.plagueDot > 0) { const pd = Math.max(1, Math.floor(np.maxHp * 0.15)); np.hp = clamp(np.hp - pd, 0, np.maxHp); cse.plagueDot--; triggerAnim("player", "poison", `-${pd}☣️`, "#cc44ff"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); setScreen("gameover"); return; } }
+        if (cse.cursedPlateOn) { np.hp = clamp(np.hp - 3, 0, np.maxHp); triggerAnim("player", "dark", "-3💀", "#cc2222"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); SFX.gameover(); setScreen("gameover"); return; } }
+        if (cse.burn > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.burn--; triggerAnim("player", "fire", "-3🔥", "#ff6030"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); SFX.gameover(); setScreen("gameover"); return; } }
+        if (cse.playerPoison > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.playerPoison--; triggerAnim("player", "poison", "-3🐍", "#80ff80"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); SFX.gameover(); setScreen("gameover"); return; } }
+        if (cse.plagueDot > 0) { const pd = Math.max(1, Math.floor(np.maxHp * 0.15)); np.hp = clamp(np.hp - pd, 0, np.maxHp); cse.plagueDot--; triggerAnim("player", "poison", `-${pd}☣️`, "#cc44ff"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); SFX.gameover(); setScreen("gameover"); return; } }
         if (cse.enemyDot > 0 && ne.hp > 0) { const dd = Math.max(1, Math.floor(ne.maxHp * 0.08)); ne.hp -= dd; cse.enemyDot--; triggerAnim("enemy", "dark", `-${dd}💀`, "#a0ffa0"); if (ne.hp <= 0) { setEnemy(ne); setPlayer(np); setTimeout(() => resolveVictory(np, ne, nb, inv, g, eq, cse, rl), 700); return; } }
         const regenBuff = nb.player.filter(b => b.stat === "manaRegen" && b.amount > 0).reduce((s, b) => s + b.amount, 0);
         const regen = (ep.manaRegen || 5) + rb.manaRegen + regenBuff;
@@ -918,6 +1057,7 @@ export default function App() {
             if (ne.minorSuffix === "shadowed" && isCrit(20)) { triggerAnim("enemy", null, "DODGE!", "#8888ff"); addLog(`🌑 ${ne.name} dodges your attack!`, "#8888ff"); return 0; }
             if (miss()) { triggerAnim("player", null, "MISS!", "#888"); addLog(`You missed!`, "#888"); return 0; }
             ne.hp -= dmg; flash("enemy");
+            if (critHit) SFX.crit();
             const dmgLabel = `${critHit ? "⚡" : ""}-${dmg}`;
             triggerAnim("enemy", animType, dmgLabel, critHit ? "#ffdd00" : "#ff4444");
             addLog(`${label} hits for ${dmg}${critHit ? " 🎯 CRIT!" : ""}`, critHit ? "#ffdd00" : "#60f060"); return dmg;
@@ -956,8 +1096,8 @@ export default function App() {
         } else if (type === "item") {
             const item = inventory[payload]; if (!item || item.qty <= 0) return;
             np.mp = clamp(np.mp + regen, 0, np.maxMp);
-            if (item.effect === "heal") { const h = Math.floor(item.amount * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h} HP`, "#60f0a0"); addLog(`You use ${item.icon} ${item.name} — restored ${h} HP`, "#60f0a0"); }
-            else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); addLog(`You use ${item.icon} ${item.name} — restored ${item.amount} MP`, "#60c0f0"); }
+            if (item.effect === "heal") { const h = Math.floor(item.amount * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); SFX.drink(); triggerAnim("player", "heal", `+${h} HP`, "#60f0a0"); addLog(`You use ${item.icon} ${item.name} — restored ${h} HP`, "#60f0a0"); }
+            else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); SFX.drink(); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); addLog(`You use ${item.icon} ${item.name} — restored ${item.amount} MP`, "#60c0f0"); }
             inv = inventory.map((it, i) => i === payload ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0); setInventory(inv);
         } else if (type === "flee") {
             if (rand(1, 100) > 40) { addLog("🏃 Fled!", "#f0c060"); setCombat(false); setEnemy(null); setPlayer(np); return; }
@@ -1162,11 +1302,11 @@ export default function App() {
         fnb.enemy = fnb.enemy.map(b => ({ ...b, turns: b.turns - 1 })).filter(b => b.turns > 0);
         setSavedEnemy({ ...fne });
         if (fne.hp <= 0) { resolveVictory(fnp, fne, fnb, inv, g, eq, fse, rl); return; }
-        if (fnp.hp <= 0) { fnp.hp = 0; setPlayer(fnp); setFinalLog([...log]); setScreen("gameover"); return; }
+        if (fnp.hp <= 0) { fnp.hp = 0; setPlayer(fnp); setFinalLog([...log]); SFX.gameover(); setScreen("gameover"); return; }
         setEnemy(fne); setPlayer(fnp); setBuffs(fnb); setSe(fse); setTurn("player");
     };
 
-    const useItemOutside = idx => { const item = inventory[idx]; if (!item || item.qty <= 0 || item.effect === "revive") return; let np = { ...player }; if (item.effect === "heal") { np.hp = clamp(np.hp + item.amount, 0, np.maxHp); triggerAnim("player", "heal", `+${item.amount}`, "#60f0a0"); } else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); } setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); };
+    const useItemOutside = idx => { const item = inventory[idx]; if (!item || item.qty <= 0 || item.effect === "revive") return; let np = { ...player }; if (item.effect === "heal") { np.hp = clamp(np.hp + item.amount, 0, np.maxHp); SFX.drink(); triggerAnim("player", "heal", `+${item.amount}`, "#60f0a0"); } else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); SFX.drink(); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); } setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); };
     const hasRevive = inventory.some(i => i.id === "revive" && i.qty > 0);
     const useRevive = () => { const idx = inventory.findIndex(i => i.id === "revive" && i.qty > 0); if (idx === -1) return; const e = { ...savedEnemy }; let np = { ...player, hp: clamp(100, 0, player.maxHp), mp: clamp((player.mp || 0) + 30, 0, player.maxMp) }; setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); setEnemy(e); setCombat(true); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate"), frailCurse: 0 }); setTurn("player"); setScreen("explore"); setTrinketUsed(false); addLog(`💎 Revived! ${e.name} has ${Math.max(0, e.hp)} HP!`, "#c060f0"); };
     const buyConsumable = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } if (item.id === "revive" && hasRevive) { setShopMsg("Already have a Revive Gem!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); setInventory(inv => { const ex = inv.find(i => i.id === item.id && !i.isGear); return ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }]; }); setShopMsg(`Bought ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
@@ -1174,7 +1314,7 @@ export default function App() {
     const sellItem = (item, idx) => { const price = item.sellPrice || Math.floor(item.cost / 2); setGold(g => g + price); setInventory(inv => inv.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setShopMsg(`Sold for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellEquipped = slot => { const item = equipped[slot]; if (!item) return; const price = item.sellPrice || Math.floor(item.cost / 2); const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); setGold(g => g + price); setShopMsg(`Sold ${item.name} for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellRelic = idx => { const r = relics[idx]; if (!r) return; setGold(g => g + r.sellPrice); setRelics(rl => rl.filter((_, i) => i !== idx)); setShopMsg(`Sold ${r.name} for ${r.sellPrice}g`); setTimeout(() => setShopMsg(""), 2000); };
-    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setLvlUp(false); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 12) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(3, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz === 3 ? "#ff4400" : "#60c0f0"); } };
+    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setLvlUp(false); SFX.levelup(); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 12) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(3, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz === 3 ? "#ff4400" : "#60c0f0"); } };
 
     const ep = player ? effStats(player, equipped) : null;
     const rb = getRelicBonus();
