@@ -531,7 +531,7 @@ function playNoise({ duration = 0.1, volume = 0.12, freq = 800, delay = 0 } = {}
 }
 
 const SFX = {
-    attack:    () => { playTone({ freq: 180, freq2: 120, type: "triangle", duration: 0.14, volume: 0.13 }); playNoise({ freq: 500, duration: 0.07, volume: 0.07 }); },
+    attack:    () => { playTone({ freq: 320, freq2: 260, type: "sine", duration: 0.1, volume: 0.09 }); playTone({ freq: 200, type: "sine", duration: 0.08, volume: 0.06, delay: 0.05 }); },
     crit:      () => { playTone({ freq: 440, freq2: 660, type: "triangle", duration: 0.18, volume: 0.16 }); playTone({ freq: 660, type: "sine", duration: 0.15, volume: 0.1, delay: 0.1 }); },
     fire:      () => { playNoise({ freq: 350, duration: 0.2, volume: 0.12 }); playTone({ freq: 200, freq2: 140, type: "triangle", duration: 0.18, volume: 0.1, delay: 0.05 }); },
     arcane:    () => { playTone({ freq: 600, freq2: 900, type: "sine", duration: 0.15, volume: 0.15 }); playTone({ freq: 800, freq2: 500, type: "sine", duration: 0.2, volume: 0.1, delay: 0.08 }); },
@@ -541,11 +541,11 @@ const SFX = {
     heal:      () => { [440, 554, 659].forEach((f, i) => playTone({ freq: f, type: "sine", duration: 0.3, volume: 0.1, attack: 0.05, delay: i * 0.07 })); },
     drink:     () => { playNoise({ freq: 800, duration: 0.06, volume: 0.08 }); playNoise({ freq: 400, duration: 0.08, volume: 0.08, delay: 0.06 }); playTone({ freq: 300, freq2: 250, type: "sine", duration: 0.15, volume: 0.07, delay: 0.1 }); },
     mana:      () => { playTone({ freq: 700, freq2: 1000, type: "sine", duration: 0.2, volume: 0.12 }); playTone({ freq: 900, freq2: 700, type: "sine", duration: 0.15, volume: 0.08, delay: 0.1 }); },
-    shield:    () => { playNoise({ freq: 1500, duration: 0.05, volume: 0.1 }); playTone({ freq: 250, freq2: 300, type: "square", duration: 0.2, volume: 0.12, delay: 0.03 }); },
-    power:     () => { playTone({ freq: 140, freq2: 100, type: "triangle", duration: 0.22, volume: 0.15 }); playNoise({ freq: 400, duration: 0.1, volume: 0.07, delay: 0.08 }); },
+    shield:    () => { playTone({ freq: 480, freq2: 520, type: "sine", duration: 0.12, volume: 0.09 }); playTone({ freq: 600, type: "sine", duration: 0.1, volume: 0.06, delay: 0.09 }); },
+    power:     () => { playTone({ freq: 340, freq2: 280, type: "sine", duration: 0.14, volume: 0.09 }); playTone({ freq: 260, freq2: 300, type: "sine", duration: 0.12, volume: 0.07, delay: 0.1 }); },
     smoke:     () => { playNoise({ freq: 600, duration: 0.15, volume: 0.1 }); playNoise({ freq: 300, duration: 0.2, volume: 0.08, delay: 0.08 }); },
     poison:    () => { playTone({ freq: 200, freq2: 150, type: "sawtooth", duration: 0.2, volume: 0.1 }); playNoise({ freq: 400, duration: 0.15, volume: 0.08, delay: 0.05 }); },
-    drain:     () => { playTone({ freq: 300, freq2: 500, type: "sine", duration: 0.25, volume: 0.12 }); playTone({ freq: 200, freq2: 100, type: "sawtooth", duration: 0.2, volume: 0.1, delay: 0.1 }); },
+    drain:     () => { playTone({ freq: 420, freq2: 560, type: "sine", duration: 0.14, volume: 0.09 }); playTone({ freq: 320, freq2: 420, type: "sine", duration: 0.12, volume: 0.07, delay: 0.1 }); },
     debuff:    () => { playTone({ freq: 250, freq2: 180, type: "sawtooth", duration: 0.2, volume: 0.12 }); },
     miss:      () => { playNoise({ freq: 300, duration: 0.08, volume: 0.06 }); },
     levelup:   () => { [523, 659, 784, 1047].forEach((f, i) => playTone({ freq: f, type: "sine", duration: 0.3, volume: 0.12, delay: i * 0.08 })); },
@@ -562,44 +562,72 @@ const SFX = {
 const ANIM_SFX = { slash: "attack", fire: "fire", arcane: "arcane", holy: "holy", dark: "dark", drain: "drain", arrow: "arrow", heal: "heal", poison: "poison", shield: "shield", power: "power", smoke: "smoke", debuff: "debuff", flight: "flight" };
 
 // Zone music player
-function useMusicPlayer(zone, muteMusic) {
+// Zone music player — screen-aware, plays from title through all screens
+// Victory track: /realm-of-shadows/assets/sounds/victory.mp3
+function useMusicPlayer(zone, screen, muteMusic) {
     const audioRef = useRef(null);
-    const currentZone = useRef(-1);
+    const trackRef = useRef(null); // current track path
+
     const MUSIC = [
         "/realm-of-shadows/assets/sounds/zone1.mp3",
         "/realm-of-shadows/assets/sounds/zone2.mp3",
         "/realm-of-shadows/assets/sounds/zone3.mp3",
         "/realm-of-shadows/assets/sounds/zone4.mp3",
     ];
-    useEffect(() => {
-        if (currentZone.current === zone && audioRef.current) return;
-        currentZone.current = zone;
-        if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-        if (muteMusic) return;
+    const VICTORY_TRACK = "/realm-of-shadows/assets/sounds/victory.mp3";
+
+    // Determine which track should play based on screen
+    const getTrack = () => {
+        if (screen === "victory") return VICTORY_TRACK;
+        if (screen === "gameover") return null; // silence on death
+        return MUSIC[zone] || MUSIC[0];
+    };
+
+    const fadeAndSwitch = (newTrack) => {
+        const old = audioRef.current;
+        if (old) {
+            // Fade out old track over 800ms
+            const startVol = old.volume;
+            const step = startVol / 16;
+            let ticks = 0;
+            const fade = setInterval(() => {
+                ticks++;
+                if (old.volume > step) old.volume = Math.max(0, old.volume - step);
+                if (ticks >= 16) { clearInterval(fade); old.pause(); old.src = ""; }
+            }, 50);
+        }
+        audioRef.current = null;
+        if (!newTrack || muteMusic) return;
         try {
-            const audio = new Audio(MUSIC[zone]);
-            audio.loop = true; audio.volume = 0.35;
+            const audio = new Audio(newTrack);
+            audio.loop = true; audio.volume = 0;
             audio.play().catch(() => {});
             audioRef.current = audio;
+            trackRef.current = newTrack;
+            // Fade in over 800ms
+            let ticks = 0;
+            const fadeIn = setInterval(() => {
+                ticks++;
+                if (audio.volume < 0.35 - 0.35/16) audio.volume = Math.min(0.35, audio.volume + 0.35/16);
+                if (ticks >= 16) clearInterval(fadeIn);
+            }, 50);
         } catch (e) {}
-        return () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } };
-    }, [zone]);
-    // Respond to mute toggle without zone change
+    };
+
+    useEffect(() => {
+        const desired = getTrack();
+        if (desired !== trackRef.current) fadeAndSwitch(desired);
+    }, [zone, screen]);
+
     useEffect(() => {
         if (muteMusic) {
-            if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; currentZone.current = -1; }
+            if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; audioRef.current = null; trackRef.current = null; }
         } else {
-            if (!audioRef.current) {
-                try {
-                    const audio = new Audio(MUSIC[zone]);
-                    audio.loop = true; audio.volume = 0.35;
-                    audio.play().catch(() => {});
-                    audioRef.current = audio;
-                    currentZone.current = zone;
-                } catch (e) {}
-            }
+            const desired = getTrack();
+            if (desired && !audioRef.current) fadeAndSwitch(desired);
         }
     }, [muteMusic]);
+
     return audioRef;
 }
 function buildChampion(playerTitle, playerClass, level, gold, encounters, player, equipped, relics, effStatsFn, getRelicBonusFn) {
@@ -932,7 +960,7 @@ export default function App() {
     const playSfx = (key) => { if (!muteSfx) SFX[key]?.(); };
 
     // Zone music
-    useMusicPlayer(zone, muteMusic);
+    useMusicPlayer(zone, screen, muteMusic);
     const notify = (msg, icon, desc, type) => {
         playSfx('loot');
         setLootQueue(q => [...q, { msg, icon, desc, type: type || "item" }]);
@@ -1037,7 +1065,7 @@ export default function App() {
         if (!loot && ne.gold <= 0) {
             setTimeout(() => {
                 if (afterLoot === "levelup") { playSfx('levelup'); setLvlUp(true); setPendingVictory(null); }
-                else if (afterLoot === "victory") { playSfx('victory'); setScreen("victory"); setPendingVictory(null); }
+                else if (afterLoot === "victory") { setScreen("victory"); setPendingVictory(null); }
                 else { setPendingVictory(null); }
             }, 1800);
         }
