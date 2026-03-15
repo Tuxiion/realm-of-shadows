@@ -1430,49 +1430,50 @@ export default function App() {
     // Persistent music controls — shown on every screen, bottom-right corner
     const MusicControls = () => {
         const sliderRef = useRef(null);
-        const dragging = useRef(false);
+        const isDragging = useRef(false);
 
-        const updateVolume = (clientX) => {
+        const calcVolume = (clientX) => {
             const rect = sliderRef.current?.getBoundingClientRect();
             if (!rect) return;
             const pct = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-            setMusicVolume(Math.min(1, Math.max(0, pct)));
+            setMusicVolume(pct);
         };
 
-        const onMouseDown = (e) => { dragging.current = true; updateVolume(e.clientX); };
-        const onMouseMove = (e) => { if (dragging.current) updateVolume(e.clientX); };
-        const onMouseUp   = () => { dragging.current = false; };
-        const onTouchStart = (e) => { dragging.current = true; updateVolume(e.touches[0].clientX); };
-        const onTouchMove  = (e) => { if (dragging.current) { e.preventDefault(); updateVolume(e.touches[0].clientX); } };
-        const onTouchEnd   = () => { dragging.current = false; };
-
         useEffect(() => {
-            window.addEventListener("mousemove", onMouseMove);
-            window.addEventListener("mouseup", onMouseUp);
-            return () => { window.removeEventListener("mousemove", onMouseMove); window.removeEventListener("mouseup", onMouseUp); };
+            const onMove = (e) => { if (isDragging.current) calcVolume(e.clientX); };
+            const onUp   = () => { isDragging.current = false; };
+            const onTouchMove = (e) => { if (isDragging.current) { e.preventDefault(); calcVolume(e.touches[0].clientX); } };
+            const onTouchEnd  = () => { isDragging.current = false; };
+            window.addEventListener("mousemove", onMove);
+            window.addEventListener("mouseup", onUp);
+            window.addEventListener("touchmove", onTouchMove, { passive: false });
+            window.addEventListener("touchend", onTouchEnd);
+            return () => {
+                window.removeEventListener("mousemove", onMove);
+                window.removeEventListener("mouseup", onUp);
+                window.removeEventListener("touchmove", onTouchMove);
+                window.removeEventListener("touchend", onTouchEnd);
+            };
         }, []);
 
         return (
             <div style={{ position: "fixed", bottom: 10, right: 10, zIndex: 200, display: "flex", alignItems: "center", gap: 5, background: "#00000077", borderRadius: 22, padding: "5px 10px", backdropFilter: "blur(6px)", userSelect: "none" }}>
-                {/* Music mute */}
                 <button onClick={() => setMuteMusic(m => !m)} title={muteMusic ? "Unmute music" : "Mute music"}
                     style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, opacity: muteMusic ? 0.35 : 0.85, padding: "0 2px", lineHeight: 1 }}>
                     {muteMusic ? "🔇" : "🎵"}
                 </button>
-                {/* Draggable volume bar */}
                 <div ref={sliderRef}
-                    onMouseDown={onMouseDown}
-                    onTouchStart={onTouchStart}
-                    onTouchMove={onTouchMove}
-                    onTouchEnd={onTouchEnd}
+                    onMouseDown={(e) => { isDragging.current = true; calcVolume(e.clientX); }}
+                    onTouchStart={(e) => { isDragging.current = true; calcVolume(e.touches[0].clientX); }}
                     title={`Volume: ${Math.round(musicVolume * 100)}%`}
-                    style={{ width: 54, height: 6, background: "#ffffff22", borderRadius: 4, cursor: "pointer", position: "relative", opacity: muteMusic ? 0.25 : 0.85 }}>
+                    style={{ width: 60, height: 18, display: "flex", alignItems: "center", cursor: "pointer", position: "relative", opacity: muteMusic ? 0.25 : 0.85 }}>
+                    {/* Track */}
+                    <div style={{ width: "100%", height: 5, background: "#ffffff22", borderRadius: 3, position: "absolute" }} />
                     {/* Fill */}
-                    <div style={{ width: `${musicVolume * 100}%`, height: "100%", background: "linear-gradient(90deg,#f0c06088,#f0c060)", borderRadius: 4, pointerEvents: "none" }} />
+                    <div style={{ width: `${musicVolume * 100}%`, height: 5, background: "linear-gradient(90deg,#f0c06088,#f0c060)", borderRadius: 3, position: "absolute", pointerEvents: "none" }} />
                     {/* Thumb */}
-                    <div style={{ position: "absolute", top: "50%", left: `${musicVolume * 100}%`, transform: "translate(-50%, -50%)", width: 12, height: 12, background: "#f0c060", borderRadius: "50%", boxShadow: "0 0 4px #f0c06099", pointerEvents: "none" }} />
+                    <div style={{ position: "absolute", left: `${musicVolume * 100}%`, transform: "translateX(-50%)", width: 13, height: 13, background: "#f0c060", borderRadius: "50%", boxShadow: "0 0 5px #f0c06099", pointerEvents: "none", transition: "box-shadow 0.1s" }} />
                 </div>
-                {/* SFX mute */}
                 <button onClick={() => setMuteSfx(m => !m)} title={muteSfx ? "Unmute SFX" : "Mute SFX"}
                     style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, opacity: muteSfx ? 0.35 : 0.85, padding: "0 2px", lineHeight: 1 }}>
                     {muteSfx ? "🔕" : "🔔"}
