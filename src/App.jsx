@@ -1528,7 +1528,7 @@ export default function App() {
                 </div>
             </div>
         </div>
-    );
+    </>);
 
     if (screen === "naming") {
         const cd = CLASSES[pendingCls]; return (<><MusicControls />
