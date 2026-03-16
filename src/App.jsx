@@ -745,6 +745,7 @@ function buildChampion(playerTitle, playerClass, level, gold, encounters, player
             Object.entries(equipped).filter(([, v]) => v).map(([k, v]) => [k, v.id])
         ),
         relicNames: relics.map(r => r.name),
+        defeatedChallenger: null,  // filled in when champion defeats a challenge AI
     };
 }
 
@@ -853,9 +854,9 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
                     <input value={champName} onChange={e => setChampName(e.target.value.slice(0, 20))} placeholder={playerTitle} maxLength={20}
                         style={{ width: "100%", padding: "6px 10px", background: "#0d0d1a", border: "1px solid #f0c06055", borderRadius: 6, color: "#eee", fontFamily: "Georgia", fontSize: 11, marginBottom: 2, boxSizing: "border-box" }} />
                     <div style={{ textAlign: "right", fontSize: 9, color: champName.length >= 20 ? "#ff6060" : "#444", marginBottom: 6 }}>{champName.length}/20</div>
-                    <button onClick={handleSave} disabled={saving || encounters > 12}
+                    <button onClick={handleSave} disabled={saving}
                         style={{ width: "100%", padding: "8px", background: saving ? "#333" : "linear-gradient(90deg,#8a6000,#f0c060)", color: saving ? "#666" : "#0d0d0a", border: "none", borderRadius: 7, fontSize: 12, cursor: saving ? "default" : "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
-                        {encounters > 12 ? "⚠️ Duel winners cannot save (beat main game only)" : saving ? "Saving..." : "🏆 Save to Hall of Champions"}
+                        {saving ? "Saving..." : "🏆 Save to Hall of Champions"}
                     </button>
                     {saveMsg && <div style={{ color: "#ff8060", fontSize: 10, marginTop: 5, textAlign: "center" }}>{saveMsg}</div>}
                 </div>
@@ -891,6 +892,62 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
                 <button onClick={reset}
                     style={{ padding: "7px 16px", background: "linear-gradient(90deg,#c0a020,#f0c060)", color: "#0d0d0a", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>Play Again</button>
             </div>
+        </div>
+    );
+}
+
+// ── DuelVictoryScreen ────────────────────────────────────────────────────────
+function DuelVictoryScreen({ playerTitle, playerClass, duelVictory, player, equipped, relics, level, gold, encounters, effStats, getRelicBonus, reset }) {
+    const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saveMsg, setSaveMsg] = useState("");
+    const [copied, setCopied] = useState(false);
+
+    const handleSave = async () => {
+        if (saving || saved) return;
+        setSaving(true);
+        try {
+            const champ = buildChampion(playerTitle, playerClass, level, gold, encounters, player, equipped, relics, effStats, getRelicBonus);
+            champ.defeatedChallenger = duelVictory;
+            const docRef = await addDoc(collection(db, "champions"), champ);
+            champ.id = docRef.id;
+            setSaved(true);
+            setSaveMsg("Champion saved! ✅");
+        } catch {
+            setSaveMsg("Failed to save.");
+        }
+        setSaving(false);
+    };
+
+    const cls = CLASSES[playerClass];
+    return (
+        <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20, textAlign: "center" }}>
+            <style>{CSS}</style>
+            <div style={{ fontSize: 52, filter: "drop-shadow(0 0 20px #ff446699)", marginBottom: 8 }}>⚔️</div>
+            <h2 style={{ color: "#ff4466", fontSize: 22, animation: "glow 2s infinite", marginBottom: 4 }}>Challenge Defeated!</h2>
+            <p style={{ color: "#ccc", marginBottom: 2 }}>{playerTitle}</p>
+            <p style={{ color: "#ff446699", fontSize: 12, marginBottom: 14 }}>conquered {duelVictory}</p>
+            {playerClass && <ClassPortrait className={playerClass} size={80} style={{ margin: "0 auto 14px" }} />}
+            <div style={{ width: "100%", maxWidth: 320, display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+                {!saved ? (
+                    <div style={{ background: "#ffffff08", border: "1px solid #ff446633", borderRadius: 12, padding: 14 }}>
+                        <div style={{ color: "#f0c060", fontWeight: "bold", fontSize: 12, marginBottom: 6 }}>🏆 Immortalize Your Victory</div>
+                        <div style={{ color: "#666", fontSize: 10, marginBottom: 10 }}>Save your champion — the Hall of Champions will show you defeated {duelVictory}!</div>
+                        <button onClick={handleSave} disabled={saving}
+                            style={{ width: "100%", padding: "9px", background: saving ? "#333" : "linear-gradient(90deg,#8a6000,#f0c060)", color: saving ? "#666" : "#0d0d0a", border: "none", borderRadius: 8, fontSize: 12, cursor: saving ? "default" : "pointer", fontFamily: "Georgia", fontWeight: "bold", marginBottom: 4 }}>
+                            {saving ? "Saving..." : "🏆 Save to Hall of Champions"}
+                        </button>
+                        {saveMsg && <div style={{ color: "#ff8060", fontSize: 10 }}>{saveMsg}</div>}
+                    </div>
+                ) : (
+                    <div style={{ background: "#ffffff08", borderRadius: 12, padding: 14, textAlign: "center" }}>
+                        <div style={{ color: "#60f060", fontSize: 13, marginBottom: 4 }}>✅ {saveMsg}</div>
+                        <div style={{ color: "#666", fontSize: 10 }}>Your victory over {duelVictory} is recorded forever.</div>
+                    </div>
+                )}
+            </div>
+            <button onClick={reset}
+                style={{ padding: "8px 24px", background: "#ffffff10", color: "#888", border: "1px solid #333", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia" }}>← Back to Menu</button>
         </div>
     );
 }
@@ -939,6 +996,7 @@ function HallScreen({ reset }) {
                                 <div style={{ flex: 1 }}>
                                     <div style={{ color: c?.color || "#f0c060", fontWeight: "bold", fontSize: 12 }}>{champ.playerTitle}</div>
                                     <div style={{ color: "#555", fontSize: 9 }}>Lv.{champ.level} · {champ.encounters} battles · {champ.date}</div>
+                                    {champ.defeatedChallenger && <div style={{ color: "#ff4466", fontSize: 9, fontWeight: "bold" }}>⚔️ Defeated {champ.defeatedChallenger}</div>}
                                     <div style={{ color: "#777", fontSize: 9, marginTop: 2 }}>❤️{champ.stats?.hp} ⚔️{champ.stats?.atk} 🛡️{champ.stats?.def} 💨{champ.stats?.spd} 🎯{champ.stats?.crit}% ✨{champ.stats?.manaRegen}/t</div>
                                 </div>
                                 <button onClick={() => handleChallenge(champ)}
@@ -1149,7 +1207,22 @@ export default function App() {
             return { np, inv, g, rl };
         }
         if (loot.type === "consumable") { const item = CONSUMABLES.find(c => c.id === loot.id); if (!item) return { np, inv, g, rl }; if (item.id === "revive" && inv.some(i => i.id === "revive" && i.qty > 0)) return { np, inv, g, rl }; addLog(`✨ Loot: ${item.icon} ${item.name}!`, "#60f0a0"); notify(item.name, item.icon, item.desc, "consumable"); const ex = inv.find(i => i.id === item.id && !i.isGear); return { np, inv: ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }], g, rl }; }
-        if (loot.type === "equipment") { const item = EQUIPMENT.find(e => e.id === loot.id); if (!item) return { np, inv, g, rl }; const alreadyInInv = inv.some(i => i.id === item.id && i.isGear); if (!alreadyInInv) { addLog(`✨ Loot: ${item.icon} ${item.name} → Added to bag!`, "#c060f0"); notify(item.name, item.icon, item.desc, "bag"); return { np, inv: [...inv, { ...item, qty: 1, isGear: true }], g, rl }; } addLog(`✨ Loot: ${item.icon} ${item.name} (Already in bag)`, "#888"); return { np, inv, g, rl }; }
+        if (loot.type === "equipment") { const item = EQUIPMENT.find(e => e.id === loot.id); if (!item) return { np, inv, g, rl };
+            // Auto-equip if slot empty; bag if slot occupied; auto-sell if already in bag
+            const hasInBag = inv.some(i => i.id === item.id && i.isGear);
+            if (hasInBag) {
+                const sellPrice = item.sellPrice || Math.floor(item.cost / 2);
+                addLog(`✨ Loot: ${item.icon} ${item.name} — Already owned, auto-sold for ${sellPrice}g!`, "#f0c060");
+                return { np, inv, g: g + sellPrice, rl };
+            }
+            if (!eq[item.slot]) {
+                const { np: nnp, newEq } = doEquip(item, eq, np); setEquipped(newEq);
+                addLog(`✨ Loot: ${item.icon} ${item.name} — Auto-equipped!`, "#c060f0"); notify(item.name, item.icon, item.desc, "equip");
+                return { np: nnp, inv, g, rl };
+            }
+            addLog(`✨ Loot: ${item.icon} ${item.name} → Added to bag!`, "#c060f0"); notify(item.name, item.icon, item.desc, "bag");
+            return { np, inv: [...inv, { ...item, qty: 1, isGear: true }], g, rl };
+        }
         return { np, inv, g, rl };
     };
 
@@ -1227,8 +1300,12 @@ export default function App() {
         setPlayer(np); setTrinketUsed(true);
     };
 
+    const actionLockRef = useRef(false);
     const playerAction = (type, payload) => {
         if (turn !== "player" || !combat) return;
+        if (actionLockRef.current) return;
+        actionLockRef.current = true;
+        setTimeout(() => { actionLockRef.current = false; }, 300);
         if (se.stunned) { addLog("💀 Stunned — turn lost!", "#ff4444"); setSe(s => ({ ...s, stunned: false })); setTurn("enemy"); setTimeout(() => enemyTurn({ ...player }, { ...enemy }, { player: [...buffs.player], enemy: [...buffs.enemy] }, [...inventory], gold, { ...equipped }, { ...se, stunned: false }, [...relics]), 900); return; }
         let np = { ...player }, ne = { ...enemy }, nb = { player: [...buffs.player], enemy: [...buffs.enemy] };
         let inv = [...inventory], g = gold, eq = { ...equipped }, cse = { ...se }, rl = [...relics];
@@ -1875,30 +1952,15 @@ export default function App() {
     </>);
 
     if (screen === "duelVictory") {
-        const challengeLink = challengeOnVictory ? window.location.href.split("?")[0] + `?challenge=${btoa(JSON.stringify(challengeOnVictory))}` : null;
-        const proofText = `I defeated ${duelVictory} in Realm of Shadows! ${challengeLink || window.location.href}`;
+        if (!duelVictory) { setScreen("title"); return null; }
         return (<><MusicControls musicVolume={musicVolume} setMusicVolume={setMusicVolume} muteMusic={muteMusic} setMuteMusic={setMuteMusic} muteSfx={muteSfx} setMuteSfx={setMuteSfx} />
-            <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20, textAlign: "center" }}>
-                <style>{CSS}</style>
-                <div style={{ fontSize: 52, filter: "drop-shadow(0 0 20px #ff446699)", marginBottom: 8 }}>⚔️</div>
-                <h2 style={{ color: "#ff4466", fontSize: 22, animation: "glow 2s infinite", marginBottom: 4 }}>Challenge Defeated!</h2>
-                <p style={{ color: "#ccc", marginBottom: 4 }}>{playerTitle}</p>
-                <p style={{ color: "#ff446699", fontSize: 12, marginBottom: 16 }}>conquered {duelVictory}</p>
-                {playerClass && <ClassPortrait className={playerClass} size={90} style={{ margin: "0 auto 16px" }} />}
-                <div style={{ background: "#ffffff08", border: "1px solid #ff446633", borderRadius: 12, padding: 14, width: "100%", maxWidth: 320, marginBottom: 14 }}>
-                    <div style={{ color: "#ff4466", fontWeight: "bold", fontSize: 11, marginBottom: 8 }}>🔗 Proof of Victory</div>
-                    <div style={{ color: "#888", fontSize: 10, marginBottom: 10, wordBreak: "break-all", lineHeight: 1.5 }}>{proofText}</div>
-                    <button onClick={() => { navigator.clipboard?.writeText(proofText).catch(() => {}); setShopMsg("copied"); setTimeout(() => setShopMsg(""), 2500); }}
-                        style={{ width: "100%", padding: "8px", background: copied ? "linear-gradient(90deg,#006600,#00aa00)" : "linear-gradient(90deg,#880033,#ff4466)", color: "#fff", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
-                        {shopMsg === "copied" ? "✅ Copied to clipboard!" : "📋 Copy proof link"}
-                    </button>
-                </div>
-                <button onClick={() => { setDuelVictory(null); setScreen("title"); }}
-                    style={{ padding: "8px 24px", background: "#ffffff10", color: "#888", border: "1px solid #333", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia" }}>← Back to Menu</button>
-            </div>
+            <DuelVictoryScreen
+                playerTitle={playerTitle} playerClass={playerClass} duelVictory={duelVictory}
+                player={player} equipped={equipped} relics={relics} level={level} gold={gold} encounters={encounters}
+                effStats={effStats} getRelicBonus={getRelicBonus} reset={reset}
+            />
         </>);
     }
-
     if (screen === "victory") return <><MusicControls musicVolume={musicVolume} setMusicVolume={setMusicVolume} muteMusic={muteMusic} setMuteMusic={setMuteMusic} muteSfx={muteSfx} setMuteSfx={setMuteSfx} /><VictoryScreen player={player} playerTitle={playerTitle} playerClass={playerClass} level={level} gold={gold} encounters={encounters} equipped={equipped} relics={relics} effStats={effStats} getRelicBonus={getRelicBonus} reset={reset} challengeOnVictory={challengeOnVictory} /></>;
 
     if (screen === "hall") return <><MusicControls musicVolume={musicVolume} setMusicVolume={setMusicVolume} muteMusic={muteMusic} setMuteMusic={setMuteMusic} muteSfx={muteSfx} setMuteSfx={setMuteSfx} /><HallScreen reset={reset} /></>;
@@ -2122,22 +2184,25 @@ export default function App() {
                     </div>
 
                     {inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
-                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 5 }}>
-                            {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => {
-                                const disabled = showShop;
-                                return (
-                                    <div key={item.id}>
-                                        <button onClick={() => !disabled && useItemOutside(inventory.indexOf(item))}
-                                            style={{ background: disabled ? "#0d0d0d" : "#0d1a2e", border: `1px solid ${disabled ? "#33333344" : "#60c0f033"}`, color: disabled ? "#444" : "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: disabled ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4, opacity: disabled ? 0.5 : 1 }}>
-                                            <ItemPortrait itemId={item.id} size={20} />
-                                            <span style={{ lineHeight: 1.4 }}>
-                                                Use {item.name}×{item.qty}
-                                                {item.desc && <><br /><span style={{ fontSize: 8, color: disabled ? "#333" : "#60c0f055" }}>{item.desc}</span></>}
-                                            </span>
-                                        </button>
-                                    </div>
-                                );
-                            })}
+                        <div style={{ marginBottom: 5 }}>
+                            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                {inventory.filter(it => it.effect !== "revive" && !it.isGear).map(item => {
+                                    const disabled = showShop;
+                                    return (
+                                        <div key={item.id}>
+                                            <button onClick={() => !disabled && useItemOutside(inventory.indexOf(item))}
+                                                style={{ background: disabled ? "#0d0d0d" : "#0d1a2e", border: `1px solid ${disabled ? "#33333344" : "#60c0f033"}`, color: disabled ? "#444" : "#60c0f0", borderRadius: 8, padding: "4px 7px", cursor: disabled ? "not-allowed" : "pointer", fontFamily: "Georgia", fontSize: 10, display: "flex", alignItems: "center", gap: 4, opacity: disabled ? 0.5 : 1 }}>
+                                                <ItemPortrait itemId={item.id} size={20} />
+                                                <span style={{ lineHeight: 1.4 }}>
+                                                    Use {item.name}×{item.qty}
+                                                    {item.desc && <><br /><span style={{ fontSize: 8, color: disabled ? "#333" : "#60c0f055" }}>{item.desc}</span></>}
+                                                </span>
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            {showShop && <div style={{ color: "#ff4444", fontSize: 9, marginTop: 3 }}>⚠️ Can't be used while shopping</div>}
                         </div>
                     )}
 
@@ -2150,7 +2215,7 @@ export default function App() {
                             </div>
 
 
-                            <div style={{ marginBottom: 8 }}>
+                            {shopTab !== "sell" && <div style={{ marginBottom: 8 }}>
                                 <div style={{ color: "#555", fontSize: 9, fontWeight: "bold", letterSpacing: 1, marginBottom: 4, borderBottom: "1px solid #ffffff08", paddingBottom: 2 }}>🧪 Consumables</div>
                                 <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                                     {CONSUMABLES.map(item => {
@@ -2199,7 +2264,7 @@ export default function App() {
                                             </div>
                                         </div>
                                     ))}
-                                </div>
+                                </div>}
 
                             {shopTab === "sell" && (
                                 <div>
