@@ -196,17 +196,17 @@ const CLASSES = {
         icon: "⚔️", color: "#f0c060", desc: "Sacred warrior. High defense, healing properties.",
         stats: { hp: 120, maxHp: 120, mp: 40, maxMp: 40, atk: 18, def: 10, spd: 7, crit: 2, manaRegen: 5 },
         abilities: [
-            { name: "Divine Strike", cost: 10, desc: "Sacred blade attack", damage: [18, 28], type: "atk" },
+            { name: "Divine Strike", cost: 10, desc: "ATK + SPD · Holy dmg", damage: [18, 28], type: "atk" },
             { name: "Holy Shield", cost: 8, desc: "+50% DEF for 6 turns", damage: [0, 0], type: "holyShield" },
-            { name: "Lay on Hands", cost: 15, desc: "Heal 18-25% Max HP", damage: [0.18, 0.25], type: "scaleHeal" },
+            { name: "Lay on Hands", cost: 15, desc: "Max HP · Heal 18-25%", damage: [0.18, 0.25], type: "scaleHeal" },
         ]
     },
     "Demonic Beast": {
         icon: "👹", color: "#c060f0", desc: "Dark pact-maker. High attack, fragile.",
         stats: { hp: 90, maxHp: 90, mp: 70, maxMp: 70, atk: 18, def: 5, spd: 9, crit: 5, manaRegen: 5 },
         abilities: [
-            { name: "Hellfire", cost: 15, desc: "Flames of the abyss", damage: [22, 35], type: "atk" },
-            { name: "Soul Drain", cost: 12, desc: "Steal HP from enemy", damage: [15, 25], type: "drain" },
+            { name: "Hellfire", cost: 15, desc: "ATK + SPD · Fire dmg", damage: [22, 35], type: "atk" },
+            { name: "Soul Drain", cost: 12, desc: "ATK · Steals 50% as HP", damage: [15, 25], type: "drain" },
             { name: "Demon Pact", cost: 20, desc: "+30% dmg for 6 turns", damage: [0, 0], type: "demonPact" },
         ]
     },
@@ -214,36 +214,36 @@ const CLASSES = {
         icon: "🔮", color: "#60c0f0", desc: "Master of arcane arts. High magic, low defense.",
         stats: { hp: 85, maxHp: 85, mp: 100, maxMp: 100, atk: 10, def: 4, spd: 11, crit: 5, manaRegen: 5 },
         abilities: [
-            { name: "Arcane Bolt", cost: 10, desc: "Blast of magical energy", damage: [20, 32], type: "atk" },
+            { name: "Arcane Bolt", cost: 10, desc: "SPD + Ability Power", damage: [20, 32], type: "atk" },
             { name: "Arcane Surge", cost: 18, desc: "+14 SPD, +5 MP/turn for 6 turns", damage: [0, 0], type: "arcaneBoost" },
-            { name: "Mana Burst", cost: 25, desc: "Massive magical explosion", damage: [35, 55], type: "atk" },
+            { name: "Mana Burst", cost: 25, desc: "SPD + Ability Power · High dmg", damage: [35, 55], type: "atk" },
         ]
     },
     "Ranged Assassin": {
         icon: "🏹", color: "#60f0a0", desc: "Swift shadow hunter. Extreme crit and burst.",
         stats: { hp: 80, maxHp: 80, mp: 60, maxMp: 60, atk: 16, def: 3, spd: 15, crit: 20, manaRegen: 5 },
         abilities: [
-            { name: "Snipe", cost: 14, desc: "Pinpoint lethal shot", damage: [28, 42], type: "atk" },
+            { name: "Snipe", cost: 14, desc: "ATK + SPD · High Crit", damage: [28, 42], type: "atk" },
             { name: "Smoke Bomb", cost: 10, desc: "Reduce enemy ATK by 30% for 6 turns", damage: [0, 0], type: "smokeBomb" },
-            { name: "Lethal Volley", cost: 20, desc: "Hit 2-3 times", damage: [12, 20], type: "multi" },
+            { name: "Lethal Volley", cost: 20, desc: "ATK · 2-3 hits, ignores 40% DEF", damage: [12, 20], type: "multi" },
         ]
     },
     "Arch Angel": {
         icon: "😇", color: "#e8e0ff", desc: "Radiant celestial warrior. High HP and DEF.",
         stats: { hp: 130, maxHp: 130, mp: 70, maxMp: 70, atk: 12, def: 12, spd: 8, crit: 8, manaRegen: 6 },
         abilities: [
-            { name: "Divine Wrath", cost: 18, desc: "Deals 20% Max HP as damage", damage: [0, 0], type: "divineWrath" },
-            { name: "Take Flight", cost: 30, desc: "Dodge next attack + bonus dmg 2 turns", damage: [0, 0], type: "takeFlight" },
-            { name: "Celestial Heal", cost: 20, desc: "Heal 15-22% Max HP + 10 MP", damage: [0.15, 0.22], type: "celestialHeal" },
+            { name: "Divine Wrath", cost: 18, desc: "Max HP · 20% as holy dmg", damage: [0, 0], type: "divineWrath" },
+            { name: "Take Flight", cost: 30, desc: "Dodge next hit · +30% ATK x2", damage: [0, 0], type: "takeFlight" },
+            { name: "Celestial Heal", cost: 20, desc: "Max HP · Heal 15-22% + 10 MP", damage: [0.15, 0.22], type: "celestialHeal" },
         ]
     },
     "Death Knight": {
         icon: "☠️", color: "#cc2222", desc: "Dark warrior who trades life for power.",
         stats: { hp: 115, maxHp: 115, mp: 50, maxMp: 50, atk: 20, def: 6, spd: 8, crit: 8, manaRegen: 4 },
         abilities: [
-            { name: "Dark Sacrifice", cost: 0, desc: "Cost 20% HP: +50% ATK & DEF 6 turns", damage: [0, 0], type: "darkSacrifice" },
-            { name: "Soul Rend", cost: 15, desc: "Heavy strike, ignore 30% DEF", damage: [25, 38], type: "soulRend" },
-            { name: "Death's Suffering", cost: 18, desc: "DoT: 8% Max HP x 4 turns", damage: [0, 0], type: "deathSuffering" },
+            { name: "Dark Sacrifice", cost: 0, desc: "HP Cost · +50% ATK & DEF x6", damage: [0, 0], type: "darkSacrifice" },
+            { name: "Soul Rend", cost: 15, desc: "ATK + SPD · Ignores 30% DEF", damage: [25, 38], type: "soulRend" },
+            { name: "Death's Suffering", cost: 18, desc: "Enemy Max HP · 8% DoT x4", damage: [0, 0], type: "deathSuffering" },
         ]
     },
 };
@@ -300,16 +300,16 @@ const ENEMIES_BY_ZONE = [
 
 const CONSUMABLES = [
     { id: "hpot", name: "Health Potion", icon: "🧪", cost: 15, effect: "heal", amount: 40, desc: "Restore 40 HP" },
-    { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 30, effect: "heal", amount: 100, desc: "Restore 100 HP" },
+    { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 50, effect: "heal", amount: 150, desc: "Restore 150 HP" },
     { id: "mpot", name: "Mana Elixir", icon: "💧", cost: 15, effect: "mp", amount: 50, desc: "Restore 50 MP" },
-    { id: "revive", name: "Revive Gem", icon: "💎", cost: 50, effect: "revive", amount: 100, desc: "Revive: +100 HP, +30 MP" },
+    { id: "revive", name: "Revive Gem", icon: "💎", cost: 100, effect: "revive", amount: 150, desc: "Revive: +150 HP, +80 MP" },
 ];
 
 const MONSTER_RELICS = [
     { id: "boneFrag", name: "Bone Fragment", icon: "🦴", cost: 0, sellPrice: 12, stats: { atk: 3 }, desc: "+3 ATK", slot: "relic", type: "passive" },
     { id: "cursedRoot", name: "Cursed Root", icon: "🌿", cost: 0, sellPrice: 10, stats: { maxHp: 10 }, desc: "+10 Max HP", slot: "relic", type: "passive" },
     { id: "shadowEss", name: "Shadow Essence", icon: "💠", cost: 0, sellPrice: 15, stats: { crit: 4 }, desc: "+4% Crit", slot: "relic", type: "passive" },
-    { id: "bloodVial", name: "Blood Vial", icon: "🩸", cost: 0, sellPrice: 18, stats: {}, desc: "Use: heal 25 HP", slot: "relic", type: "consumable", effect: "heal", amount: 25 },
+    { id: "bloodVial", name: "Blood Vial", icon: "🩸", cost: 0, sellPrice: 18, stats: { maxHp: 25 }, desc: "Passive: +25 Max HP", slot: "relic", type: "passive" },
     { id: "thornSpike", name: "Thorn Spike", icon: "🌵", cost: 0, sellPrice: 14, stats: { def: 2, atk: 2 }, desc: "+2 ATK, +2 DEF", slot: "relic", type: "passive" },
     { id: "voidShard", name: "Void Shard", icon: "🔷", cost: 0, sellPrice: 20, stats: { atk: 4, crit: 3 }, desc: "+4 ATK, +3% Crit", slot: "relic", type: "passive" },
 ];
@@ -612,10 +612,19 @@ function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
         const playPromise = audio.play();
         if (playPromise !== undefined) {
             playPromise.catch(() => {
-                // Autoplay blocked — attach one-time user gesture listener
-                const unlock = () => { audio.play().catch(() => {}); document.removeEventListener("click", unlock); document.removeEventListener("keydown", unlock); };
+                // Autoplay blocked — attach persistent listener until it works
+                const unlock = () => {
+                    audio.play().then(() => {
+                        document.removeEventListener("click", unlock);
+                        document.removeEventListener("keydown", unlock);
+                        document.removeEventListener("touchstart", unlock);
+                        document.removeEventListener("pointerdown", unlock);
+                    }).catch(() => {});
+                };
                 document.addEventListener("click", unlock);
                 document.addEventListener("keydown", unlock);
+                document.addEventListener("touchstart", unlock);
+                document.addEventListener("pointerdown", unlock);
             });
         }
         audioRef.current = audio;
@@ -990,7 +999,7 @@ export default function App() {
     const [showEquip, setShowEquip] = useState(false);
     const [muteSfx, setMuteSfx] = useState(false);
     const [muteMusic, setMuteMusic] = useState(false);
-    const [musicVolume, setMusicVolume] = useState(0.20);
+    const [musicVolume, setMusicVolume] = useState(0.10);
     const [lvlUp, setLvlUp] = useState(false);
     const [lootNotif, setLootNotif] = useState(null);
     const [lootQueue, setLootQueue] = useState([]);
@@ -1140,7 +1149,7 @@ export default function App() {
             return { np, inv, g, rl };
         }
         if (loot.type === "consumable") { const item = CONSUMABLES.find(c => c.id === loot.id); if (!item) return { np, inv, g, rl }; if (item.id === "revive" && inv.some(i => i.id === "revive" && i.qty > 0)) return { np, inv, g, rl }; addLog(`✨ Loot: ${item.icon} ${item.name}!`, "#60f0a0"); notify(item.name, item.icon, item.desc, "consumable"); const ex = inv.find(i => i.id === item.id && !i.isGear); return { np, inv: ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }], g, rl }; }
-        if (loot.type === "equipment") { const item = EQUIPMENT.find(e => e.id === loot.id); if (!item) return { np, inv, g, rl }; if (!eq[item.slot]) { const { np: nnp, newEq } = doEquip(item, eq, np); setEquipped(newEq); addLog(`✨ Loot: ${item.icon} ${item.name} (Auto-equipped!)`, "#c060f0"); notify(item.name, item.icon, item.desc, "equip"); return { np: nnp, inv, g, rl }; } const alreadyInInv = inv.some(i => i.id === item.id && i.isGear); if (!alreadyInInv) { addLog(`✨ Loot: ${item.icon} ${item.name} (Saved to bag!)`, "#c060f0"); notify(item.name, item.icon, item.desc, "bag"); return { np, inv: [...inv, { ...item, qty: 1, isGear: true }], g, rl }; } addLog(`✨ Loot: ${item.icon} ${item.name} (Already have one)`, "#888"); return { np, inv, g, rl }; }
+        if (loot.type === "equipment") { const item = EQUIPMENT.find(e => e.id === loot.id); if (!item) return { np, inv, g, rl }; const alreadyInInv = inv.some(i => i.id === item.id && i.isGear); if (!alreadyInInv) { addLog(`✨ Loot: ${item.icon} ${item.name} → Added to bag!`, "#c060f0"); notify(item.name, item.icon, item.desc, "bag"); return { np, inv: [...inv, { ...item, qty: 1, isGear: true }], g, rl }; } addLog(`✨ Loot: ${item.icon} ${item.name} (Already in bag)`, "#888"); return { np, inv, g, rl }; }
         return { np, inv, g, rl };
     };
 
@@ -1345,8 +1354,8 @@ export default function App() {
             // Priority 1: Greater Potion heal at <30% HP (once only)
             if (lowHp && !fne.duelHealed) {
                 fne.duelHealed = true;
-                const heal = Math.min(100, fne.maxHp - fne.hp);
-                fne.hp = Math.min(fne.hp + 100, fne.maxHp);
+                const heal = Math.min(150, fne.maxHp - fne.hp);
+                fne.hp = Math.min(fne.hp + 150, fne.maxHp);
                 triggerAnim("enemy", "heal", `+${heal}💊`, "#60f0a0");
                 addLog(`💊 ${fne.name} drinks a Greater Potion! +${heal} HP!`, "#60f0a0");
             }
@@ -1685,9 +1694,9 @@ export default function App() {
 
     const useItemOutside = idx => { const item = inventory[idx]; if (!item || item.qty <= 0 || item.effect === "revive") return; let np = { ...player }; if (item.effect === "heal") { np.hp = clamp(np.hp + item.amount, 0, np.maxHp); playSfx('drink'); triggerAnim("player", "heal", `+${item.amount}`, "#60f0a0"); } else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); playSfx('drink'); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); } setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); };
     const hasRevive = inventory.some(i => i.id === "revive" && i.qty > 0);
-    const useRevive = () => { const idx = inventory.findIndex(i => i.id === "revive" && i.qty > 0); if (idx === -1) return; const e = { ...savedEnemy }; let np = { ...player, hp: clamp(100, 0, player.maxHp), mp: clamp((player.mp || 0) + 30, 0, player.maxMp) }; setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); setEnemy(e); setCombat(true); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate"), frailCurse: 0 }); setTurn("player"); setScreen("explore"); setTrinketUsed(false); addLog(`💎 Revived! ${e.name} has ${Math.max(0, e.hp)} HP!`, "#c060f0"); };
+    const useRevive = () => { const idx = inventory.findIndex(i => i.id === "revive" && i.qty > 0); if (idx === -1) return; const e = { ...savedEnemy }; let np = { ...player, hp: clamp(150, 0, player.maxHp), mp: clamp((player.mp || 0) + 80, 0, player.maxMp) }; setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); setEnemy(e); setCombat(true); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate"), frailCurse: 0 }); setTurn("player"); setScreen("explore"); setTrinketUsed(false); addLog(`💎 Revived! ${e.name} has ${Math.max(0, e.hp)} HP!`, "#c060f0"); };
     const buyConsumable = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } if (item.id === "revive" && hasRevive) { setShopMsg("Already have a Revive Gem!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); setInventory(inv => { const ex = inv.find(i => i.id === item.id && !i.isGear); return ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }]; }); playSfx('buy'); setShopMsg(`Bought ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
-    const buyEquipment = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); const { np, newEq } = doEquip(item, equipped, player); setEquipped(newEq); setPlayer(np); playSfx('buy'); setShopMsg(`Equipped ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
+    const buyEquipment = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); const old = equipped[item.slot]; const { np, newEq } = doEquip(item, equipped, player); setEquipped(newEq); setPlayer(np); if (old) { setInventory(inv => [...inv, { ...old, qty: 1, isGear: true }]); setShopMsg(`Equipped ${item.name}! ${old.name} → bag`); } else { setShopMsg(`Equipped ${item.name}!`); } playSfx('buy'); setTimeout(() => setShopMsg(""), 3000); };
     const sellItem = (item, idx) => { const price = item.sellPrice || Math.floor(item.cost / 2); setGold(g => g + price); setInventory(inv => inv.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setShopMsg(`Sold for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellEquipped = slot => { const item = equipped[slot]; if (!item) return; const price = item.sellPrice || Math.floor(item.cost / 2); const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); setGold(g => g + price); setShopMsg(`Sold ${item.name} for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellRelic = idx => { const r = relics[idx]; if (!r) return; setGold(g => g + r.sellPrice); setRelics(rl => rl.filter((_, i) => i !== idx)); setShopMsg(`Sold ${r.name} for ${r.sellPrice}g`); setTimeout(() => setShopMsg(""), 2000); };
@@ -1762,12 +1771,13 @@ export default function App() {
                             ))}
                         </div>
                     )}
-                    <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 12, padding: "8px 0", borderTop: "1px solid #ffffff10", fontSize: 11 }}>
+                    <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 12, padding: "8px 0", borderTop: "1px solid #ffffff10", fontSize: 11, flexWrap: "wrap" }}>
                         <div style={{ textAlign: "center" }}><div style={{ color: "#ff6060", fontSize: 13 }}>❤️</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.hp}</div><div style={{ color: "#555", fontSize: 9 }}>HP</div></div>
                         <div style={{ textAlign: "center" }}><div style={{ color: "#f0a060", fontSize: 13 }}>⚔️</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.atk}</div><div style={{ color: "#555", fontSize: 9 }}>ATK</div></div>
                         <div style={{ textAlign: "center" }}><div style={{ color: "#60a0ff", fontSize: 13 }}>🛡️</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.def}</div><div style={{ color: "#555", fontSize: 9 }}>DEF</div></div>
                         <div style={{ textAlign: "center" }}><div style={{ color: "#60c0f0", fontSize: 13 }}>💨</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.spd}</div><div style={{ color: "#555", fontSize: 9 }}>SPD</div></div>
                         <div style={{ textAlign: "center" }}><div style={{ color: "#f0f060", fontSize: 13 }}>🎯</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.crit}%</div><div style={{ color: "#555", fontSize: 9 }}>CRIT</div></div>
+                        <div style={{ textAlign: "center" }}><div style={{ color: "#60f0a0", fontSize: 13 }}>✨</div><div style={{ color: "#eee", fontWeight: "bold" }}>{champ.stats?.manaRegen}/t</div><div style={{ color: "#555", fontSize: 9 }}>MP/t</div></div>
                     </div>
                 </div>
                 <p style={{ color: "#888", fontSize: 11, textAlign: "center", marginBottom: 6, maxWidth: 300, lineHeight: 1.6 }}>
@@ -1810,7 +1820,7 @@ export default function App() {
                             </div>
                             <div style={{ color: data.color, fontWeight: "bold", fontSize: 11, marginBottom: 2 }}>{cls}</div>
                             <div style={{ color: "#777", fontSize: 9, marginBottom: 4, lineHeight: 1.4 }}>{data.desc}</div>
-                            <div style={{ fontSize: 9, color: "#555", borderTop: `1px solid ${data.color}22`, paddingTop: 3 }}>HP {data.stats.maxHp} · ATK {data.stats.atk} · Crit {data.stats.crit}%</div>
+                            <div style={{ fontSize: 9, color: "#555", borderTop: `1px solid ${data.color}22`, paddingTop: 3 }}>HP {data.stats.maxHp} · ATK {data.stats.atk}<br />DEF {data.stats.def} · MP {data.stats.maxMp} · {data.stats.manaRegen}MP/t</div>
                         </div>
                     ))}
                 </div>
@@ -1867,7 +1877,6 @@ export default function App() {
     if (screen === "duelVictory") {
         const challengeLink = challengeOnVictory ? window.location.href.split("?")[0] + `?challenge=${btoa(JSON.stringify(challengeOnVictory))}` : null;
         const proofText = `I defeated ${duelVictory} in Realm of Shadows! ${challengeLink || window.location.href}`;
-        const [copied, setCopied] = useState(false);
         return (<><MusicControls musicVolume={musicVolume} setMusicVolume={setMusicVolume} muteMusic={muteMusic} setMuteMusic={setMuteMusic} muteSfx={muteSfx} setMuteSfx={setMuteSfx} />
             <div style={{ background: "linear-gradient(160deg,#050510,#0d0d1a,#05050e)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20, textAlign: "center" }}>
                 <style>{CSS}</style>
@@ -1879,9 +1888,9 @@ export default function App() {
                 <div style={{ background: "#ffffff08", border: "1px solid #ff446633", borderRadius: 12, padding: 14, width: "100%", maxWidth: 320, marginBottom: 14 }}>
                     <div style={{ color: "#ff4466", fontWeight: "bold", fontSize: 11, marginBottom: 8 }}>🔗 Proof of Victory</div>
                     <div style={{ color: "#888", fontSize: 10, marginBottom: 10, wordBreak: "break-all", lineHeight: 1.5 }}>{proofText}</div>
-                    <button onClick={() => { navigator.clipboard?.writeText(proofText).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 2500); }}
+                    <button onClick={() => { navigator.clipboard?.writeText(proofText).catch(() => {}); setShopMsg("copied"); setTimeout(() => setShopMsg(""), 2500); }}
                         style={{ width: "100%", padding: "8px", background: copied ? "linear-gradient(90deg,#006600,#00aa00)" : "linear-gradient(90deg,#880033,#ff4466)", color: "#fff", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", fontWeight: "bold" }}>
-                        {copied ? "✅ Copied to clipboard!" : "📋 Copy proof link"}
+                        {shopMsg === "copied" ? "✅ Copied to clipboard!" : "📋 Copy proof link"}
                     </button>
                 </div>
                 <button onClick={() => { setDuelVictory(null); setScreen("title"); }}
@@ -2090,7 +2099,7 @@ export default function App() {
                                 onMouseEnter={e => e.currentTarget.style.boxShadow = "0 0 8px #60c0f066"}
                                 onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
                                 <ItemPortrait itemId={item.id} size={22} />
-                                {item.name}×{item.qty}
+                                <span style={{ lineHeight: 1.3 }}>{item.name}×{item.qty}{item.desc && <><br /><span style={{ fontSize: 8, color: "#60c0f055" }}>{item.desc}</span></>}</span>
                             </button>
                         ))}
                     </div>
@@ -2139,13 +2148,10 @@ export default function App() {
                                 <span style={{ color: "#f0c060", fontWeight: "bold", fontSize: 11 }}>🏪 Merchant · 💰{gold}g</span>
                                 {shopMsg && <span style={{ color: "#60f0a0", fontSize: 10 }}>{shopMsg}</span>}
                             </div>
-                            <div style={{ display: "flex", gap: 4, marginBottom: 6, flexWrap: "wrap" }}>
-                                {["consumables", "equipment"].map(t => (
-                                    <Btn key={t} onClick={() => { setShopTab(t); playSfx('tab'); }} border={shopTab === t ? "#f0c060" : "#333"} bg={shopTab === t ? "#2e2000" : "#1a1a2e"} color={shopTab === t ? "#f0c060" : "#666"}>{t.charAt(0).toUpperCase() + t.slice(1)}</Btn>
-                                ))}
-                            </div>
 
-                            {shopTab === "consumables" && (
+
+                            <div style={{ marginBottom: 8 }}>
+                                <div style={{ color: "#555", fontSize: 9, fontWeight: "bold", letterSpacing: 1, marginBottom: 4, borderBottom: "1px solid #ffffff08", paddingBottom: 2 }}>🧪 Consumables</div>
                                 <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                                     {CONSUMABLES.map(item => {
                                         const ro = item.id === "revive" && hasRevive;
@@ -2164,10 +2170,9 @@ export default function App() {
                                         );
                                     })}
                                 </div>
-                            )}
+                            </div>
 
-                            {shopTab === "equipment" && (
-                                <div>
+                            <div>
                                     {[
                                         { slot: "head", label: "🪖 Helmets" },
                                         { slot: "weapon", label: "⚔️ Weapons" },
@@ -2195,7 +2200,6 @@ export default function App() {
                                         </div>
                                     ))}
                                 </div>
-                            )}
 
                             {shopTab === "sell" && (
                                 <div>
