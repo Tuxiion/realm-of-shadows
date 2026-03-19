@@ -303,40 +303,40 @@ const ENEMIES_BY_ZONE = [
         { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", unique: true, uniqueId: "ao" },
         { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "dr", deathMarked: false },
     ],
-    // Zone 5 — Cursed Marshes
+    // Zone 5 — Cursed Marshes (relief after zone 4, but still dangerous)
     [
-        { name: "Mire Stalker", id: "mire_stalker", icon: "🕷️", hp: 280, maxHp: 280, atk: 58, def: 18, xp: 180, gold: 80, style: "aggressive", crit: 12, minorSuffix: "venomous" },
-        { name: "Rotfang Beast", id: "rotfang_beast", icon: "🐗", hp: 320, maxHp: 320, atk: 62, def: 14, xp: 190, gold: 90, style: "aggressive", crit: 10, minorSuffix: "frenzied" },
-        { name: "Plague Channeler", id: "plague_channeler", icon: "☣️", hp: 240, maxHp: 240, atk: 55, def: 12, xp: 175, gold: 85, style: "plague", crit: 8 },
-        { name: "Bog Knight", id: "bog_knight", icon: "🛡️", hp: 380, maxHp: 380, atk: 48, def: 28, xp: 200, gold: 100, style: "defensive", crit: 6, minorSuffix: "armored", elite: true },
-        { name: "Swamp Wraith", id: "swamp_wraith", icon: "👻", hp: 260, maxHp: 260, atk: 60, def: 16, xp: 185, gold: 88, style: "magic", crit: 10, minorSuffix: "shadowed" },
-        { name: "Lord Threxil, the Blight Tyrant", id: "lord_threxil", icon: "🧪", hp: 560, maxHp: 560, atk: 68, def: 24, xp: 450, gold: 280, style: "plague", crit: 14, affix: "soulStun", affix2: "deathMark", boss: true, uniqueId: "threxil", deathMarked: false },
+        { name: "Mire Stalker", id: "mire_stalker", icon: "🕷️", hp: 290, maxHp: 290, atk: 56, def: 16, xp: 185, gold: 85, style: "aggressive", crit: 14, minorSuffix: "venomous", desc: "Strikes from stealth with venom" },
+        { name: "Rotfang Beast", id: "rotfang_beast", icon: "🐗", hp: 330, maxHp: 330, atk: 60, def: 14, xp: 192, gold: 92, style: "aggressive", crit: 10, minorSuffix: "frenzied", desc: "Frenzies below 50% HP" },
+        { name: "Plague Channeler", id: "plague_channeler", icon: "☣️", hp: 250, maxHp: 250, atk: 52, def: 12, xp: 178, gold: 86, style: "plague", crit: 8, minorSuffix: "cursed", desc: "Spreads stacking disease" },
+        { name: "Bog Knight", id: "bog_knight", icon: "🛡️", hp: 390, maxHp: 390, atk: 46, def: 30, xp: 205, gold: 102, style: "defensive", crit: 6, minorSuffix: "armored", elite: true, affix: "atkCurse", desc: "Tanky lifesteal warrior" },
+        { name: "Swamp Wraith", id: "swamp_wraith", icon: "👻", hp: 265, maxHp: 265, atk: 58, def: 14, xp: 188, gold: 90, style: "magic", crit: 10, minorSuffix: "shadowed", affix: "voidRupture", elite: true, desc: "Drains mana, phases through hits" },
+        { name: "Lord Threxil, the Blight Tyrant", id: "lord_threxil", icon: "🧪", hp: 580, maxHp: 580, atk: 70, def: 26, xp: 460, gold: 290, style: "plague", crit: 14, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "threxil", deathMarked: false },
     ],
     // Zone 6 — Eternal Necropolis
     [
-        { name: "Bone Legionnaire", id: "bone_legionnaire", icon: "💀", hp: 320, maxHp: 320, atk: 70, def: 26, xp: 220, gold: 110, style: "defensive", crit: 8, minorSuffix: "armored" },
-        { name: "Grave Arcanist", id: "grave_arcanist", icon: "🔮", hp: 280, maxHp: 280, atk: 78, def: 16, xp: 230, gold: 115, style: "magic", crit: 12 },
-        { name: "Sanctified Fallen", id: "sanctified_fallen", icon: "😇", hp: 300, maxHp: 300, atk: 74, def: 22, xp: 240, gold: 120, style: "magic", crit: 10, affix: "atkCurse", elite: true },
-        { name: "Crypt Assassin", id: "crypt_assassin", icon: "🗡️", hp: 260, maxHp: 260, atk: 88, def: 10, xp: 235, gold: 118, style: "aggressive", crit: 18, minorSuffix: "shadowed" },
-        { name: "Soul Binder", id: "soul_binder_z6", icon: "⛓️", hp: 340, maxHp: 340, atk: 72, def: 20, xp: 225, gold: 112, style: "magic", crit: 10, minorSuffix: "cursed" },
-        { name: "Aurelion, Warden of Silence", id: "aurelion", icon: "🦅", hp: 680, maxHp: 680, atk: 82, def: 32, xp: 550, gold: 340, style: "magic", crit: 12, affix: "voidRupture", affix2: "atkCurse", boss: true, uniqueId: "aurelion" },
+        { name: "Bone Legionnaire", id: "bone_legionnaire", icon: "💀", hp: 340, maxHp: 340, atk: 72, def: 28, xp: 225, gold: 112, style: "defensive", crit: 8, minorSuffix: "armored", desc: "Undead shield wall fighter" },
+        { name: "Grave Arcanist", id: "grave_arcanist", icon: "🔮", hp: 290, maxHp: 290, atk: 80, def: 14, xp: 232, gold: 116, style: "magic", crit: 12, desc: "Casts soul-shattering spells" },
+        { name: "Sanctified Fallen", id: "sanctified_fallen", icon: "😇", hp: 310, maxHp: 310, atk: 76, def: 24, xp: 242, gold: 122, style: "magic", crit: 10, affix: "atkCurse", elite: true, desc: "Corrupted Arch Angel, curses ATK" },
+        { name: "Crypt Assassin", id: "crypt_assassin", icon: "🗡️", hp: 265, maxHp: 265, atk: 90, def: 10, xp: 238, gold: 120, style: "aggressive", crit: 20, minorSuffix: "shadowed", desc: "Extreme crit, dodge chance" },
+        { name: "Soul Binder", id: "soul_binder_z6", icon: "⛓️", hp: 350, maxHp: 350, atk: 74, def: 22, xp: 228, gold: 114, style: "magic", crit: 10, minorSuffix: "cursed", affix: "deathMark", elite: true, desc: "Binds souls, marks for death" },
+        { name: "Aurelion, Warden of Silence", id: "aurelion", icon: "🦅", hp: 700, maxHp: 700, atk: 86, def: 34, xp: 560, gold: 350, style: "magic", crit: 12, affix: "voidRupture", affix2: "atkCurse", affix3: "healReduction", boss: true, uniqueId: "aurelion" },
     ],
     // Zone 7 — Abyss Beyond Time
     [
-        { name: "Void Harbinger", id: "void_harbinger", icon: "🌀", hp: 360, maxHp: 360, atk: 88, def: 24, xp: 270, gold: 135, style: "magic", crit: 12 },
-        { name: "Timebroken Knight", id: "timebroken_knight", icon: "⌛", hp: 400, maxHp: 400, atk: 84, def: 30, xp: 280, gold: 140, style: "defensive", crit: 8, minorSuffix: "armored" },
-        { name: "Void Seraph", id: "void_seraph", icon: "😈", hp: 340, maxHp: 340, atk: 96, def: 20, xp: 275, gold: 138, style: "magic", crit: 14, affix: "atkCurse", elite: true },
-        { name: "Chrono Beast", id: "chrono_beast", icon: "🐲", hp: 440, maxHp: 440, atk: 90, def: 22, xp: 285, gold: 142, style: "aggressive", crit: 10, minorSuffix: "frenzied" },
-        { name: "Paradox Shade", id: "paradox_shade", icon: "🌑", hp: 320, maxHp: 320, atk: 100, def: 16, xp: 272, gold: 136, style: "aggressive", crit: 16, minorSuffix: "shadowed" },
-        { name: "Vael'Zyrr, The Timebreaker", id: "vael_zyrr", icon: "🐉", hp: 820, maxHp: 820, atk: 100, def: 30, xp: 650, gold: 400, style: "aggressive", crit: 14, affix: "defBypass", affix2: "soulStun", boss: true, uniqueId: "vaelzyrr" },
+        { name: "Void Harbinger", id: "void_harbinger", icon: "🌀", hp: 370, maxHp: 370, atk: 90, def: 24, xp: 272, gold: 136, style: "magic", crit: 12, affix: "voidRupture", desc: "Tears rifts in reality" },
+        { name: "Timebroken Knight", id: "timebroken_knight", icon: "⌛", hp: 420, maxHp: 420, atk: 86, def: 32, xp: 284, gold: 142, style: "defensive", crit: 8, minorSuffix: "armored", affix: "soulStun", elite: true, desc: "Frozen in time, unstoppable" },
+        { name: "Void Seraph", id: "void_seraph", icon: "😈", hp: 350, maxHp: 350, atk: 98, def: 20, xp: 278, gold: 139, style: "magic", crit: 14, affix: "atkCurse", affix2: "healReduction", elite: true, desc: "Corrupted Arch Angel, silences" },
+        { name: "Chrono Beast", id: "chrono_beast", icon: "🐲", hp: 460, maxHp: 460, atk: 92, def: 24, xp: 288, gold: 144, style: "aggressive", crit: 10, minorSuffix: "frenzied", affix: "defBypass", desc: "Bends time, bypasses armor" },
+        { name: "Paradox Shade", id: "paradox_shade", icon: "🌑", hp: 330, maxHp: 330, atk: 104, def: 16, xp: 276, gold: 138, style: "aggressive", crit: 18, minorSuffix: "shadowed", desc: "Exists in two timelines at once" },
+        { name: "Vael'Zyrr, The Timebreaker", id: "vael_zyrr", icon: "🐉", hp: 850, maxHp: 850, atk: 104, def: 32, xp: 670, gold: 420, style: "aggressive", crit: 14, affix: "defBypass", affix2: "soulStun", affix3: "healReduction", boss: true, uniqueId: "vaelzyrr" },
     ],
     // Zone 8 — Throne of Oblivion
     [
-        { name: "Rift Phantom", id: "rift_phantom", icon: "👁️", hp: 380, maxHp: 380, atk: 108, def: 22, xp: 320, gold: 160, style: "magic", crit: 14, minorSuffix: "shadowed" },
-        { name: "Oblivion Knight", id: "oblivion_knight", icon: "🛡️", hp: 460, maxHp: 460, atk: 102, def: 38, xp: 330, gold: 165, style: "defensive", crit: 8, minorSuffix: "armored" },
-        { name: "Soul Binder", id: "soul_binder_z8", icon: "⛓️", hp: 400, maxHp: 400, atk: 112, def: 26, xp: 325, gold: 162, style: "magic", crit: 12, minorSuffix: "cursed" },
-        { name: "Entropy Beast", id: "entropy_beast", icon: "💥", hp: 500, maxHp: 500, atk: 118, def: 20, xp: 340, gold: 170, style: "aggressive", crit: 10, minorSuffix: "frenzied", elite: true },
-        { name: "Mal'Korvax, The Oblivion King", id: "mal_korvax", icon: "👑", hp: 1000, maxHp: 1000, atk: 125, def: 40, xp: 800, gold: 500, style: "magic", crit: 15, affix: "soulStun", affix2: "voidRupture", affix3: "healReduction", boss: true, uniqueId: "malkorvax", deathMarked: false },
+        { name: "Rift Phantom", id: "rift_phantom", icon: "👁️", hp: 400, maxHp: 400, atk: 110, def: 22, xp: 325, gold: 162, style: "magic", crit: 14, minorSuffix: "shadowed", affix: "voidRupture", desc: "Bleeds through dimensions" },
+        { name: "Oblivion Knight", id: "oblivion_knight", icon: "🛡️", hp: 480, maxHp: 480, atk: 105, def: 40, xp: 335, gold: 168, style: "defensive", crit: 8, minorSuffix: "armored", affix: "infernalRage", elite: true, desc: "Sworn guardian of the throne" },
+        { name: "Soul Binder", id: "soul_binder_z8", icon: "⛓️", hp: 420, maxHp: 420, atk: 115, def: 28, xp: 330, gold: 165, style: "magic", crit: 12, minorSuffix: "cursed", affix: "deathMark", desc: "Chains souls to Oblivion" },
+        { name: "Entropy Beast", id: "entropy_beast", icon: "💥", hp: 520, maxHp: 520, atk: 120, def: 22, xp: 345, gold: 172, style: "aggressive", crit: 12, minorSuffix: "frenzied", affix: "infernalRage", elite: true, desc: "Pure chaos given form" },
+        { name: "Mal'Korvax, The Oblivion King", id: "mal_korvax", icon: "👑", hp: 1000, maxHp: 1000, atk: 130, def: 42, xp: 820, gold: 520, style: "magic", crit: 15, affix: "soulStun", affix2: "voidRupture", affix3: "healReduction", boss: true, uniqueId: "malkorvax", deathMarked: false },
     ],
 ];
 
@@ -879,7 +879,7 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
             <div style={{ fontSize: 48, filter: "drop-shadow(0 0 16px #f0c06099)" }}>🏆</div>
             <h2 style={{ color: "#f0c060", fontSize: 20, animation: "glow 2s infinite", marginBottom: 4 }}>The Abyss is Vanquished!</h2>
             <p style={{ color: "#ccc", textAlign: "center" }}>{playerTitle}</p>
-            <p style={{ color: "#666", fontSize: 10, marginBottom: 10 }}>Level {level} · {gold} Gold · {encounters} battles</p>
+            <p style={{ color: "#666", fontSize: 10, marginBottom: 10 }}>Level {level} · {gold} Gold · {encounters}/24 battles</p>
             {playerClass && <ClassPortrait className={playerClass} size={100} style={{ margin: "0 auto 14px" }} />}
             <div style={{ background: "#ffffff08", borderRadius: 10, padding: 12, textAlign: "left", width: "100%", maxWidth: 340, marginBottom: 12 }}>
                 <div style={{ color: "#f0c060", fontWeight: "bold", fontSize: 12, marginBottom: 8 }}>🎽 Final Equipment</div>
@@ -1367,10 +1367,10 @@ export default function App() {
         // Store what should happen after all loot popups are dismissed
         let afterLoot = null;
         if (earnedXp >= level * 60) afterLoot = "levelup";
-        else if (newEnc >= 12) afterLoot = "victory";
+        else if (newEnc >= 24) afterLoot = "victory";
         else if (newEnc % 3 === 0) {
             const nz = Math.min(7, zone + 1); setZone(nz);
-            if (nz === 4 && !fourthAbilityUnlocked) { afterLoot = "fourthAbility"; }
+            if (nz === 4 && !fourthAbilityUnlocked) { afterLoot = afterLoot || "fourthAbility"; }
             addLog(`🗺️ Descending into ${ZONES[nz].name}...`, nz >= 3 ? "#ff4400" : "#60c0f0");
         }
         setPendingVictory(afterLoot);
@@ -1886,7 +1886,7 @@ export default function App() {
     const sellItem = (item, idx) => { const price = item.sellPrice || Math.floor(item.cost / 2); setGold(g => g + price); setInventory(inv => inv.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setShopMsg(`Sold for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellEquipped = slot => { const item = equipped[slot]; if (!item) return; const price = item.sellPrice || Math.floor(item.cost / 2); const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); setGold(g => g + price); setShopMsg(`Sold ${item.name} for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellRelic = idx => { const r = relics[idx]; if (!r) return; setGold(g => g + r.sellPrice); setRelics(rl => rl.filter((_, i) => i !== idx)); setShopMsg(`Sold ${r.name} for ${r.sellPrice}g`); setTimeout(() => setShopMsg(""), 2000); };
-    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setLvlUp(false); playSfx('levelup'); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 12) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(7, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz >= 3 ? "#ff4400" : "#60c0f0"); } };
+    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setLvlUp(false); playSfx('levelup'); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 24) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(7, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz >= 3 ? "#ff4400" : "#60c0f0"); if (nz === 4 && !fourthAbilityUnlocked) { setPickingFourth(true); } } };
 
     const ep = player ? effStats(player, equipped) : null;
     const rb = getRelicBonus();
@@ -1968,7 +1968,7 @@ export default function App() {
                 </div>
                 <p style={{ color: "#888", fontSize: 11, textAlign: "center", marginBottom: 6, maxWidth: 300, lineHeight: 1.6 }}>
                     To accept this challenge, you must first <strong style={{ color: "#f0c060" }}>beat the game</strong>.<br />
-                    Conquer all 12 battles — then you'll face this champion on the victory screen!
+                    Conquer all 24 battles across 8 zones — then you'll face this champion on the victory screen!
                 </p>
                 <p style={{ color: "#555", fontSize: 10, textAlign: "center", marginBottom: 16, maxWidth: 300 }}>
                     Your score will be recorded if you win.
@@ -1993,7 +1993,7 @@ export default function App() {
             <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ fontSize: 48, animation: "pulse 2s infinite", filter: "drop-shadow(0 0 14px #f0c06099)" }}>⚔️</div>
                 <h1 style={{ fontSize: 26, margin: "6px 0 2px", animation: "glow 2.5s infinite", background: "linear-gradient(90deg,#f0c060,#fff8e0,#f0c060)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>Realm of Shadows</h1>
-                <p style={{ color: "#555", marginBottom: 10, fontSize: 10, letterSpacing: 2 }}>8 ZONES · 12 BATTLES · 6 CLASSES</p>
+                <p style={{ color: "#555", marginBottom: 10, fontSize: 10, letterSpacing: 2 }}>8 ZONES · 24 BATTLES · 6 CLASSES</p>
                 <button onClick={() => setScreen("hall")} style={{ marginBottom: 16, padding: "6px 20px", background: "#ffffff08", color: "#f0c060", border: "1px solid #f0c06044", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", letterSpacing: 1 }}>🏛️ Hall of Champions</button>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
                     {Object.entries(CLASSES).map(([cls, data]) => (
@@ -2044,7 +2044,7 @@ export default function App() {
                 <div style={{ fontSize: 52, filter: "drop-shadow(0 0 14px #ff000099)" }}>💀</div>
                 <h2 style={{ color: "#ff4444", fontSize: 20, textShadow: "0 0 20px #ff0000", marginBottom: 4 }}>You have fallen...</h2>
                 <p style={{ color: "#cc8888" }}>{playerTitle}</p>
-                <p style={{ color: "#555", fontSize: 10, marginBottom: 12 }}>{zoneData.name} · Level {level} · {encounters} battles</p>
+                <p style={{ color: "#555", fontSize: 10, marginBottom: 12 }}>{zoneData.name} · Level {level} · {encounters}/24 battles</p>
                 {playerClass && <ClassPortrait className={playerClass} size={80} style={{ margin: "0 auto 12px", filter: "grayscale(80%) brightness(0.4)" }} />}
                 {hasRevive && (
                     <div style={{ margin: "10px 0", background: "#1a0d2e", border: "1px solid #c060f0", borderRadius: 10, padding: "10px 14px" }}>
@@ -2190,7 +2190,7 @@ export default function App() {
                     <div style={{ display: "flex", gap: 8, fontSize: 10, alignItems: "center" }}>
                         <span style={{ color: "#f0c060", fontWeight: "bold" }}>💰{gold}</span>
                         <span style={{ color: "#a0c0ff" }}>Lv.{level}</span>
-                        <span style={{ color: "#555" }}>⚔️{encounters}/12</span>
+                        <span style={{ color: "#555" }}>⚔️{encounters}/24</span>
                     </div>
                 </div>
                 {/* XP bar */}
@@ -2207,11 +2207,11 @@ export default function App() {
                         <AnimatedBar val={player.hp} max={player.maxHp} color={player.hp / player.maxHp > 0.5 ? "#3de060" : player.hp / player.maxHp > 0.25 ? "#f0c060" : "#ff4444"} label="❤️ HP" />
                         <AnimatedBar val={player.mp} max={player.maxMp} color="#5080ff" label="💙 MP" floats={[]} />
                         <div style={{ fontSize: 10, color: "#666", marginTop: 2, display: "flex", gap: 5, flexWrap: "wrap" }}>
-                            <span>ATK <b style={{ color: "#ddd" }}>{ep.atk + rb.atk}</b></span>
-                            <span>DEF <b style={{ color: "#ddd" }}>{ep.def + rb.def}</b></span>
-                            <span>🎯<b style={{ color: "#ddd" }}>{(ep.crit || 2) + rb.crit}%</b></span>
-                            <span>💨<b style={{ color: "#ddd" }}>SPD {ep.spd + rb.spd}</b></span>
-                            <span>✨<b style={{ color: "#ddd" }}>{ep.manaRegen + rb.manaRegen}/t</b></span>
+                            <span>⚔️<b style={{ color: "#f0a060" }}>{ep.atk + rb.atk}</b></span>
+                            <span>🛡️<b style={{ color: "#60a0ff" }}>{ep.def + rb.def}</b></span>
+                            <span>🎯<b style={{ color: "#f0f060" }}>{(ep.crit || 2) + rb.crit}%</b></span>
+                            <span>💨<b style={{ color: "#80e0ff" }}>{ep.spd + rb.spd}</b></span>
+                            <span>✨<b style={{ color: "#a0a0ff" }}>{ep.manaRegen + rb.manaRegen}/t</b></span>
                             {hasP(equipped, "lifesteal") && <span style={{ color: "#ff6090" }}>🩸LS5</span>}
                             {hasP(equipped, "lifesteal2") && <span style={{ color: "#cc2222" }}>🩸LS8</span>}
                             {hasP(equipped, "reflect") && <span style={{ color: "#f0f060" }}>👑Ref</span>}
