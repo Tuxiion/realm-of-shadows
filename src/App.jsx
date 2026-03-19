@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs, orderBy, query } from "firebase/firestore";
 
@@ -23,6 +23,7 @@ const SHEETS = {
     zone2: "/realm-of-shadows/assets/images/zone2.png",
     zone3: "/realm-of-shadows/assets/images/zone3.png",
     zone4: "/realm-of-shadows/assets/images/zone4.png",
+    newbosses: "/realm-of-shadows/assets/images/newbosses.png",
     equipment: "/realm-of-shadows/assets/images/equipment.png",
     extras: "/realm-of-shadows/assets/images/extras.png",
 };
@@ -33,6 +34,7 @@ const SHEET_META = {
     zone2: { cols: 3, rows: 2, w: 1024, h: 1024 },
     zone3: { cols: 3, rows: 1, w: 1023, h: 926 },
     zone4: { cols: 2, rows: 2, w: 1024, h: 1024 },
+    newbosses: { cols: 2, rows: 2, w: 1024, h: 1024 },
     equipment: { cols: 6, rows: 5, w: 1024, h: 1024 },
     extras: { cols: 2, rows: 2, w: 1024, h: 1024 },
 };
@@ -142,6 +144,7 @@ function ItemPortrait({ itemId, size = 32, style = {} }) {
         // extras sheet — square cells, no yOffset needed
         "bloodVial":    { col: 0, row: 0, sheetKey: "extras" },
         "veilShadows":  { col: 1, row: 0, sheetKey: "extras" },
+        "critRune":     { col: 0, row: 0, sheetKey: "extras" },
         "arcaneSliver": { col: 0, row: 1, sheetKey: "extras" },
         "heartFallen":  { col: 1, row: 1, sheetKey: "extras" },
     };
@@ -196,63 +199,67 @@ const CLASSES = {
         icon: "⚔️", color: "#f0c060", desc: "Sacred warrior. High defense, healing properties.",
         stats: { hp: 120, maxHp: 120, mp: 40, maxMp: 40, atk: 18, def: 10, spd: 7, crit: 2, manaRegen: 5 },
         abilities: [
-            { name: "Divine Strike", cost: 10, desc: "ATK + SPD · Holy dmg", damage: [18, 28], type: "atk" },
-            { name: "Holy Shield", cost: 8, desc: "+50% DEF for 6 turns", damage: [0, 0], type: "holyShield" },
-            { name: "Lay on Hands", cost: 15, desc: "Max HP · Heal 18-25%", damage: [0.18, 0.25], type: "scaleHeal" },
+            { name: "Divine Strike", cost: 10, desc: "ATK + SPD · Holy dmg", damage: [18, 28], type: "atk" , scale: "Holy · ATK + SPD"},
+            { name: "Brace", cost: 8, desc: "DEF +50% for 4 turns", damage: [0, 0], type: "brace", scale: "DEF · Flat bonus · 4 turns" },
+            { name: "Lay on Hands", cost: 15, desc: "Max HP · Heal 18-25%", damage: [0.18, 0.25], type: "scaleHeal" , scale: "Max HP · Flat heal"},
         ]
     },
     "Demonic Beast": {
         icon: "👹", color: "#c060f0", desc: "Dark pact-maker. High attack, fragile.",
         stats: { hp: 90, maxHp: 90, mp: 70, maxMp: 70, atk: 18, def: 5, spd: 9, crit: 5, manaRegen: 5 },
         abilities: [
-            { name: "Hellfire", cost: 15, desc: "ATK + SPD · Fire dmg", damage: [22, 35], type: "atk" },
-            { name: "Soul Drain", cost: 12, desc: "ATK · Steals 50% as HP", damage: [15, 25], type: "drain" },
-            { name: "Demon Pact", cost: 20, desc: "+30% dmg for 6 turns", damage: [0, 0], type: "demonPact" },
+            { name: "Hellfire", cost: 15, desc: "ATK + SPD · Fire dmg", damage: [22, 35], type: "atk" , scale: "Fire · ATK + SPD"},
+            { name: "Soul Drain", cost: 12, desc: "ATK · Steals 50% as HP", damage: [15, 25], type: "drain" , scale: "ATK · Lifesteal"},
+            { name: "Demon Pact", cost: 20, desc: "+30% dmg for 6 turns", damage: [0, 0], type: "demonPact" , scale: "Global DMG boost"},
         ]
     },
     "Arcane Magician": {
         icon: "🔮", color: "#60c0f0", desc: "Master of arcane arts. High magic, low defense.",
         stats: { hp: 85, maxHp: 85, mp: 100, maxMp: 100, atk: 10, def: 4, spd: 11, crit: 5, manaRegen: 5 },
         abilities: [
-            { name: "Arcane Bolt", cost: 10, desc: "SPD + Ability Power", damage: [20, 32], type: "atk" },
-            { name: "Arcane Surge", cost: 18, desc: "+14 SPD, +5 MP/turn for 6 turns", damage: [0, 0], type: "arcaneBoost" },
-            { name: "Mana Burst", cost: 25, desc: "SPD + Ability Power · High dmg", damage: [35, 55], type: "atk" },
+            { name: "Arcane Bolt", cost: 10, desc: "SPD + Ability Power", damage: [20, 32], type: "atk" , scale: "SPD + Ability Power"},
+            { name: "Arcane Surge", cost: 18, desc: "+14 SPD, +5 MP/turn for 6 turns", damage: [0, 0], type: "arcaneBoost" , scale: "Passive · SPD & Regen"},
+            { name: "Mana Burst", cost: 25, desc: "SPD + Ability Power · High dmg", damage: [35, 55], type: "atk" , scale: "SPD + Ability Power"},
         ]
     },
     "Ranged Assassin": {
         icon: "🏹", color: "#60f0a0", desc: "Swift shadow hunter. Extreme crit and burst.",
         stats: { hp: 80, maxHp: 80, mp: 60, maxMp: 60, atk: 16, def: 3, spd: 15, crit: 20, manaRegen: 5 },
         abilities: [
-            { name: "Snipe", cost: 14, desc: "ATK + SPD · High Crit", damage: [28, 42], type: "atk" },
-            { name: "Smoke Bomb", cost: 10, desc: "Reduce enemy ATK by 30% for 6 turns", damage: [0, 0], type: "smokeBomb" },
-            { name: "Lethal Volley", cost: 20, desc: "ATK · 2-3 hits, ignores 40% DEF", damage: [12, 20], type: "multi" },
+            { name: "Snipe", cost: 14, desc: "ATK + SPD · High Crit", damage: [28, 42], type: "atk" , scale: "ATK + SPD · +Crit"},
+            { name: "Smoke Bomb", cost: 10, desc: "Reduce enemy ATK by 30% for 6 turns", damage: [0, 0], type: "smokeBomb" , scale: "Enemy ATK debuff"},
+            { name: "Lethal Volley", cost: 20, desc: "ATK · 2-3 hits, ignores 40% DEF", damage: [12, 20], type: "multi" , scale: "ATK · Multi-hit"},
         ]
     },
     "Arch Angel": {
         icon: "😇", color: "#e8e0ff", desc: "Radiant celestial warrior. High HP and DEF.",
         stats: { hp: 130, maxHp: 130, mp: 70, maxMp: 70, atk: 12, def: 12, spd: 8, crit: 8, manaRegen: 6 },
         abilities: [
-            { name: "Divine Wrath", cost: 18, desc: "Max HP · 20% as holy dmg", damage: [0, 0], type: "divineWrath" },
-            { name: "Take Flight", cost: 30, desc: "Dodge next hit · +30% ATK x2", damage: [0, 0], type: "takeFlight" },
-            { name: "Celestial Heal", cost: 20, desc: "Max HP · Heal 15-22% + 10 MP", damage: [0.15, 0.22], type: "celestialHeal" },
+            { name: "Divine Wrath", cost: 18, desc: "Max HP · 20% as holy dmg", damage: [0, 0], type: "divineWrath" , scale: "Max HP · Holy"},
+            { name: "Take Flight", cost: 30, desc: "Dodge next hit · +30% ATK x2", damage: [0, 0], type: "takeFlight" , scale: "DEF + Counter"},
+            { name: "Celestial Heal", cost: 20, desc: "Max HP · Heal 15-22% + 10 MP", damage: [0.15, 0.22], type: "celestialHeal" , scale: "Max HP · Restore"},
         ]
     },
     "Death Knight": {
         icon: "☠️", color: "#cc2222", desc: "Dark warrior who trades life for power.",
         stats: { hp: 115, maxHp: 115, mp: 50, maxMp: 50, atk: 20, def: 6, spd: 8, crit: 8, manaRegen: 4 },
         abilities: [
-            { name: "Dark Sacrifice", cost: 0, desc: "HP Cost · +50% ATK & DEF x6", damage: [0, 0], type: "darkSacrifice" },
-            { name: "Soul Rend", cost: 15, desc: "ATK + SPD · Ignores 30% DEF", damage: [25, 38], type: "soulRend" },
-            { name: "Death's Suffering", cost: 18, desc: "Enemy Max HP · 8% DoT x4", damage: [0, 0], type: "deathSuffering" },
+            { name: "Dark Sacrifice", cost: 0, desc: "HP Cost · +50% ATK & DEF x6", damage: [0, 0], type: "darkSacrifice" , scale: "HP Cost · Flat buff"},
+            { name: "Soul Rend", cost: 15, desc: "ATK + SPD · Ignores 30% DEF", damage: [25, 38], type: "soulRend" , scale: "ATK + SPD · Arpen"},
+            { name: "Death's Suffering", cost: 18, desc: "Enemy Max HP · 8% DoT x4", damage: [0, 0], type: "deathSuffering" , scale: "Max HP · DoT"},
         ]
     },
 };
 
 const ZONES = [
-    { name: "Whispering Forest", bg: "linear-gradient(160deg,#0d1f0d 0%,#1a2e1a 60%,#0d1a0d 100%)", accent: "#3de060" },
-    { name: "Shadow Dungeon", bg: "linear-gradient(160deg,#0d0d1f 0%,#1a1a2e 60%,#0d0d1a 100%)", accent: "#6060f0" },
-    { name: "Demon's Castle", bg: "linear-gradient(160deg,#1f0d0d 0%,#2e1a1a 60%,#1a0d0d 100%)", accent: "#f06060" },
-    { name: "Abyssal Inferno", bg: "linear-gradient(160deg,#1a0000 0%,#2e0800 60%,#0d0000 100%)", accent: "#ff4400" },
+    { name: "Whispering Forest",    bg: "linear-gradient(160deg,#0d1f0d 0%,#1a2e1a 60%,#0d1a0d 100%)", accent: "#3de060" },
+    { name: "Shadow Dungeon",       bg: "linear-gradient(160deg,#0d0d1f 0%,#1a1a2e 60%,#0d0d1a 100%)", accent: "#6060f0" },
+    { name: "Demon's Castle",       bg: "linear-gradient(160deg,#1f0d0d 0%,#2e1a1a 60%,#1a0d0d 100%)", accent: "#f06060" },
+    { name: "Abyssal Inferno",      bg: "linear-gradient(160deg,#1a0000 0%,#2e0800 60%,#0d0000 100%)", accent: "#ff4400" },
+    { name: "Cursed Marshes",       bg: "linear-gradient(160deg,#0a1a08 0%,#0f250a 60%,#061408 100%)", accent: "#66cc44" },
+    { name: "Eternal Necropolis",   bg: "linear-gradient(160deg,#0d0010 0%,#180020 60%,#0a0010 100%)", accent: "#cc66ff" },
+    { name: "Abyss Beyond Time",    bg: "linear-gradient(160deg,#000818 0%,#000f2e 60%,#000510 100%)", accent: "#44bbff" },
+    { name: "Throne of Oblivion",   bg: "linear-gradient(160deg,#080008 0%,#120012 60%,#040004 100%)", accent: "#ff22aa" },
 ];
 
 const MINOR_SUFFIXES = {
@@ -266,7 +273,7 @@ const MINOR_SUFFIXES = {
 
 const AFFIX_LABELS = {
     burn: "🔥 Hellbound", defBypass: "🐉 Dragonfire", atkCurse: "💀 Undying Curse",
-    infernalRage: "😤 Infernal Rage", soulStun: "💀 Soul Stun", voidRupture: "👁️ Void Rupture", deathMark: "💀 Death Mark",
+    infernalRage: "😤 Infernal Rage", soulStun: "💀 Soul Stun", voidRupture: "👁️ Void Rupture", deathMark: "💀 Death Mark", healReduction: "💉 Heal Reduced",
 };
 
 const ENEMIES_BY_ZONE = [
@@ -294,7 +301,42 @@ const ENEMIES_BY_ZONE = [
     [
         { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
         { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", unique: true, uniqueId: "ao" },
-        { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", unique: true, uniqueId: "dr", deathMarked: false },
+        { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "dr", deathMarked: false },
+    ],
+    // Zone 5 — Cursed Marshes
+    [
+        { name: "Mire Stalker", id: "mire_stalker", icon: "🕷️", hp: 280, maxHp: 280, atk: 58, def: 18, xp: 180, gold: 80, style: "aggressive", crit: 12, minorSuffix: "venomous" },
+        { name: "Rotfang Beast", id: "rotfang_beast", icon: "🐗", hp: 320, maxHp: 320, atk: 62, def: 14, xp: 190, gold: 90, style: "aggressive", crit: 10, minorSuffix: "frenzied" },
+        { name: "Plague Channeler", id: "plague_channeler", icon: "☣️", hp: 240, maxHp: 240, atk: 55, def: 12, xp: 175, gold: 85, style: "plague", crit: 8 },
+        { name: "Bog Knight", id: "bog_knight", icon: "🛡️", hp: 380, maxHp: 380, atk: 48, def: 28, xp: 200, gold: 100, style: "defensive", crit: 6, minorSuffix: "armored", elite: true },
+        { name: "Swamp Wraith", id: "swamp_wraith", icon: "👻", hp: 260, maxHp: 260, atk: 60, def: 16, xp: 185, gold: 88, style: "magic", crit: 10, minorSuffix: "shadowed" },
+        { name: "Lord Threxil, the Blight Tyrant", id: "lord_threxil", icon: "🧪", hp: 560, maxHp: 560, atk: 68, def: 24, xp: 450, gold: 280, style: "plague", crit: 14, affix: "soulStun", affix2: "deathMark", boss: true, uniqueId: "threxil", deathMarked: false },
+    ],
+    // Zone 6 — Eternal Necropolis
+    [
+        { name: "Bone Legionnaire", id: "bone_legionnaire", icon: "💀", hp: 320, maxHp: 320, atk: 70, def: 26, xp: 220, gold: 110, style: "defensive", crit: 8, minorSuffix: "armored" },
+        { name: "Grave Arcanist", id: "grave_arcanist", icon: "🔮", hp: 280, maxHp: 280, atk: 78, def: 16, xp: 230, gold: 115, style: "magic", crit: 12 },
+        { name: "Sanctified Fallen", id: "sanctified_fallen", icon: "😇", hp: 300, maxHp: 300, atk: 74, def: 22, xp: 240, gold: 120, style: "magic", crit: 10, affix: "atkCurse", elite: true },
+        { name: "Crypt Assassin", id: "crypt_assassin", icon: "🗡️", hp: 260, maxHp: 260, atk: 88, def: 10, xp: 235, gold: 118, style: "aggressive", crit: 18, minorSuffix: "shadowed" },
+        { name: "Soul Binder", id: "soul_binder_z6", icon: "⛓️", hp: 340, maxHp: 340, atk: 72, def: 20, xp: 225, gold: 112, style: "magic", crit: 10, minorSuffix: "cursed" },
+        { name: "Aurelion, Warden of Silence", id: "aurelion", icon: "🦅", hp: 680, maxHp: 680, atk: 82, def: 32, xp: 550, gold: 340, style: "magic", crit: 12, affix: "voidRupture", affix2: "atkCurse", boss: true, uniqueId: "aurelion" },
+    ],
+    // Zone 7 — Abyss Beyond Time
+    [
+        { name: "Void Harbinger", id: "void_harbinger", icon: "🌀", hp: 360, maxHp: 360, atk: 88, def: 24, xp: 270, gold: 135, style: "magic", crit: 12 },
+        { name: "Timebroken Knight", id: "timebroken_knight", icon: "⌛", hp: 400, maxHp: 400, atk: 84, def: 30, xp: 280, gold: 140, style: "defensive", crit: 8, minorSuffix: "armored" },
+        { name: "Void Seraph", id: "void_seraph", icon: "😈", hp: 340, maxHp: 340, atk: 96, def: 20, xp: 275, gold: 138, style: "magic", crit: 14, affix: "atkCurse", elite: true },
+        { name: "Chrono Beast", id: "chrono_beast", icon: "🐲", hp: 440, maxHp: 440, atk: 90, def: 22, xp: 285, gold: 142, style: "aggressive", crit: 10, minorSuffix: "frenzied" },
+        { name: "Paradox Shade", id: "paradox_shade", icon: "🌑", hp: 320, maxHp: 320, atk: 100, def: 16, xp: 272, gold: 136, style: "aggressive", crit: 16, minorSuffix: "shadowed" },
+        { name: "Vael'Zyrr, The Timebreaker", id: "vael_zyrr", icon: "🐉", hp: 820, maxHp: 820, atk: 100, def: 30, xp: 650, gold: 400, style: "aggressive", crit: 14, affix: "defBypass", affix2: "soulStun", boss: true, uniqueId: "vaelzyrr" },
+    ],
+    // Zone 8 — Throne of Oblivion
+    [
+        { name: "Rift Phantom", id: "rift_phantom", icon: "👁️", hp: 380, maxHp: 380, atk: 108, def: 22, xp: 320, gold: 160, style: "magic", crit: 14, minorSuffix: "shadowed" },
+        { name: "Oblivion Knight", id: "oblivion_knight", icon: "🛡️", hp: 460, maxHp: 460, atk: 102, def: 38, xp: 330, gold: 165, style: "defensive", crit: 8, minorSuffix: "armored" },
+        { name: "Soul Binder", id: "soul_binder_z8", icon: "⛓️", hp: 400, maxHp: 400, atk: 112, def: 26, xp: 325, gold: 162, style: "magic", crit: 12, minorSuffix: "cursed" },
+        { name: "Entropy Beast", id: "entropy_beast", icon: "💥", hp: 500, maxHp: 500, atk: 118, def: 20, xp: 340, gold: 170, style: "aggressive", crit: 10, minorSuffix: "frenzied", elite: true },
+        { name: "Mal'Korvax, The Oblivion King", id: "mal_korvax", icon: "👑", hp: 1000, maxHp: 1000, atk: 125, def: 40, xp: 800, gold: 500, style: "magic", crit: 15, affix: "soulStun", affix2: "voidRupture", affix3: "healReduction", boss: true, uniqueId: "malkorvax", deathMarked: false },
     ],
 ];
 
@@ -318,6 +360,7 @@ const TRINKETS = [
     { id: "veilShadows", name: "Veil of Shadows", icon: "🌑", cost: 0, sellPrice: 35, stats: { crit: 5 }, desc: "Passive: +5% Crit. Active: Enemy 25% miss 2 turns", activeName: "Blind", activeDesc: "Enemy misses 25% for 2 turns", activeType: "blind" },
     { id: "arcaneSliver", name: "Arcane Sliver", icon: "🔮", cost: 0, sellPrice: 30, stats: { manaRegen: 3 }, desc: "Passive: +3 MP/turn. Active: +25 MP instantly", activeName: "Surge", activeDesc: "Instantly restore 25 MP", activeType: "mpSurge" },
     { id: "heartFallen", name: "Heart of the Fallen", icon: "❤️", cost: 0, sellPrice: 32, stats: { maxHp: 15 }, desc: "Passive: +15 Max HP. Active: Heal 35 HP", activeName: "Mend", activeDesc: "Heal 35 HP", activeType: "mend" },
+    { id: "critRune", name: "Rune of Precision", icon: "🎯", cost: 0, sellPrice: 55, stats: { crit: 5 }, desc: "Rare Passive: +5% Crit Chance. Active: +20% Crit for 3 turns", activeName: "Sharpen", activeDesc: "+20% Crit for 3 turns", activeType: "critBoost", rare: true },
 ];
 
 const EQUIPMENT = [
@@ -329,7 +372,7 @@ const EQUIPMENT = [
     { id: "blade1", name: "Shadow Blade", icon: "🗡️", slot: "weapon", cost: 50, stats: { atk: 6 }, desc: "+6 ATK" },
     { id: "blade2", name: "Blade of Saxav", icon: "🩸", slot: "weapon", cost: 110, stats: { atk: 10 }, desc: "+10 ATK, steals 5 HP", passive: "lifesteal" },
     { id: "axe1", name: "Graveborn Cleaver", icon: "🪓", slot: "weapon", cost: 140, stats: { atk: 14 }, desc: "+14 ATK, steals 8 HP", passive: "lifesteal2" },
-    { id: "sword1", name: "Valdris's Judgement", icon: "⚔️", slot: "weapon", cost: 120, stats: { atk: 8, crit: 6 }, desc: "+8 ATK, +6% Crit, +ability dmg", passive: "abilityBonus" },
+    { id: "sword1", name: "Valdris's Judgement", icon: "⚔️", slot: "weapon", cost: 120, stats: { atk: 8, crit: 6 }, desc: "+8 ATK, +6% Crit, +15% Ability Power", passive: "abilityBonus" },
     { id: "staff1", name: "Arcane Staff", icon: "🔮", slot: "weapon", cost: 50, stats: { manaRegen: 5, maxMp: 20, spd: 5 }, desc: "+5 MP/turn, +20 MP, +5 SPD" },
     { id: "staff2", name: "Orb of Eternal Flame", icon: "🌟", slot: "weapon", cost: 130, stats: { manaRegen: 8, maxMp: 30, spd: 10 }, desc: "+8 MP/turn, +30 MP, +10 SPD, +15% ability dmg", passive: "abilityBonus" },
     { id: "armor1", name: "Chain Armor", icon: "🥋", slot: "body", cost: 45, stats: { def: 6, maxHp: 20 }, desc: "+6 DEF, +20 HP" },
@@ -340,6 +383,7 @@ const EQUIPMENT = [
     { id: "ring1", name: "Ring of Power", icon: "💍", slot: "ring", cost: 55, stats: { atk: 4, crit: 5 }, desc: "+4 ATK, +5% Crit" },
     { id: "ring2", name: "Ring of Vitality", icon: "💍", slot: "ring", cost: 55, stats: { maxHp: 30, manaRegen: 2 }, desc: "+30 HP, +2 MP/turn" },
     { id: "ring3", name: "Ring of the Arcanist", icon: "💍", slot: "ring", cost: 55, stats: { maxMp: 25, manaRegen: 5, spd: 7 }, desc: "+25 MP, +5 MP/turn, +7 SPD" },
+    { id: "shadowFang", name: "Shadow Fang", icon: "🦷", slot: "relic", cost: 0, sellPrice: 60, stats: { crit: 5 }, desc: "Passive: +5% Crit Chance", type: "passive" },
     { id: "ring4", name: "Ring of the Abyss", icon: "🖤", slot: "ring", cost: 120, stats: { atk: 6, crit: 6, manaRegen: 3 }, desc: "+6 ATK, +6% Crit, +3 MP/turn" },
 ];
 
@@ -348,9 +392,9 @@ const MONSTER_LOOT = [
     { type: "relic", id: "shadowEss", tier: 1, chance: 15 }, { type: "relic", id: "thornSpike", tier: 1, chance: 15 },
     { type: "relic", id: "bloodVial", tier: 0, chance: 10 }, { type: "relic", id: "voidShard", tier: 2, chance: 10 },
     { type: "trinket", id: "veilShadows", tier: 1, chance: 8 }, { type: "trinket", id: "arcaneSliver", tier: 1, chance: 8 },
-    { type: "trinket", id: "heartFallen", tier: 1, chance: 8 }, { type: "equipment", id: "orbHelm", tier: 2, chance: 6 },
+    { type: "trinket", id: "heartFallen", tier: 1, chance: 8 }, { type: "trinket", id: "critRune", tier: 3, chance: 3 }, { type: "equipment", id: "orbHelm", tier: 2, chance: 6 },
     { type: "equipment", id: "axe1", tier: 2, chance: 6 }, { type: "equipment", id: "sword1", tier: 2, chance: 6 },
-    { type: "equipment", id: "archArmor", tier: 3, chance: 5 }, { type: "equipment", id: "cursedArmor", tier: 3, chance: 5 },
+    { type: "equipment", id: "archArmor", tier: 3, chance: 5 }, { type: "equipment", id: "cursedArmor", tier: 3, chance: 5 }, { type: "relic", id: "shadowFang", tier: 3, chance: 4 },
 ];
 
 const LOOT_TABLES = [
@@ -358,6 +402,10 @@ const LOOT_TABLES = [
     [{ type: "consumable", id: "hpot", chance: 18 }, { type: "consumable", id: "gpot", chance: 8 }, { type: "consumable", id: "mpot", chance: 14 }, { type: "equipment", id: "helmet2", chance: 10 }, { type: "equipment", id: "armor1", chance: 10 }, { type: "equipment", id: "ring1", chance: 10 }, { type: "equipment", id: "staff1", chance: 8 }, { type: "gold", amount: [20, 40], chance: 8 }, { type: "monsterLoot", tier: 1, chance: 14 }],
     [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 8 }, { type: "equipment", id: "helmet3", chance: 10 }, { type: "equipment", id: "blade2", chance: 10 }, { type: "equipment", id: "staff2", chance: 10 }, { type: "equipment", id: "armor2", chance: 10 }, { type: "equipment", id: "ring4", chance: 10 }, { type: "gold", amount: [40, 70], chance: 10 }, { type: "monsterLoot", tier: 2, chance: 20 }],
     [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 15 }, { type: "equipment", id: "blade2", chance: 12 }, { type: "equipment", id: "staff2", chance: 12 }, { type: "equipment", id: "armor2", chance: 10 }, { type: "equipment", id: "ring4", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 31 }],
+    [{ type: "consumable", id: "gpot", chance: 15 }, { type: "consumable", id: "revive", chance: 15 }, { type: "equipment", id: "sword1", chance: 12 }, { type: "equipment", id: "staff2", chance: 12 }, { type: "equipment", id: "archArmor", chance: 10 }, { type: "equipment", id: "ring4", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 28 }],
+    [{ type: "consumable", id: "gpot", chance: 15 }, { type: "consumable", id: "revive", chance: 18 }, { type: "equipment", id: "orbHelm", chance: 10 }, { type: "equipment", id: "blade2", chance: 10 }, { type: "equipment", id: "archArmor", chance: 10 }, { type: "monsterLoot", tier: 3, chance: 37 }],
+    [{ type: "consumable", id: "gpot", chance: 15 }, { type: "consumable", id: "revive", chance: 18 }, { type: "equipment", id: "sword1", chance: 10 }, { type: "equipment", id: "staff2", chance: 10 }, { type: "monsterLoot", tier: 3, chance: 47 }],
+    [{ type: "consumable", id: "gpot", chance: 15 }, { type: "consumable", id: "revive", chance: 20 }, { type: "equipment", id: "archArmor", chance: 10 }, { type: "equipment", id: "cursedArmor", chance: 10 }, { type: "monsterLoot", tier: 3, chance: 45 }],
 ];
 
 const UPGRADES = [
@@ -719,6 +767,39 @@ function MusicControls({ musicVolume, setMusicVolume, muteMusic, setMuteMusic, m
     );
 }
 
+
+const FOURTH_ABILITIES = {
+    "Holy Knight": [
+        { name: "Sacred Barrier", cost: 22, desc: "All damage reduced 40% for 3 turns", damage: [0,0], type: "sacredBarrier", scale: "DEF · Damage absorb" },
+        { name: "Radiant Strike", cost: 18, desc: "ATK × 1.8, heals 20% of dmg dealt", damage: [30,45], type: "atk", scale: "ATK + SPD · Lifesteal" },
+        { name: "Consecrate", cost: 20, desc: "Deal 25% Max HP holy dmg to enemy", damage: [0,0], type: "divineWrath", scale: "Max HP · AoE Holy" },
+    ],
+    "Demonic Beast": [
+        { name: "Chaos Nova", cost: 28, desc: "Massive dark explosion: ATK × 2.2", damage: [40,60], type: "atk", scale: "ATK + SPD · Dark burst" },
+        { name: "Blood Ritual", cost: 0, desc: "Pay 30% HP: Restore 60 MP instantly", damage: [0,0], type: "bloodRitual", scale: "HP Cost · MP Restore" },
+        { name: "Plague Brand", cost: 22, desc: "Enemy max HP DoT: 12% × 4 turns", damage: [0,0], type: "deathSuffering", scale: "Max HP · DoT" },
+    ],
+    "Arcane Magician": [
+        { name: "Time Warp", cost: 30, desc: "Take an extra action this turn", damage: [0,0], type: "timeWarp", scale: "SPD · Extra turn" },
+        { name: "Mana Void", cost: 20, desc: "Drain 30 enemy MP; deal 1.5× as dmg", damage: [25,40], type: "atk", scale: "SPD + Ability Power" },
+        { name: "Arcane Mirror", cost: 25, desc: "Reflect 50% of all dmg taken for 2 turns", damage: [0,0], type: "arcaneBoost", scale: "DEF · Reflect" },
+    ],
+    "Ranged Assassin": [
+        { name: "Death Mark", cost: 25, desc: "Mark enemy: +30% dmg taken for 4 turns", damage: [0,0], type: "smokeBomb", scale: "ATK · Vulnerability" },
+        { name: "Rain of Arrows", cost: 30, desc: "4 arrow strikes ignoring 60% DEF", damage: [14,22], type: "multi", scale: "ATK · Multi-hit" },
+        { name: "Shadow Step", cost: 20, desc: "Dodge all attacks for 2 turns + +50% Crit", damage: [0,0], type: "takeFlight", scale: "SPD · Evasion + Crit" },
+    ],
+    "Arch Angel": [
+        { name: "Divine Judgment", cost: 35, desc: "Holy smite: 35% Max HP + heals 15%", damage: [0,0], type: "divineWrath", scale: "Max HP · Holy smite" },
+        { name: "Seraph's Grace", cost: 25, desc: "Heal 30% Max HP + cleanse all debuffs", damage: [0.28,0.35], type: "celestialHeal", scale: "Max HP · Purify" },
+        { name: "Angelic Shield", cost: 20, desc: "Absorb next 3 hits entirely", damage: [0,0], type: "takeFlight", scale: "DEF · Full absorb" },
+    ],
+    "Death Knight": [
+        { name: "Apocalypse", cost: 0, desc: "Pay 35% HP: deal ATK × 2.5 ignore all DEF", damage: [45,65], type: "soulRend", scale: "HP Cost + ATK · Arpen" },
+        { name: "Undying Rage", cost: 18, desc: "+80% ATK & +40% SPD for 3 turns", damage: [0,0], type: "darkSacrifice", scale: "ATK + SPD · Berserk" },
+        { name: "Soul Harvest", cost: 20, desc: "Drain 25% of enemy current HP as HP", damage: [20,30], type: "drain", scale: "Enemy HP · Lifesteal" },
+    ],
+};
 function buildChampion(playerTitle, playerClass, level, gold, encounters, player, equipped, relics, effStatsFn, getRelicBonusFn) {
     const ep = effStatsFn(player, equipped);
     const rb = getRelicBonusFn();
@@ -1038,6 +1119,9 @@ export default function App() {
     const [enemy, setEnemy] = useState(null);
     const [savedEnemy, setSavedEnemy] = useState(null);
     const [zone, setZone] = useState(0);
+    const [fourthAbilityUnlocked, setFourthAbilityUnlocked] = useState(false);
+    const [pickingFourth, setPickingFourth] = useState(false);
+    const [extraAbility, setExtraAbility] = useState(null); // the chosen 4th ability
     const [log, setLog] = useState([]);
     const [finalLog, setFinalLog] = useState([]);
     const [turn, setTurn] = useState("player");
@@ -1049,7 +1133,7 @@ export default function App() {
     const [xp, setXp] = useState(0);
     const [level, setLevel] = useState(1);
     const [buffs, setBuffs] = useState({ player: [], enemy: [] });
-    const [se, setSe] = useState({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0 });
+    const [se, setSe] = useState({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0 });
     const [encounters, setEncounters] = useState(0);
     const [defeatedUniques, setDefeatedUniques] = useState([]);
     const [showShop, setShowShop] = useState(false);
@@ -1162,7 +1246,7 @@ export default function App() {
         setLootQueue(q => [...q, { msg, icon, desc, type: type || "item" }]);
     };
 
-    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0 }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setTrinketUsed(false); setHitFlash(null); setCombatAnim(null); setDefeatedEnemy(null); setPendingVictory(null); setDuelVictory(null); };
+    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0 }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setTrinketUsed(false); setHitFlash(null); setCombatAnim(null); setDefeatedEnemy(null); setPendingVictory(null); setDuelVictory(null); setFourthAbilityUnlocked(false); setPickingFourth(false); setExtraAbility(null); };
 
     const selectClass = cls => { setPendingCls(cls); setCharName(""); setScreen("naming"); };
     const randomName = () => { const n = CLASS_NAMES[pendingCls]; setCharName(n[rand(0, n.length - 1)]); };
@@ -1227,7 +1311,16 @@ export default function App() {
     };
 
     const getNextEnemy = (z, du) => {
-        if (z === 3) { const next = ENEMIES_BY_ZONE[3].find(e => !du.includes(e.uniqueId)); return next ? { ...next, raged: false, deathMarked: false } : null; }
+        if (z >= 3) {
+            const pool = ENEMIES_BY_ZONE[z] || ENEMIES_BY_ZONE[3];
+            const boss = pool.find(e => e.boss && !du.includes(e.uniqueId));
+            const unique = pool.find(e => e.unique && !du.includes(e.uniqueId));
+            const next = boss || unique;
+            if (next) return { ...next, raged: false, deathMarked: false, healAuraApplied: false };
+            // all cleared — pick random non-boss mob
+            const mobs = pool.filter(e => !e.boss && !e.unique);
+            return mobs.length ? { ...mobs[rand(0, mobs.length - 1)] } : null;
+        }
         const pool = ENEMIES_BY_ZONE[z]; return { ...pool[rand(0, pool.length - 1)] };
     };
 
@@ -1268,7 +1361,7 @@ export default function App() {
         const newEnc = encounters + 1; setEncounters(newEnc); setXp(earnedXp); setGold(fg); setInventory(finv); setRelics(frl);
         // Keep the dead enemy visible (grayed out) while loot popups show
         setDefeatedEnemy({ ...ne });
-        setCombat(false); setEnemy(null); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0 });
+        setCombat(false); setEnemy(null); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0 });
         setFinalLog(l => l.length ? l : [...log]);
         setPlayer(fnp); setBuffs(nb);
         // Store what should happen after all loot popups are dismissed
@@ -1276,8 +1369,9 @@ export default function App() {
         if (earnedXp >= level * 60) afterLoot = "levelup";
         else if (newEnc >= 12) afterLoot = "victory";
         else if (newEnc % 3 === 0) {
-            const nz = Math.min(3, zone + 1); setZone(nz);
-            addLog(`🗺️ Descending into ${ZONES[nz].name}...`, nz === 3 ? "#ff4400" : "#60c0f0");
+            const nz = Math.min(7, zone + 1); setZone(nz);
+            if (nz === 4 && !fourthAbilityUnlocked) { afterLoot = "fourthAbility"; }
+            addLog(`🗺️ Descending into ${ZONES[nz].name}...`, nz >= 3 ? "#ff4400" : "#60c0f0");
         }
         setPendingVictory(afterLoot);
         // If no loot popups will appear, just fire the transition after a short pause
@@ -1286,6 +1380,7 @@ export default function App() {
             setTimeout(() => {
                 if (afterLoot === "levelup") { playSfx('levelup'); setLvlUp(true); setPendingVictory(null); }
                 else if (afterLoot === "victory") { setScreen("victory"); setPendingVictory(null); }
+                else if (afterLoot === "fourthAbility") { setPickingFourth(true); setPendingVictory(null); }
                 else { setPendingVictory(null); }
             }, 1800);
         }
@@ -1317,6 +1412,8 @@ export default function App() {
         const totalCrit = (ep.crit || 2) + rb.crit;
         if (hasP(eq, "holyAura")) { np.hp = clamp(np.hp + 2, 0, np.maxHp); triggerAnim("player", "heal", "+2✨", "#f0f060"); }
         if (cse.cursedPlateOn) { np.hp = clamp(np.hp - 3, 0, np.maxHp); triggerAnim("player", "dark", "-3💀", "#cc2222"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
+        if (cse.braceActive > 0) cse.braceActive = Math.max(0, cse.braceActive - 1);
+        if (cse.sacredBarrier > 0) cse.sacredBarrier = Math.max(0, cse.sacredBarrier - 1);
         if (cse.burn > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.burn--; triggerAnim("player", "fire", "-3🔥", "#ff6030"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
         if (cse.playerPoison > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.playerPoison--; triggerAnim("player", "poison", "-3🐍", "#80ff80"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
         if (cse.plagueDot > 0) { const pd = Math.max(1, Math.floor(np.maxHp * 0.15)); np.hp = clamp(np.hp - pd, 0, np.maxHp); cse.plagueDot--; triggerAnim("player", "poison", `-${pd}☣️`, "#cc44ff"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
@@ -1325,7 +1422,8 @@ export default function App() {
         const regen = (ep.manaRegen || 5) + rb.manaRegen + regenBuff;
         // NOTE: regen is applied below only after a valid action completes — not on failed/cancelled actions
         const abilBonus = hasP(eq, "abilityBonus") ? 1.15 : 1.0;
-        const healMult = ne.minorSuffix === "cursed" ? 0.7 : (cse.frailCurse > 0 ? 0.5 : 1.0);
+        const healReduced = ne.affix3 === "healReduction" || ne.affix === "healReduction";
+        const healMult = ne.minorSuffix === "cursed" ? 0.5 : (cse.frailCurse > 0 ? 0.5 : healReduced ? 0.4 : 1.0);
         const demonMult = 1 + (cse.demonPactBonus || 0);
 
         const dealDmg = (dmg, label, critHit, animType = "slash") => {
@@ -1349,7 +1447,7 @@ export default function App() {
             if (ne.minorSuffix === "thorned") { const ref = Math.max(1, Math.floor(dmg * 0.15)); np.hp = clamp(np.hp - ref, 0, np.maxHp); triggerAnim("player", null, `-${ref}🌵`, "#88ff44"); }
         } else if (type === "ability") {
             const ab = payload;
-            if (ab.type === "holyShield") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; } if (nb.player.some(b => b.tag === "holyShield")) { addLog("⚔️ Holy Shield already active!", "#f0c060"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseDefForShield = ep.def + rb.def; const db = Math.max(1, Math.floor(baseDefForShield * 0.5)); nb.player.push({ stat: "def", amount: db, turns: 6, tag: "holyShield" }); triggerAnim("player", "shield", `🛡️+${db}DEF`, "#f0c060"); addLog(`⚔️ Holy Shield! +${db} DEF for 6 turns!`, "#f0c060"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            if (ab.type === "brace") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; } if (cse.braceActive > 0) { addLog("🛡️ Brace already active!", "#f0c060"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseDefB = ep.def + rb.def; const db = Math.max(1, Math.floor(baseDefB * 0.5)); cse.braceActive = 4; nb.player.push({ stat: "def", amount: db, turns: 4, tag: "brace" }); triggerAnim("player", "shield", `🛡️+${db}DEF`, "#f0c060"); addLog(`🛡️ Brace! +${db} DEF for 4 turns!`, "#f0c060"); nb.player = nb.player.map(b => { if (b.tag === "brace" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             if (ab.type === "darkSacrifice") { const hc = Math.floor(np.hp * 0.20); if (np.hp - hc <= 0) { addLog("⚠️ Not enough HP!", "#ff6060"); setPlayer(np); return; } if (nb.player.some(b => b.tag === "darkSacrifice")) { addLog("💀 Dark Sacrifice already active!", "#cc2222"); setPlayer(np); return; } np.hp -= hc; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseAtkForSac = ep.atk + rb.atk; const baseDefForSac = ep.def + rb.def; const ab2 = Math.floor(baseAtkForSac * 0.5); const db2 = Math.floor(baseDefForSac * 0.5); nb.player.push({ stat: "atk", amount: ab2, turns: 6, tag: "darkSacrifice" }); nb.player.push({ stat: "def", amount: db2, turns: 6, tag: "darkSacrifice" }); triggerAnim("player", "power", `💀+${ab2}ATK`, "#cc2222"); addLog(`💀 Dark Sacrifice! -${hc} HP => ATK+${ab2}, DEF+${db2} x 6!`, "#cc2222"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             if (ab.type === "demonPact") { if (cse.demonPactBonus > 0) { addLog("👹 Demon Pact already active!", "#c060f0"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 6, tag: "demonPact" }); triggerAnim("player", "dark", "👹+30%DMG", "#c060f0"); addLog(`👹 Demon Pact! +30% dmg x 6 turns!`, "#c060f0"); nb.player = nb.player.map(b => { if (b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); setPlayer(np); return; }
@@ -1367,6 +1465,9 @@ export default function App() {
             else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; const atkBonusM = Math.floor(totalAtk * 0.4); for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonusM; const d = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.6)); ne.hp -= d; tot += d; } } flash("enemy"); triggerAnim("enemy", "arrow", `-${tot}`, "#60f0a0"); addLog(`🏹 Your Lethal Volley — ${hits} hits for ${tot} total`, "#60f0a0"); }
             else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult * demonMult) : Math.floor(base * spdMult * demonMult), ne.def); dealDmg(dmg, "😇 Your Divine Wrath", c, "holy"); }
             else if (ab.type === "takeFlight") { if (cse.dodgeReady || cse.flightBonus > 0) { addLog("😇 Take Flight already active!", "#e8e0ff"); setPlayer(np); return; } cse.dodgeReady = true; cse.flightBonus = 2; triggerAnim("player", "flight", "😇 Flight+Dodge", "#e8e0ff"); addLog("😇 Your Take Flight — next attack dodged, +30% dmg x2!", "#e8e0ff"); }
+            else if (ab.type === "timeWarp") { np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); triggerAnim("player", "arcane", "⏰ Warp!", "#44bbff"); addLog("⏰ Time Warp! Take another action!", "#44bbff"); setSe(cse); setPlayer(np); setBuffs(nb); setEnemy(ne); /* Stay on player turn — no setTurn("enemy") */ return; }
+            else if (ab.type === "sacredBarrier") { if (cse.sacredBarrier > 0) { addLog("🔮 Sacred Barrier already active!", "#f0c060"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.sacredBarrier = 3; triggerAnim("player", "shield", "🔮 Barrier!", "#f0c060"); addLog("🔮 Sacred Barrier! 40% dmg reduction for 3 turns!", "#f0c060"); }
+            else if (ab.type === "bloodRitual") { const hcBR = Math.floor(np.hp * 0.30); if (np.hp - hcBR <= 0) { addLog("⚠️ Not enough HP for Blood Ritual!", "#ff6060"); setPlayer(np); return; } np.hp -= hcBR; np.mp = clamp(np.mp + 60, 0, np.maxMp); triggerAnim("player", "drain", `💉+60MP`, "#c060f0"); addLog(`💉 Blood Ritual! -${hcBR} HP → +60 MP!`, "#c060f0"); }
             else if (ab.type === "celestialHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); np.mp = clamp(np.mp + 10, 0, np.maxMp); triggerAnim("player", "holy", `+${h}`, "#e8e0ff"); addLog(`😇 Your Celestial Heal restores ${h} HP (${Math.round(pct*100)}%) and +10 MP`, "#e8e0ff"); }
         } else if (type === "item") {
             const item = inventory[payload]; if (!item || item.qty <= 0) return;
@@ -1733,16 +1834,24 @@ export default function App() {
                 }
                 if (fnp.hp > 0 && rand(1, 100) > 30) { if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true); }
             }
-            // Doomreaper — Wither (max 2 uses, already has soulStun + deathMark)
-            else if (fne.id === "doomreaper" && rand(1, 100) <= 25 && (fne.witherCount || 0) < 2) {
-                fne.witherCount = (fne.witherCount || 0) + 1;
-                const witherAmt = 10; fnp.maxHp = Math.max(20, fnp.maxHp - witherAmt); fnp.hp = Math.min(fnp.hp, fnp.maxHp);
-                triggerAnim("player", "dark", `☠️-${witherAmt}MaxHP`, "#880000");
-                addLog(`☠️ Doomreaper's Wither — your Max HP reduced by ${witherAmt} permanently!`, "#880000");
-                if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true);
-            }
-            else {
-                if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true);
+            // Doomreaper — Wither (max 2 uses, already has soulStun + deathMark + healReduction)
+            else if (fne.id === "doomreaper") {
+                // On first turn, apply heal reduction aura
+                if (!fne.healAuraApplied) {
+                    fne.healAuraApplied = true;
+                    fse.frailCurse = 99; // permanent for this fight
+                    triggerAnim("player", "debuff", "💉HEAL-50%", "#cc44ff");
+                    addLog(`💉 Doomreaper's Death Aura — your healing is halved for this battle!`, "#cc44ff");
+                }
+                if (rand(1, 100) <= 25 && (fne.witherCount || 0) < 2) {
+                    fne.witherCount = (fne.witherCount || 0) + 1;
+                    const witherAmt = 10; fnp.maxHp = Math.max(20, fnp.maxHp - witherAmt); fnp.hp = Math.min(fnp.hp, fnp.maxHp);
+                    triggerAnim("player", "dark", `☠️-${witherAmt}MaxHP`, "#880000");
+                    addLog(`☠️ Doomreaper's Wither — your Max HP reduced by ${witherAmt} permanently!`, "#880000");
+                    if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true);
+                } else {
+                    if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true);
+                }
             }
         }
         else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; triggerAnim("player", "poison", "☣️PLAGUE", "#cc44ff"); addLog(`☣️ Diseased Plague! 15% HP/turn x 2!`, "#cc44ff"); } }
@@ -1777,7 +1886,7 @@ export default function App() {
     const sellItem = (item, idx) => { const price = item.sellPrice || Math.floor(item.cost / 2); setGold(g => g + price); setInventory(inv => inv.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setShopMsg(`Sold for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellEquipped = slot => { const item = equipped[slot]; if (!item) return; const price = item.sellPrice || Math.floor(item.cost / 2); const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); setGold(g => g + price); setShopMsg(`Sold ${item.name} for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellRelic = idx => { const r = relics[idx]; if (!r) return; setGold(g => g + r.sellPrice); setRelics(rl => rl.filter((_, i) => i !== idx)); setShopMsg(`Sold ${r.name} for ${r.sellPrice}g`); setTimeout(() => setShopMsg(""), 2000); };
-    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setLvlUp(false); playSfx('levelup'); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 12) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(3, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz === 3 ? "#ff4400" : "#60c0f0"); } };
+    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setLvlUp(false); playSfx('levelup'); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 12) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(7, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz >= 3 ? "#ff4400" : "#60c0f0"); } };
 
     const ep = player ? effStats(player, equipped) : null;
     const rb = getRelicBonus();
@@ -1884,7 +1993,7 @@ export default function App() {
             <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ fontSize: 48, animation: "pulse 2s infinite", filter: "drop-shadow(0 0 14px #f0c06099)" }}>⚔️</div>
                 <h1 style={{ fontSize: 26, margin: "6px 0 2px", animation: "glow 2.5s infinite", background: "linear-gradient(90deg,#f0c060,#fff8e0,#f0c060)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>Realm of Shadows</h1>
-                <p style={{ color: "#555", marginBottom: 10, fontSize: 10, letterSpacing: 2 }}>4 ZONES · 12 BATTLES · 6 CLASSES</p>
+                <p style={{ color: "#555", marginBottom: 10, fontSize: 10, letterSpacing: 2 }}>8 ZONES · 12 BATTLES · 6 CLASSES</p>
                 <button onClick={() => setScreen("hall")} style={{ marginBottom: 16, padding: "6px 20px", background: "#ffffff08", color: "#f0c060", border: "1px solid #f0c06044", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", letterSpacing: 1 }}>🏛️ Hall of Champions</button>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
                     {Object.entries(CLASSES).map(([cls, data]) => (
@@ -1987,7 +2096,35 @@ export default function App() {
         </div>
     );
 
-    // ── EXPLORE / COMBAT ───────────────────────────────────────────────────────
+    // ── 4th Ability Pick Screen ───────────────────────────────────────────────
+    if (pickingFourth) {
+        const choices = FOURTH_ABILITIES[playerClass] || [];
+        const cls = CLASSES[playerClass];
+        return (<><MusicControls musicVolume={musicVolume} setMusicVolume={setMusicVolume} muteMusic={muteMusic} setMuteMusic={setMuteMusic} muteSfx={muteSfx} setMuteSfx={setMuteSfx} />
+            <div style={{ background: "linear-gradient(160deg,#080015,#100020,#080015)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Georgia", color: "#eee", padding: 20 }}>
+                <style>{CSS}</style>
+                <div style={{ fontSize: 40, filter: "drop-shadow(0 0 16px #cc66ff99)", marginBottom: 8 }}>✨</div>
+                <h2 style={{ color: "#cc66ff", fontSize: 18, animation: "glow 2s infinite", marginBottom: 4 }}>Mastery Unlocked!</h2>
+                <p style={{ color: "#888", fontSize: 11, marginBottom: 16, textAlign: "center" }}>You have survived Zone 4. Choose your 4th ability:</p>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+                    {choices.map((ab, i) => (
+                        <div key={i} onClick={() => { setExtraAbility(ab); setFourthAbilityUnlocked(true); setPickingFourth(false); addLog(`✨ Mastery: ${ab.name} unlocked!`, "#cc66ff"); playSfx('levelup'); }}
+                            style={{ background: "linear-gradient(140deg,#100020,#1a0030)", border: `2px solid ${cls?.color || "#cc66ff"}55`, borderRadius: 14, padding: "16px 14px", width: 140, cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}
+                            onMouseOver={e => { e.currentTarget.style.transform = "translateY(-5px)"; e.currentTarget.style.border = `2px solid ${cls?.color || "#cc66ff"}`; }}
+                            onMouseOut={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.border = `2px solid ${cls?.color || "#cc66ff"}55`; }}>
+                            <div style={{ fontSize: 22, marginBottom: 6 }}>✨</div>
+                            <div style={{ color: cls?.color || "#cc66ff", fontWeight: "bold", fontSize: 12, marginBottom: 4 }}>{ab.name}</div>
+                            <div style={{ color: "#888", fontSize: 9, marginBottom: 4, lineHeight: 1.5 }}>{ab.desc}</div>
+                            <div style={{ color: "#555", fontSize: 8 }}>{ab.scale}</div>
+                            <div style={{ color: "#f0c060", fontSize: 8, marginTop: 4 }}>{ab.cost === 0 ? "HP Cost" : `${ab.cost} MP`}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </>);
+    }
+
+        // ── EXPLORE / COMBAT ───────────────────────────────────────────────────────
     return (
         <div style={{ background: zoneData.bg, minHeight: "100vh", fontFamily: "Georgia", color: "#eee", padding: "10px 10px 20px", paddingTop: 0, transition: "background 1.2s", position: "relative", overflowX: "hidden" }}>
             <style>{CSS}</style>
@@ -2004,6 +2141,7 @@ export default function App() {
                         // Fire deferred screen transition — but keep the corpse visible until Explore
                         if (pendingVictory === "levelup") { setLvlUp(true); setPendingVictory(null); }
                         else if (pendingVictory === "victory") { setScreen("victory"); setPendingVictory(null); }
+                        else if (pendingVictory === "fourthAbility") { setPickingFourth(true); setPendingVictory(null); }
                         else { setPendingVictory(null); }
                     }
                 };
@@ -2098,6 +2236,7 @@ export default function App() {
                         <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 11, color: zone === 3 ? "#ff8844" : enemy.elite ? "#ffaa00" : "#ff8080", fontWeight: "bold", marginBottom: 2 }}>{enemy.name}</div>
                             <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                                {enemy.boss && <StatusPill label="👑BOSS" color="#ff2266" />}
                                 {enemy.unique && <StatusPill label="💠UNIQUE" color="#c060f0" />}
                                 {enemy.elite && <StatusPill label="⚡ELITE" color="#ffaa00" />}
                                 {enemy.affix && <StatusPill label={AFFIX_LABELS[enemy.affix]} color="#ff9944" />}
@@ -2142,14 +2281,17 @@ export default function App() {
                         <Btn onClick={() => playerAction("flee")} border="#f0a060" bg="#2e1a0d" color="#f0a060">🏃 Flee</Btn>
                     </div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                        {classData?.abilities.map((ab, i) => {
+                        {[...( classData?.abilities || []), ...(extraAbility ? [extraAbility] : [])].map((ab, i) => {
                             const isDarkSac = ab.type === "darkSacrifice";
                             const hpCost = isDarkSac && player ? Math.floor(player.hp * 0.2) : 0;
                             const cantAfford = isDarkSac ? (player && player.hp - hpCost <= 0) : (player && player.mp < ab.cost);
                             return (
                                 <Btn key={i} onClick={() => playerAction("ability", ab)} disabled={cantAfford} border={classData.color} bg="#1a1a2e" color={classData.color}>
-                                    {isDarkSac ? `☠️ ${ab.name} (-${hpCost}HP)` : `✨ ${ab.name}`}
-                                    <span style={{ opacity: 0.5, fontSize: 9 }}>{isDarkSac ? "" : `(${ab.cost}MP)`}</span>
+                                    <span style={{ lineHeight: 1.3 }}>
+                                        {isDarkSac ? `☠️ ${ab.name} (-${hpCost}HP)` : `✨ ${ab.name}`}
+                                        {!isDarkSac && <span style={{ opacity: 0.5, fontSize: 9 }}> ({ab.cost}MP)</span>}
+                                        {ab.scale && <><br /><span style={{ opacity: 0.4, fontSize: 8 }}>{ab.scale}</span></>}
+                                    </span>
                                 </Btn>
                             );
                         })}
@@ -2235,15 +2377,11 @@ export default function App() {
                                         );
                                     })}
                                 </div>
-                            </div>
+                            </div>}
 
-                            <div>
-                                    {[
-                                        { slot: "head", label: "🪖 Helmets" },
-                                        { slot: "weapon", label: "⚔️ Weapons" },
-                                        { slot: "body", label: "🥋 Body Armor" },
-                                        { slot: "ring", label: "💍 Rings" },
-                                    ].map(({ slot, label }) => (
+                            {shopTab !== "sell" && (
+                                <div>
+                                    {[["head","🪖 Helmets"],["weapon","⚔️ Weapons"],["body","🥋 Body Armor"],["ring","💍 Rings"]].map(([slot, label]) => (
                                         <div key={slot} style={{ marginBottom: 8 }}>
                                             <div style={{ color: "#555", fontSize: 9, fontWeight: "bold", letterSpacing: 1, marginBottom: 4, borderBottom: "1px solid #ffffff08", paddingBottom: 2 }}>{label}</div>
                                             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
@@ -2264,7 +2402,8 @@ export default function App() {
                                             </div>
                                         </div>
                                     ))}
-                                </div>}
+                                </div>
+                            )}
 
                             {shopTab === "sell" && (
                                 <div>
