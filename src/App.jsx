@@ -44,19 +44,21 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
     if (!meta) return <div style={{ width: displaySize, height: displaySize, ...style }} />;
     const cellW = meta.w / meta.cols;
     const cellH = meta.h / meta.rows;
-    // zoom > 1.0 magnifies the sprite within the fixed display window
-    const scaledDisplay = displaySize * zoom;
-    const scale = scaledDisplay / cellW;
+    const scale = displaySize / cellW;
     const scaledSheetW = meta.w * scale;
     const scaledSheetH = meta.h * scale;
     const scaledCellH = cellH * scale;
-    const scaledCellW = cellW * scale;
-    // Center horizontally, apply yOffset vertically
-    const bpx = -(col * scaledCellW) + (scaledCellW - displaySize) / 2;
-    const bpy = -(row * scaledCellH) - (yOffset * scaledCellH) + (scaledCellH - displaySize) / 2;
+    // zoom: render at a larger internal scale then let overflow:hidden clip it
+    const zoomScale = zoom;
+    const zoomedW = scaledSheetW * zoomScale;
+    const zoomedH = scaledSheetH * zoomScale;
+    const zoomedCellW = (cellW * scale) * zoomScale;
+    const zoomedCellH = scaledCellH * zoomScale;
+    const bpx = -(col * zoomedCellW) + (zoomedCellW - displaySize) / 2;
+    const bpy = -(row * zoomedCellH) - (yOffset * zoomedCellH) + (zoomedCellH - displaySize) / 2;
     return (
         <div style={{ width: displaySize, height: displaySize, borderRadius: radius, overflow: "hidden", flexShrink: 0, border: `2px solid ${glow}88`, boxShadow: `0 0 10px ${glow}55`, ...style }}>
-            <div style={{ width: scaledSheetW, height: scaledSheetH, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`, backgroundPosition: `${bpx}px ${bpy}px`, backgroundRepeat: "no-repeat" }} />
+            <div style={{ width: zoom === 1.0 ? scaledSheetW : zoomedW, height: zoom === 1.0 ? scaledSheetH : zoomedH, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${zoom === 1.0 ? scaledSheetW : zoomedW}px ${zoom === 1.0 ? scaledSheetH : zoomedH}px`, backgroundPosition: zoom === 1.0 ? `${-(col * displaySize)}px ${-(Math.floor(row * scaledCellH)) - (yOffset * scaledCellH)}px` : `${bpx}px ${bpy}px`, backgroundRepeat: "no-repeat" }} />
         </div>
     );
 }
@@ -90,9 +92,9 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "stone_golem": { sheetKey: "zone2", col: 0, row: 1 },
         "shadow_assassin": { sheetKey: "zone2", col: 1, row: 1 },
         "plague_priest": { sheetKey: "zone2", col: 2, row: 1 },
-        "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0, yOffset: 0.10, zoom: 1.3 },
-        "xaroon_dragon":      { sheetKey: "zone3", col: 1, row: 0, yOffset: 0.25, zoom: 1.3 },
-        "veltharion":         { sheetKey: "zone3", col: 2, row: 0, yOffset: 0.10, zoom: 1.3 },
+        "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0, yOffset: 0.15 },
+        "xaroon_dragon":      { sheetKey: "zone3", col: 1, row: 0, yOffset: 0.35 },
+        "veltharion":         { sheetKey: "zone3", col: 2, row: 0, yOffset: 0.15 },
         "infernal_behemoth": { sheetKey: "zone4", col: 0, row: 0 },
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
@@ -310,7 +312,7 @@ const ENEMIES_BY_ZONE = [
         { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
         { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", unique: true, uniqueId: "ao" },
         { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "dr", deathMarked: false },
-        { name: "Hellfire Imp", id: "hellfire_imp", icon: "😈", hp: 200, maxHp: 200, atk: 34, def: 10, xp: 120, gold: 70, style: "aggressive", crit: 10, minorSuffix: "venomous" },
+        { name: "Abyssal Ravager", id: "hellfire_imp", icon: "😈", hp: 200, maxHp: 200, atk: 34, def: 10, xp: 120, gold: 70, style: "aggressive", crit: 10, minorSuffix: "venomous" },
         { name: "Ashen Knight", id: "ashen_knight", icon: "🗡️", hp: 220, maxHp: 220, atk: 30, def: 18, xp: 130, gold: 75, style: "defensive", crit: 8, minorSuffix: "armored" },
     ],
     // Zone 5 — Cursed Marshes (relief after zone 4, but still dangerous)
