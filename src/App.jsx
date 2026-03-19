@@ -2140,7 +2140,10 @@ export default function App() {
                             </div>
                             <div style={{ color: data.color, fontWeight: "bold", fontSize: 11, marginBottom: 2 }}>{cls}</div>
                             <div style={{ color: "#777", fontSize: 9, marginBottom: 4, lineHeight: 1.4 }}>{data.desc}</div>
-                            <div style={{ fontSize: 9, color: "#555", borderTop: `1px solid ${data.color}22`, paddingTop: 3 }}>HP {data.stats.maxHp} · ATK {data.stats.atk}<br />DEF {data.stats.def} · MP {data.stats.maxMp} · {data.stats.manaRegen}MP/t</div>
+                            <div style={{ fontSize: 9, color: "#555", borderTop: `1px solid ${data.color}22`, paddingTop: 3 }}>
+                                HP {data.stats.maxHp} · DEF {data.stats.def} · ATK {data.stats.atk}<br />
+                                🎯{data.stats.crit}% · MP {data.stats.maxMp} · 💨{data.stats.spd} · ✨{data.stats.manaRegen}/t
+                            </div>
                         </div>
                     ))}
                 </div>
