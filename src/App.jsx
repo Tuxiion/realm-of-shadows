@@ -24,19 +24,21 @@ const SHEETS = {
     zone3: "/realm-of-shadows/assets/images/zone3.png",
     zone4: "/realm-of-shadows/assets/images/zone4.png",
     newbosses: "/realm-of-shadows/assets/images/newbosses.png",
+    zone4extra: "/realm-of-shadows/assets/images/zone4_extra.png",
     equipment: "/realm-of-shadows/assets/images/equipment.png",
     extras: "/realm-of-shadows/assets/images/extras.png",
 };
 
 const SHEET_META = {
     classes: { cols: 3, rows: 2, w: 1024, h: 1024 },
-    zone1: { cols: 3, rows: 2, w: 1024, h: 1024 },
+    zone1: { cols: 3, rows: 2, w: 1019, h: 945 },
     zone2: { cols: 3, rows: 2, w: 1024, h: 1024 },
     zone3: { cols: 3, rows: 1, w: 1023, h: 926 },
     zone4: { cols: 2, rows: 2, w: 1024, h: 1024 },
     newbosses: { cols: 2, rows: 2, w: 1024, h: 1024 },
+    zone4extra: { cols: 2, rows: 1, w: 1535, h: 760 },
     equipment: { cols: 6, rows: 5, w: 1024, h: 1024 },
-    extras: { cols: 2, rows: 2, w: 1024, h: 1024 },
+    extras: { cols: 2, rows: 2, w: 930, h: 880 },
 };
 
 function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888", yOffset = 0, zoom = 1.0 }) {
@@ -99,6 +101,8 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
         "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
+        "hellfire_imp": { sheetKey: "zone4extra", col: 0, row: 0, yOffset: 0.05 },
+        "ashen_knight": { sheetKey: "zone4extra", col: 1, row: 0, yOffset: 0.08 },
         "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: 0.05, zoom: 1.6 },
         "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: 0.05, zoom: 1.6 },
         "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: 0.08, zoom: 1.6 },
@@ -154,7 +158,7 @@ function ItemPortrait({ itemId, size = 32, style = {} }) {
         // extras sheet — square cells, no yOffset needed
         "bloodVial":    { col: 0, row: 0, sheetKey: "extras" },
         "veilShadows":  { col: 1, row: 0, sheetKey: "extras" },
-        "critRune":     { col: 0, row: 0, sheetKey: "extras" },
+        "critRune":     { col: 1, row: 0, sheetKey: "extras" },
         "arcaneSliver": { col: 0, row: 1, sheetKey: "extras" },
         "heartFallen":  { col: 1, row: 1, sheetKey: "extras" },
     };
