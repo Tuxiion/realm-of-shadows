@@ -39,17 +39,21 @@ const SHEET_META = {
     extras: { cols: 2, rows: 2, w: 1024, h: 1024 },
 };
 
-function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888", yOffset = 0 }) {
+function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888", yOffset = 0, zoom = 1.0 }) {
     const meta = SHEET_META[sheetKey];
     if (!meta) return <div style={{ width: displaySize, height: displaySize, ...style }} />;
     const cellW = meta.w / meta.cols;
     const cellH = meta.h / meta.rows;
-    const scale = displaySize / cellW;
+    // zoom > 1.0 magnifies the sprite within the fixed display window
+    const scaledDisplay = displaySize * zoom;
+    const scale = scaledDisplay / cellW;
     const scaledSheetW = meta.w * scale;
     const scaledSheetH = meta.h * scale;
     const scaledCellH = cellH * scale;
-    const bpx = -(col * displaySize);
-    const bpy = -(row * scaledCellH) - (yOffset * scaledCellH);
+    const scaledCellW = cellW * scale;
+    // Center horizontally, apply yOffset vertically
+    const bpx = -(col * scaledCellW) + (scaledCellW - displaySize) / 2;
+    const bpy = -(row * scaledCellH) - (yOffset * scaledCellH) + (scaledCellH - displaySize) / 2;
     return (
         <div style={{ width: displaySize, height: displaySize, borderRadius: radius, overflow: "hidden", flexShrink: 0, border: `2px solid ${glow}88`, boxShadow: `0 0 10px ${glow}55`, ...style }}>
             <div style={{ width: scaledSheetW, height: scaledSheetH, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${scaledSheetW}px ${scaledSheetH}px`, backgroundPosition: `${bpx}px ${bpy}px`, backgroundRepeat: "no-repeat" }} />
@@ -86,17 +90,17 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "stone_golem": { sheetKey: "zone2", col: 0, row: 1 },
         "shadow_assassin": { sheetKey: "zone2", col: 1, row: 1 },
         "plague_priest": { sheetKey: "zone2", col: 2, row: 1 },
-        "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0, yOffset: 0.15 },
-        "xaroon_dragon":      { sheetKey: "zone3", col: 1, row: 0, yOffset: 0.35 },
-        "veltharion":         { sheetKey: "zone3", col: 2, row: 0, yOffset: 0.15 },
+        "demon_lord_falaxir": { sheetKey: "zone3", col: 0, row: 0, yOffset: 0.10, zoom: 1.3 },
+        "xaroon_dragon":      { sheetKey: "zone3", col: 1, row: 0, yOffset: 0.25, zoom: 1.3 },
+        "veltharion":         { sheetKey: "zone3", col: 2, row: 0, yOffset: 0.10, zoom: 1.3 },
         "infernal_behemoth": { sheetKey: "zone4", col: 0, row: 0 },
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
         "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
-        "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: 0.12 },
-        "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: 0.10 },
-        "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: 0.15 },
-        "mal_korvax":   { sheetKey: "newbosses", col: 1, row: 1, yOffset: 0.10 },
+        "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: 0.05, zoom: 1.6 },
+        "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: 0.05, zoom: 1.6 },
+        "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: 0.08, zoom: 1.6 },
+        "mal_korvax":   { sheetKey: "newbosses", col: 1, row: 1, yOffset: 0.05, zoom: 1.6 },
     };
     const p = MAP[enemyId];
     if (!p) {
@@ -104,7 +108,7 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         if (clsKey) return <ClassPortrait className={clsKey} size={size} style={{ borderRadius: "12px", ...style }} />;
         return <div style={{ width: size, height: size, borderRadius: "12px", background: "#222", ...style }} />;
     }
-    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} radius="12px" glow="#cc4444" style={style} yOffset={p.yOffset || 0} />;
+    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} radius="12px" glow="#cc4444" style={style} yOffset={p.yOffset || 0} zoom={p.zoom || 1.0} />;
 }
 
 // ── Per-item yOffset values tuned by visual inspection of each sprite cell.
@@ -306,6 +310,8 @@ const ENEMIES_BY_ZONE = [
         { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
         { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", unique: true, uniqueId: "ao" },
         { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "dr", deathMarked: false },
+        { name: "Hellfire Imp", id: "hellfire_imp", icon: "😈", hp: 200, maxHp: 200, atk: 34, def: 10, xp: 120, gold: 70, style: "aggressive", crit: 10, minorSuffix: "venomous" },
+        { name: "Ashen Knight", id: "ashen_knight", icon: "🗡️", hp: 220, maxHp: 220, atk: 30, def: 18, xp: 130, gold: 75, style: "defensive", crit: 8, minorSuffix: "armored" },
     ],
     // Zone 5 — Cursed Marshes (relief after zone 4, but still dangerous)
     [
@@ -1870,6 +1876,54 @@ export default function App() {
                     if (fne.affix === "voidRupture" && isCrit(20)) { addLog(`👁️ VOID RUPTURE — TWICE!`, "#cc00ff"); doHit(eAtk + 3, Math.floor(pDef / 2), false, true); if (fnp.hp > 0) doHit(eAtk + 3, Math.floor(pDef / 2), false, true); } else doHit(eAtk + 3, Math.floor(pDef / 2), false, true);
                 }
             }
+            // Zone 5 boss: Lord Threxil — plague + stun combo
+            else if (fne.id === "lord_threxil") {
+                if (!fne.healAuraApplied) { fne.healAuraApplied = true; fse.frailCurse = 99; triggerAnim("player","debuff","💉BLIGHT","#66cc44"); addLog(`🧪 Lord Threxil's Blight Aura — your healing is cursed!`,"#66cc44"); }
+                if (rand(1,100) <= 30) {
+                    if (rand(1,100) <= 50) { fse.plagueDot = 3; triggerAnim("player","poison","☣️PLAGUE","#66cc44"); addLog(`🧪 Threxil's Death Plague — 15% HP/turn x 3!`,"#66cc44"); }
+                    else { fnb.player.push({stat:"atk",amount:-5,turns:3,tag:"blightCurse"}); triggerAnim("player","debuff","🧪-5ATK","#66cc44"); addLog(`🧪 Threxil's Blight Brand — ATK -5 for 3 turns!`,"#66cc44"); }
+                }
+                doHit(eAtk, Math.floor(pDef * 0.7), false, true);
+            }
+            // Zone 6 boss: Aurelion — void + silence combo
+            else if (fne.id === "aurelion") {
+                if (!fne.healAuraApplied) { fne.healAuraApplied = true; fse.frailCurse = 99; triggerAnim("player","debuff","🦅SILENCE","#cc66ff"); addLog(`🦅 Aurelion's Warden's Silence — your healing is suppressed!`,"#cc66ff"); }
+                if (rand(1,100) <= 30) {
+                    if (rand(1,100) <= 50) { fnb.player.push({stat:"atk",amount:-5,turns:3,tag:"silenceCurse"}); fnb.player.push({stat:"def",amount:-4,turns:3,tag:"silenceCurse"}); triggerAnim("player","arcane","🦅SILENCE","#cc66ff"); addLog(`🦅 Aurelion's Silence — ATK -5, DEF -4 for 3 turns!`,"#cc66ff"); }
+                    else { const dmg=Math.max(4,Math.floor((fnp.maxHp-fnp.hp)*0.22)-magicDR); fnp.hp-=dmg; flash("player"); triggerAnim("player","arcane",`-${dmg}👁️`,"#cc66ff"); addLog(`👁️ Void Collapse — ${dmg} void dmg from your wounds!`,"#cc66ff"); }
+                }
+                doHit(eAtk+2, Math.floor(pDef*0.6), false, true);
+            }
+            // Zone 7 boss: Vael'Zyrr — time manipulation, bypasses DEF
+            else if (fne.id === "vael_zyrr") {
+                if (!fne.healAuraApplied) { fne.healAuraApplied = true; fse.frailCurse = 99; triggerAnim("player","debuff","⏰TIMEBREAK","#44bbff"); addLog(`🐉 Vael'Zyrr shatters time — healing is disrupted!`,"#44bbff"); }
+                if (rand(1,100) <= 35) {
+                    if (rand(1,100) <= 50) { const dmg=Math.max(4,Math.floor(eAtk*1.4)); fnp.hp-=dmg; flash("player"); triggerAnim("player","slash",`-${dmg}⌛`,"#44bbff"); addLog(`⌛ Timebreak Strike — bypasses all DEF for ${dmg}!`,"#44bbff"); }
+                    else { fse.stunned=true; triggerAnim("player","dark","⌛TIMESTOP","#44bbff"); addLog(`⌛ Time Stop — you are frozen in time! Turn lost!`,"#44bbff"); }
+                } else doHit(eAtk, Math.floor(pDef*0.5), false, true);
+            }
+            // Zone 8 boss: Mal'Korvax — the most dangerous fight
+            else if (fne.id === "mal_korvax") {
+                if (!fne.healAuraApplied) { fne.healAuraApplied = true; fse.frailCurse = 99; triggerAnim("player","debuff","👑OBLIVION","#ff22aa"); addLog(`👑 Mal'Korvax's Oblivion Aura — your healing is obliterated!`,"#ff22aa"); }
+                if (rand(1,100) <= 35) {
+                    const roll = rand(1,3);
+                    if (roll === 1) { // Void Rupture — double hit
+                        doHit(eAtk+5, Math.floor(pDef*0.5), false, true);
+                        if (fnp.hp > 0) doHit(eAtk+5, Math.floor(pDef*0.5), false, true);
+                        addLog(`👑 Void Rupture — strikes TWICE through the oblivion!`,"#ff22aa");
+                    } else if (roll === 2) { // Soul Drain on player
+                        const dmg=Math.max(5,Math.floor(eAtk*1.3)-magicDR); fnp.hp-=dmg; flash("player");
+                        fne.hp=Math.min(fne.hp+Math.floor(dmg*0.4),fne.maxHp);
+                        triggerAnim("player","drain",`-${dmg}👑`,"#ff22aa"); addLog(`👑 Oblivion Drain — ${dmg} stolen, Mal'Korvax heals!`,"#ff22aa");
+                    } else { // Stat wither
+                        fnb.player.push({stat:"atk",amount:-6,turns:3,tag:"oblivionCurse"});
+                        fnb.player.push({stat:"def",amount:-5,turns:3,tag:"oblivionCurse"});
+                        triggerAnim("player","dark","👑WITHER","#ff22aa"); addLog(`👑 Oblivion Wither — ATK -6, DEF -5 for 3 turns!`,"#ff22aa");
+                    }
+                } else doHit(eAtk+3, Math.floor(pDef*0.6), false, true);
+            }
+            // Generic magic fallback for any unhandled magic enemies
+            else { doHit(eAtk, Math.floor(pDef * 0.7), false, true); }
         }
         else if (fne.style === "plague") { if (rand(1, 100) > 50) doHit(eAtk, pDef); else { fse.plagueDot = 2; triggerAnim("player", "poison", "☣️PLAGUE", "#cc44ff"); addLog(`☣️ Diseased Plague! 15% HP/turn x 2!`, "#cc44ff"); } }
         fnb.player = fnb.player.map(b => {
