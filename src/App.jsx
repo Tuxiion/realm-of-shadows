@@ -2167,7 +2167,21 @@ export default function App() {
             <div ref={headerRef} style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: zoneData.bg, padding: "8px 10px 4px", borderBottom: "1px solid #ffffff08", boxShadow: "0 2px 12px #00000088" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, background: "#00000070", borderRadius: 10, padding: "5px 10px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        {playerClass && <ClassPortrait className={playerClass} size={32} />}
+                        {playerClass && (
+                            <div
+                                onClick={() => {
+                                    if (!combat || !enemy) return;
+                                    const ne = { ...enemy, hp: 0 };
+                                    setEnemy(ne);
+                                    addLog(`💀 [DEV] ${enemy.name} instantly slain.`, "#ff00ff");
+                                    setTimeout(() => resolveVictory({ ...player }, ne, { player: [...buffs.player], enemy: [...buffs.enemy] }, [...inventory], gold, { ...equipped }, { ...se }, [...relics]), 300);
+                                }}
+                                style={{ cursor: combat && enemy ? "crosshair" : "default" }}
+                                title={combat && enemy ? "[DEV] Instant kill" : ""}
+                            >
+                                <ClassPortrait className={playerClass} size={32} />
+                            </div>
+                        )}
                         <div>
                             <div style={{ color: classData?.color, fontWeight: "bold", fontSize: 11, textShadow: `0 0 6px ${classData?.color}88` }}>{playerTitle}</div>
                             <div style={{ color: "#555", fontSize: 9 }}>{zoneData.name}</div>
@@ -2344,17 +2358,21 @@ export default function App() {
                                     );
                                 })}
                             </div>
-                            {showShop && <div style={{ color: "#ff4444", fontSize: 9, marginTop: 3 }}>⚠️ Can't be used while shopping</div>}
                         </div>
                     )}
 
                     {/* Shop */}
                     {showShop && (
                         <div style={{ background: "#00000055", border: "1px solid #60c0f022", borderRadius: 12, padding: 10, marginBottom: 5 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                                 <span style={{ color: "#f0c060", fontWeight: "bold", fontSize: 11 }}>🏪 Merchant · 💰{gold}g</span>
                                 {shopMsg && <span style={{ color: "#60f0a0", fontSize: 10 }}>{shopMsg}</span>}
                             </div>
+                            {inventory.filter(it => it.effect !== "revive" && !it.isGear).length > 0 && (
+                                <div style={{ background: "#1a0000", border: "1px solid #ff444444", borderRadius: 6, padding: "4px 8px", marginBottom: 8 }}>
+                                    <span style={{ color: "#ff4444", fontSize: 9, fontWeight: "bold" }}>⚠️ Cannot use potions while shopping</span>
+                                </div>
+                            )}
 
 
                             {shopTab !== "sell" && <div style={{ marginBottom: 8 }}>
