@@ -1149,7 +1149,7 @@ export default function App() {
     const [xp, setXp] = useState(0);
     const [level, setLevel] = useState(1);
     const [buffs, setBuffs] = useState({ player: [], enemy: [] });
-    const [se, setSe] = useState({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0 });
+    const [se, setSe] = useState({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0, shadowStepActive: false });
     const [encounters, setEncounters] = useState(0);
     const [defeatedUniques, setDefeatedUniques] = useState([]);
     const [showShop, setShowShop] = useState(false);
@@ -1262,7 +1262,7 @@ export default function App() {
         setLootQueue(q => [...q, { msg, icon, desc, type: type || "item" }]);
     };
 
-    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0 }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setTrinketUsed(false); setHitFlash(null); setCombatAnim(null); setDefeatedEnemy(null); setPendingVictory(null); setDuelVictory(null); setFourthAbilityUnlocked(false); setPickingFourth(false); setExtraAbility(null); };
+    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0, shadowStepActive: false }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setTrinketUsed(false); setHitFlash(null); setCombatAnim(null); setDefeatedEnemy(null); setPendingVictory(null); setDuelVictory(null); setFourthAbilityUnlocked(false); setPickingFourth(false); setExtraAbility(null); };
 
     const selectClass = cls => { setPendingCls(cls); setCharName(""); setScreen("naming"); };
     const randomName = () => { const n = CLASS_NAMES[pendingCls]; setCharName(n[rand(0, n.length - 1)]); };
@@ -1390,7 +1390,7 @@ export default function App() {
         const newEnc = encounters + 1; setEncounters(newEnc); setXp(earnedXp); setGold(fg); setInventory(finv); setRelics(frl);
         // Keep the dead enemy visible (grayed out) while loot popups show
         setDefeatedEnemy({ ...ne });
-        setCombat(false); setEnemy(null); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0 });
+        setCombat(false); setEnemy(null); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0, shadowStepActive: false });
         setFinalLog(l => l.length ? l : [...log]);
         setPlayer(fnp); setBuffs(nb);
         // Store what should happen after all loot popups are dismissed
@@ -1494,8 +1494,8 @@ export default function App() {
             else if (ab.type === "smokeBomb") { if (nb.enemy.some(b => b.tag === "smokeBomb")) { addLog("💨 Smoke Bomb already active!", "#60f0a0"); np.mp += ab.cost; setPlayer(np); return; } const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 12, tag: "smokeBomb" }); triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Your Smoke Bomb reduces ${ne.name}'s ATK by ${reduction} for 6 turns`, "#60f0a0"); }
             else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; const atkBonusM = Math.floor(totalAtk * 0.4); for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonusM; const d = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.6)); ne.hp -= d; tot += d; } } flash("enemy"); triggerAnim("enemy", "arrow", `-${tot}`, "#60f0a0"); addLog(`🏹 Your Lethal Volley — ${hits} hits for ${tot} total`, "#60f0a0"); }
             else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult * demonMult) : Math.floor(base * spdMult * demonMult), ne.def); dealDmg(dmg, "😇 Your Divine Wrath", c, "holy"); }
-            else if (ab.type === "shadowStep") { if (cse.dodgeReady || cse.flightBonus > 0) { addLog("🌑 Shadow Step already active!", "#60f0a0"); np.mp += ab.cost; setPlayer(np); return; } cse.dodgeReady = true; cse.flightBonus = 2; triggerAnim("player", "smoke", "🌑 Shadow Step!", "#60f0a0"); addLog("🌑 Your Shadow Step — next attack dodged, +50% Crit for 2 turns!", "#60f0a0"); }
-            else if (ab.type === "takeFlight") { if (cse.dodgeReady || cse.flightBonus > 0) { addLog("😇 Take Flight already active!", "#e8e0ff"); np.mp += ab.cost; setPlayer(np); return; } cse.dodgeReady = true; cse.flightBonus = 2; triggerAnim("player", "flight", "😇 Flight+Dodge", "#e8e0ff"); addLog("😇 Your Take Flight — next attack dodged, +30% dmg x2!", "#e8e0ff"); }
+            else if (ab.type === "shadowStep") { if (cse.dodgeReady || cse.flightBonus > 0) { addLog("🌑 Shadow Step already active!", "#60f0a0"); np.mp += ab.cost; setPlayer(np); return; } cse.dodgeReady = true; cse.flightBonus = 2; cse.shadowStepActive = true; triggerAnim("player", "smoke", "🌑 Shadow Step!", "#60f0a0"); addLog("🌑 Your Shadow Step — next attack dodged, +50% Crit for 2 turns!", "#60f0a0"); }
+            else if (ab.type === "takeFlight") { if (cse.dodgeReady || cse.flightBonus > 0) { addLog("😇 Take Flight already active!", "#e8e0ff"); np.mp += ab.cost; setPlayer(np); return; } cse.dodgeReady = true; cse.flightBonus = 2; cse.shadowStepActive = false; triggerAnim("player", "flight", "😇 Flight+Dodge", "#e8e0ff"); addLog("😇 Your Take Flight — next attack dodged, +30% dmg x2!", "#e8e0ff"); }
             else if (ab.type === "manaSurge") { const mpBurn = Math.min(30, np.mp); np.mp -= mpBurn; np.mp = clamp(np.mp + regen, 0, np.maxMp); const c = isCrit(totalCrit); const atkBonus2 = Math.floor(totalAtk * 0.4); const raw2 = rand(ab.damage[0], ab.damage[1]) + atkBonus2; const surgeBonus = Math.floor(mpBurn * 1.5); const dmg2 = calcDmg(c ? Math.floor((raw2 + surgeBonus) * 1.5 * abilBonus * spdMult * demonMult) : Math.floor((raw2 + surgeBonus) * abilBonus * spdMult * demonMult), ne.def); dealDmg(dmg2, "💥 Your Mana Surge", c, "arcane"); addLog(`💥 Mana Surge! Burned ${mpBurn} MP for +${surgeBonus} bonus dmg!`, "#44bbff"); }
             else if (ab.type === "timeWarp") { if (cse.timeWarpActive) { addLog("⏰ Time Warp already used this turn!", "#44bbff"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.timeWarpActive = true; triggerAnim("player", "arcane", "⏰ WARP!", "#44bbff"); addLog("⏰ Time Warp! Your next ability or attack is FREE — enemy turn skipped!", "#44bbff"); setSe(cse); setPlayer(np); setBuffs(nb); setEnemy(ne); return; /* Stay on player turn */ }
             else if (ab.type === "apocalypse") {
@@ -1588,7 +1588,7 @@ export default function App() {
         if (fne.affix2 === "deathMark" && !fne.deathMarked && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, deathMarked: true }; fnb.player.push({ stat: "atk", amount: -6, turns: 99 }); triggerAnim("player", "dark", "💀DEATHMARK-6ATK", "#880000"); addLog(`💀 DEATH MARK! ATK -6 permanently!`, "#880000"); }
         if (fne.minorSuffix === "frenzied" && fne.hp <= (fne.maxHp * 0.5)) eAtk += 8;
         const doHit = (atkVal, defVal, bypassDef = false, isMagic = false) => {
-            if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges!`, "#e8e0ff"); return 0; }
+            if (fse.dodgeReady) { fse.dodgeReady = false; fse.shadowStepActive = false; addLog(fse.shadowStepActive ? `🌑 Shadow Step dodges!` : `😇 Take Flight dodges!`, "#e8e0ff"); return 0; }
             const mc = 5 + (fse.enemyBlind > 0 ? 25 : 0);
             if (rand(1, 100) <= mc) { triggerAnim("enemy", null, "MISS!", "#888"); addLog(`${fne.icon || ""} ${fne.name} missed!`, "#888"); return 0; }
             const c = isCrit(fne.crit || 5); const raw = rand(atkVal, atkVal + 4);
@@ -2042,7 +2042,7 @@ export default function App() {
         if (se.plagueDot > 0) pills.push(<StatusPill key="pl" label={`☣️ Plague(${se.plagueDot})`} color="#cc44ff" />);
         if (se.stunned) pills.push(<StatusPill key="st" label="💀 Stunned" color="#cc44cc" />);
         if (se.dodgeReady) pills.push(<StatusPill key="d" label="😇 Dodge" color="#e8e0ff" />);
-        if (se.flightBonus > 0) pills.push(<StatusPill key="f" label={`✈️ Flight(${se.flightBonus})`} color="#e8e0ff" />);
+        if (se.flightBonus > 0) pills.push(<StatusPill key="f" label={se.shadowStepActive ? `🌑 Dodge(${se.flightBonus})` : `✈️ Flight(${se.flightBonus})`} color={se.shadowStepActive ? "#60f0a0" : "#e8e0ff"} />);
         if (se.demonPactBonus > 0) { const pactBuff = buffs.player.find(b => b.tag === "demonPact"); pills.push(<StatusPill key="dp" label={`👹 Pact+30%${pactBuff ? `(${pactBuff.turns})` : ""}`} color="#c060f0" />); }
         if (se.frailCurse > 0) pills.push(<StatusPill key="frail" label={`💀 Frail(${se.frailCurse})`} color="#aa44ff" />);
         buffs.player.filter(b => b.amount > 0 && b.tag !== "demonPact").forEach((b, i) => pills.push(<StatusPill key={`pb${i}`} label={`${b.stat === "manaRegen" ? "MP/t" : b.stat === "spd" ? "SPD" : b.stat.toUpperCase()}+${b.amount}(${b.turns})`} color={b.tag === "holyShield" ? "#f0c060" : b.tag === "darkSacrifice" ? "#cc2222" : b.tag === "arcaneBoost" ? "#60c0f0" : "#f0f060"} />));
