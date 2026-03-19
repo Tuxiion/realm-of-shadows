@@ -93,6 +93,10 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
         "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
+        "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: 0.12 },
+        "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: 0.10 },
+        "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: 0.15 },
+        "mal_korvax":   { sheetKey: "newbosses", col: 1, row: 1, yOffset: 0.10 },
     };
     const p = MAP[enemyId];
     if (!p) {
@@ -245,7 +249,7 @@ const CLASSES = {
         stats: { hp: 115, maxHp: 115, mp: 50, maxMp: 50, atk: 20, def: 6, spd: 8, crit: 8, manaRegen: 4 },
         abilities: [
             { name: "Dark Sacrifice", cost: 0, desc: "HP Cost · +50% ATK & DEF x6", damage: [0, 0], type: "darkSacrifice" , scale: "HP Cost · Flat buff"},
-            { name: "Soul Rend", cost: 15, desc: "ATK + SPD · Ignores 30% DEF", damage: [25, 38], type: "soulRend" , scale: "ATK + SPD · Arpen"},
+            { name: "Soul Rend", cost: 15, desc: "ATK + SPD · Ignores 30% DEF", damage: [25, 38], type: "soulRend" , scale: "ATK + SPD · Ignores DEF"},
             { name: "Death's Suffering", cost: 18, desc: "Enemy Max HP · 8% DoT x4", damage: [0, 0], type: "deathSuffering" , scale: "Max HP · DoT"},
         ]
     },
@@ -294,9 +298,9 @@ const ENEMIES_BY_ZONE = [
         { name: "Plague Priest", id: "plague_priest", icon: "☣️", hp: 75, maxHp: 75, atk: 20, def: 6, xp: 55, gold: 30, style: "plague", crit: 5, minorSuffix: "cursed" },
     ],
     [
-        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", icon: "👿", hp: 190, maxHp: 190, atk: 25, def: 19, xp: 100, gold: 60, style: "magic", crit: 8, affix: "burn", elite: true },
-        { name: "Xaroon the Dragon", id: "xaroon_dragon", icon: "🐉", hp: 230, maxHp: 230, atk: 29, def: 22, xp: 120, gold: 80, style: "aggressive", crit: 8, affix: "defBypass", elite: true },
-        { name: "Veltharion the Undying", id: "veltharion", icon: "💀", hp: 160, maxHp: 160, atk: 32, def: 14, xp: 110, gold: 70, style: "magic", crit: 10, affix: "atkCurse", elite: true },
+        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", icon: "👿", hp: 190, maxHp: 190, atk: 25, def: 19, xp: 100, gold: 60, style: "magic", crit: 8, affix: "burn", elite: true, uniqueId: "falaxir" },
+        { name: "Xaroon the Dragon", id: "xaroon_dragon", icon: "🐉", hp: 230, maxHp: 230, atk: 29, def: 22, xp: 120, gold: 80, style: "aggressive", crit: 8, affix: "defBypass", elite: true, uniqueId: "xaroon" },
+        { name: "Veltharion the Undying", id: "veltharion", icon: "💀", hp: 200, maxHp: 200, atk: 34, def: 16, xp: 130, gold: 80, style: "magic", crit: 10, affix: "atkCurse", affix2: "healReduction", boss: true, uniqueId: "veltharion", deathMarked: false },
     ],
     [
         { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
@@ -360,7 +364,7 @@ const TRINKETS = [
     { id: "veilShadows", name: "Veil of Shadows", icon: "🌑", cost: 0, sellPrice: 35, stats: { crit: 5 }, desc: "Passive: +5% Crit. Active: Enemy 25% miss 2 turns", activeName: "Blind", activeDesc: "Enemy misses 25% for 2 turns", activeType: "blind" },
     { id: "arcaneSliver", name: "Arcane Sliver", icon: "🔮", cost: 0, sellPrice: 30, stats: { manaRegen: 3 }, desc: "Passive: +3 MP/turn. Active: +25 MP instantly", activeName: "Surge", activeDesc: "Instantly restore 25 MP", activeType: "mpSurge" },
     { id: "heartFallen", name: "Heart of the Fallen", icon: "❤️", cost: 0, sellPrice: 32, stats: { maxHp: 15 }, desc: "Passive: +15 Max HP. Active: Heal 35 HP", activeName: "Mend", activeDesc: "Heal 35 HP", activeType: "mend" },
-    { id: "critRune", name: "Rune of Precision", icon: "🎯", cost: 0, sellPrice: 55, stats: { crit: 5 }, desc: "Rare Passive: +5% Crit Chance. Active: +20% Crit for 3 turns", activeName: "Sharpen", activeDesc: "+20% Crit for 3 turns", activeType: "critBoost", rare: true },
+    { id: "critRune", name: "Rune of Precision", icon: "🎯", cost: 0, sellPrice: 55, stats: { crit: 5 }, desc: "Rare Passive: +5% Crit Chance. Active: +20% Crit for 3 turns", activeName: "ShArmor Pen.", activeDesc: "+20% Crit for 3 turns", activeType: "critBoost", rare: true },
 ];
 
 const EQUIPMENT = [
@@ -795,7 +799,7 @@ const FOURTH_ABILITIES = {
         { name: "Angelic Shield", cost: 20, desc: "Absorb next 3 hits entirely", damage: [0,0], type: "takeFlight", scale: "DEF · Full absorb" },
     ],
     "Death Knight": [
-        { name: "Apocalypse", cost: 0, desc: "Pay 35% HP: deal ATK × 2.5 ignore all DEF", damage: [45,65], type: "soulRend", scale: "HP Cost + ATK · Arpen" },
+        { name: "Apocalypse", cost: 0, desc: "Pay 35% HP: deal ATK × 2.5 ignore all DEF", damage: [45,65], type: "soulRend", scale: "HP Cost · Ignores all DEF" },
         { name: "Undying Rage", cost: 18, desc: "+80% ATK & +40% SPD for 3 turns", damage: [0,0], type: "darkSacrifice", scale: "ATK + SPD · Berserk" },
         { name: "Soul Harvest", cost: 20, desc: "Drain 25% of enemy current HP as HP", damage: [20,30], type: "drain", scale: "Enemy HP · Lifesteal" },
     ],
@@ -1311,17 +1315,30 @@ export default function App() {
     };
 
     const getNextEnemy = (z, du) => {
-        if (z >= 3) {
-            const pool = ENEMIES_BY_ZONE[z] || ENEMIES_BY_ZONE[3];
-            const boss = pool.find(e => e.boss && !du.includes(e.uniqueId));
-            const unique = pool.find(e => e.unique && !du.includes(e.uniqueId));
-            const next = boss || unique;
-            if (next) return { ...next, raged: false, deathMarked: false, healAuraApplied: false };
-            // all cleared — pick random non-boss mob
-            const mobs = pool.filter(e => !e.boss && !e.unique);
-            return mobs.length ? { ...mobs[rand(0, mobs.length - 1)] } : null;
+        const pool = ENEMIES_BY_ZONE[z] || ENEMIES_BY_ZONE[Math.min(z, ENEMIES_BY_ZONE.length - 1)];
+
+        // For any zone with bosses/elites/uniques: fight mobs & elites first, boss absolutely last
+        const boss   = pool.find(e => e.boss   && !du.includes(e.uniqueId));
+        const unique = pool.find(e => e.unique  && !du.includes(e.uniqueId));
+        const elites = pool.filter(e => e.elite && e.uniqueId && !du.includes(e.uniqueId));
+        const mobs   = pool.filter(e => !e.boss && !e.unique && !e.elite);
+
+        // Count encounters within this zone (every 3 encounters = 1 zone)
+        // Pick boss only when we've cleared mobs + elites in this zone
+        const zoneEnc = encounters % 3; // 0, 1, 2 within current zone (3rd fight = boss)
+
+        if (boss || unique) {
+            // Force boss/unique only on the 3rd encounter of the zone
+            if (zoneEnc === 2) return { ...(boss || unique), raged: false, deathMarked: false };
+            // Before that: elites on 2nd, mobs on 1st
+            if (zoneEnc === 1 && elites.length) return { ...elites[rand(0, elites.length - 1)], raged: false };
+            // Mobs (or fallback to elite/boss if no mobs)
+            if (mobs.length) return { ...mobs[rand(0, mobs.length - 1)] };
+            if (elites.length) return { ...elites[rand(0, elites.length - 1)], raged: false };
+            return { ...(boss || unique), raged: false, deathMarked: false };
         }
-        const pool = ENEMIES_BY_ZONE[z]; return { ...pool[rand(0, pool.length - 1)] };
+        // Zone has no boss — pure random pool
+        return { ...pool[rand(0, pool.length - 1)] };
     };
 
     const startCombat = () => {
