@@ -1484,20 +1484,20 @@ export default function App() {
             np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
             if (ab.type === "atk") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0; const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * abilBonus * spdMult * demonMult) : Math.floor((raw + fb) * abilBonus * spdMult * demonMult), ne.def); const animMap = { "Divine Strike": "holy", "Hellfire": "fire", "Arcane Bolt": "arcane", "Mana Burst": "arcane", "Snipe": "arrow" }; const animType = animMap[ab.name] || "slash"; dealDmg(dmg, `✨ Your ${ab.name}`, c, animType); if (cse.flightBonus > 0) cse.flightBonus--; }
             else if (ab.type === "soulRend") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const dmg = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.7)); dealDmg(dmg, "💀 Your Soul Rend", c, "dark"); }
-            else if (ab.type === "deathSuffering") { if (cse.enemyDot > 0) { addLog("💀 Death's Suffering already active!", "#a0ffa0"); np.mp += ab.cost; setPlayer(np); return; } cse.enemyDot = 4; triggerAnim("enemy", "dark", "💀DoT", "#a0ffa0"); addLog("💀 Your Death's Suffering — 8% HP/turn x4!", "#a0ffa0"); }
+            else if (ab.type === "deathSuffering") { if (cse.enemyDot > 0) { addLog("💀 Death's Suffering already active!", "#a0ffa0"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); setPlayer(np); return; } cse.enemyDot = 4; triggerAnim("enemy", "dark", "💀DoT", "#a0ffa0"); addLog("💀 Your Death's Suffering — 8% HP/turn x4!", "#a0ffa0"); }
             else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP`, "#60f0a0"); }
             else if (ab.type === "scaleHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP (${Math.round(pct*100)}% MaxHP)`, "#60f0a0"); }
             else if (ab.type === "drain") { const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const dmg = calcDmg(Math.floor(raw * abilBonus * spdMult * demonMult), ne.def); if (!miss()) { ne.hp -= dmg; flash("enemy"); const heal = Math.floor(dmg * healMult); np.hp = clamp(np.hp + heal, 0, np.maxHp); triggerAnim("enemy", "drain", `-${dmg}`, "#c060f0"); triggerAnim("player", null, `+${heal}`, "#c060f0"); addLog(`🩸 Your Soul Drain deals ${dmg} and steals ${heal} HP`, "#c060f0"); } else addLog("Your Soul Drain missed!", "#888"); }
-            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); np.mp += ab.cost; setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 6, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 6, tag: "arcaneBoost" }); triggerAnim("player", "arcane", "🔮+14SPD +5MP/t", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 6!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 6, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 6, tag: "arcaneBoost" }); triggerAnim("player", "arcane", "🔮+14SPD +5MP/t", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 6!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
             else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
-            else if (ab.type === "smokeBomb") { if (nb.enemy.some(b => b.tag === "smokeBomb")) { addLog("💨 Smoke Bomb already active!", "#60f0a0"); np.mp += ab.cost; setPlayer(np); return; } const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 12, tag: "smokeBomb" }); triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Your Smoke Bomb reduces ${ne.name}'s ATK by ${reduction} for 6 turns`, "#60f0a0"); }
+            else if (ab.type === "smokeBomb") { if (nb.enemy.some(b => b.tag === "smokeBomb")) { addLog("💨 Smoke Bomb already active!", "#60f0a0"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); setPlayer(np); return; } const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 12, tag: "smokeBomb" }); triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Your Smoke Bomb reduces ${ne.name}'s ATK by ${reduction} for 6 turns`, "#60f0a0"); }
             else if (ab.type === "multi") { const hits = rand(2, 3); let tot = 0; const atkBonusM = Math.floor(totalAtk * 0.4); for (let i = 0; i < hits; i++) { if (!miss()) { const c = isCrit(totalCrit); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonusM; const d = calcDmg(c ? Math.floor(raw * 1.5 * spdMult * demonMult) : Math.floor(raw * spdMult * demonMult), Math.floor(ne.def * 0.6)); ne.hp -= d; tot += d; } } flash("enemy"); triggerAnim("enemy", "arrow", `-${tot}`, "#60f0a0"); addLog(`🏹 Your Lethal Volley — ${hits} hits for ${tot} total`, "#60f0a0"); }
             else if (ab.type === "divineWrath") { const c = isCrit(totalCrit); const base = Math.floor(np.maxHp * 0.20); const dmg = calcDmg(c ? Math.floor(base * 1.5 * spdMult * demonMult) : Math.floor(base * spdMult * demonMult), ne.def); dealDmg(dmg, "😇 Your Divine Wrath", c, "holy"); }
-            else if (ab.type === "shadowStep") { if (cse.dodgeReady || cse.flightBonus > 0) { addLog("🌑 Shadow Step already active!", "#60f0a0"); np.mp += ab.cost; setPlayer(np); return; } cse.dodgeReady = true; cse.flightBonus = 2; cse.shadowStepActive = true; triggerAnim("player", "smoke", "🌑 Shadow Step!", "#60f0a0"); addLog("🌑 Your Shadow Step — next attack dodged, +50% Crit for 2 turns!", "#60f0a0"); }
-            else if (ab.type === "takeFlight") { if (cse.dodgeReady || cse.flightBonus > 0) { addLog("😇 Take Flight already active!", "#e8e0ff"); np.mp += ab.cost; setPlayer(np); return; } cse.dodgeReady = true; cse.flightBonus = 2; cse.shadowStepActive = false; triggerAnim("player", "flight", "😇 Flight+Dodge", "#e8e0ff"); addLog("😇 Your Take Flight — next attack dodged, +30% dmg x2!", "#e8e0ff"); }
+            else if (ab.type === "shadowStep") { if (cse.dodgeReady || cse.flightBonus > 0) { addLog("🌑 Shadow Step already active!", "#60f0a0"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); setPlayer(np); return; } cse.dodgeReady = true; cse.flightBonus = 2; cse.shadowStepActive = true; triggerAnim("player", "smoke", "🌑 Shadow Step!", "#60f0a0"); addLog("🌑 Your Shadow Step — next attack dodged, +50% Crit for 2 turns!", "#60f0a0"); }
+            else if (ab.type === "takeFlight") { if (cse.dodgeReady || cse.flightBonus > 0) { addLog("😇 Take Flight already active!", "#e8e0ff"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); setPlayer(np); return; } cse.dodgeReady = true; cse.flightBonus = 2; cse.shadowStepActive = false; triggerAnim("player", "flight", "😇 Flight+Dodge", "#e8e0ff"); addLog("😇 Your Take Flight — next attack dodged, +30% dmg x2!", "#e8e0ff"); }
             else if (ab.type === "manaSurge") { const mpBurn = Math.min(30, np.mp); np.mp -= mpBurn; np.mp = clamp(np.mp + regen, 0, np.maxMp); const c = isCrit(totalCrit); const atkBonus2 = Math.floor(totalAtk * 0.4); const raw2 = rand(ab.damage[0], ab.damage[1]) + atkBonus2; const surgeBonus = Math.floor(mpBurn * 1.5); const dmg2 = calcDmg(c ? Math.floor((raw2 + surgeBonus) * 1.5 * abilBonus * spdMult * demonMult) : Math.floor((raw2 + surgeBonus) * abilBonus * spdMult * demonMult), ne.def); dealDmg(dmg2, "💥 Your Mana Surge", c, "arcane"); addLog(`💥 Mana Surge! Burned ${mpBurn} MP for +${surgeBonus} bonus dmg!`, "#44bbff"); }
-            else if (ab.type === "timeWarp") { if (cse.timeWarpActive) { addLog("⏰ Time Warp already used this turn!", "#44bbff"); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.timeWarpActive = true; triggerAnim("player", "arcane", "⏰ WARP!", "#44bbff"); addLog("⏰ Time Warp! Your next ability or attack is FREE — enemy turn skipped!", "#44bbff"); setSe(cse); setPlayer(np); setBuffs(nb); setEnemy(ne); return; /* Stay on player turn */ }
+            else if (ab.type === "timeWarp") { if (cse.timeWarpActive) { addLog("⏰ Time Warp already used this turn!", "#44bbff"); np.mp = clamp(np.mp - regen, 0, np.maxMp); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.timeWarpActive = true; triggerAnim("player", "arcane", "⏰ WARP!", "#44bbff"); addLog("⏰ Time Warp! Your next ability or attack is FREE — enemy turn skipped!", "#44bbff"); setSe(cse); setPlayer(np); setBuffs(nb); setEnemy(ne); return; /* Stay on player turn */ }
             else if (ab.type === "apocalypse") {
                 const hcAp = Math.floor(np.hp * 0.35);
                 if (np.hp - hcAp <= 0) { addLog("⚠️ Not enough HP for Apocalypse!", "#ff6060"); setPlayer(np); return; }
@@ -1511,7 +1511,7 @@ export default function App() {
                 addLog(`☠️ Apocalypse! -${hcAp} HP paid → ${dmg} dmg ignoring all DEF!`, "#cc2222");
             }
             else if (ab.type === "undyingRage") {
-                if (nb.player.some(b => b.tag === "undyingRage")) { addLog("☠️ Undying Rage already active!", "#cc2222"); np.mp += ab.cost; setPlayer(np); return; }
+                if (nb.player.some(b => b.tag === "undyingRage")) { addLog("☠️ Undying Rage already active!", "#cc2222"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); setPlayer(np); return; }
                 np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
                 const rageAtk = Math.floor((ep.atk + rb.atk) * 0.80);
                 const rageSpd = Math.floor((ep.spd + rb.spd) * 0.40);
@@ -1542,8 +1542,8 @@ export default function App() {
                 const dmg = calcDmg(c ? Math.floor(base * 1.5 * abilBonus * spdMult * demonMult) : Math.floor(base * abilBonus * spdMult * demonMult), ne.def);
                 dealDmg(dmg, "✝️ Your Consecrate", c, "holy");
             }
-            else if (ab.type === "sacredBarrier") { if (cse.sacredBarrier > 0) { addLog("🔮 Sacred Barrier already active!", "#f0c060"); np.mp += ab.cost; setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.sacredBarrier = 3; triggerAnim("player", "shield", "🔮 Barrier!", "#f0c060"); addLog("🔮 Sacred Barrier! 40% dmg reduction for 3 turns!", "#f0c060"); }
-            else if (ab.type === "arcaneMirror") { if (cse.arcaneMirror > 0) { addLog("🪞 Arcane Mirror already active!", "#60c0f0"); np.mp += ab.cost; setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.arcaneMirror = 3; triggerAnim("player", "arcane", "🪞 Mirror!", "#60c0f0"); addLog("🪞 Arcane Mirror! 50% of damage reflected for 3 turns!", "#60c0f0"); }
+            else if (ab.type === "sacredBarrier") { if (cse.sacredBarrier > 0) { addLog("🔮 Sacred Barrier already active!", "#f0c060"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.sacredBarrier = 3; triggerAnim("player", "shield", "🔮 Barrier!", "#f0c060"); addLog("🔮 Sacred Barrier! 40% dmg reduction for 3 turns!", "#f0c060"); }
+            else if (ab.type === "arcaneMirror") { if (cse.arcaneMirror > 0) { addLog("🪞 Arcane Mirror already active!", "#60c0f0"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.arcaneMirror = 3; triggerAnim("player", "arcane", "🪞 Mirror!", "#60c0f0"); addLog("🪞 Arcane Mirror! 50% of damage reflected for 3 turns!", "#60c0f0"); }
 
             else if (ab.type === "celestialHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); np.mp = clamp(np.mp + 10, 0, np.maxMp); triggerAnim("player", "holy", `+${h}`, "#e8e0ff"); addLog(`😇 Your Celestial Heal restores ${h} HP (${Math.round(pct*100)}%) and +10 MP`, "#e8e0ff"); }
         } else if (type === "item") {
@@ -1588,7 +1588,7 @@ export default function App() {
         if (fne.affix2 === "deathMark" && !fne.deathMarked && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, deathMarked: true }; fnb.player.push({ stat: "atk", amount: -6, turns: 99 }); triggerAnim("player", "dark", "💀DEATHMARK-6ATK", "#880000"); addLog(`💀 DEATH MARK! ATK -6 permanently!`, "#880000"); }
         if (fne.minorSuffix === "frenzied" && fne.hp <= (fne.maxHp * 0.5)) eAtk += 8;
         const doHit = (atkVal, defVal, bypassDef = false, isMagic = false) => {
-            if (fse.dodgeReady) { fse.dodgeReady = false; fse.shadowStepActive = false; addLog(fse.shadowStepActive ? `🌑 Shadow Step dodges!` : `😇 Take Flight dodges!`, "#e8e0ff"); return 0; }
+            if (fse.dodgeReady) { const isShadow = fse.shadowStepActive; fse.dodgeReady = false; fse.shadowStepActive = false; addLog(isShadow ? `🌑 Shadow Step dodges!` : `😇 Take Flight dodges!`, "#e8e0ff"); return 0; }
             const mc = 5 + (fse.enemyBlind > 0 ? 25 : 0);
             if (rand(1, 100) <= mc) { triggerAnim("enemy", null, "MISS!", "#888"); addLog(`${fne.icon || ""} ${fne.name} missed!`, "#888"); return 0; }
             const c = isCrit(fne.crit || 5); const raw = rand(atkVal, atkVal + 4);
@@ -1720,7 +1720,7 @@ export default function App() {
                         const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus;
                         const dmg = calcDmg(c ? Math.floor(raw * 1.5 * abilBonus * spdMult) : Math.floor(raw * abilBonus * spdMult), pDef);
                         const animMap = { "Divine Strike": "holy", "Hellfire": "fire", "Arcane Bolt": "arcane", "Mana Burst": "arcane", "Snipe": "arrow" };
-                        if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges ${ab.name}!`, "#e8e0ff"); break; }
+                        if (fse.dodgeReady) { const isSh = fse.shadowStepActive; fse.dodgeReady = false; fse.shadowStepActive = false; addLog(isSh ? `🌑 Shadow Step dodges ${ab.name}!` : `😇 Take Flight dodges ${ab.name}!`, "#e8e0ff"); break; }
                         flash("player"); fnp.hp -= dmg; triggerAnim("player", animMap[ab.name] || "slash", `${c?"⚡":""}-${dmg}`, c ? "#ffdd00" : "#ff4444");
                         addLog(`✨ ${fne.name} uses ${ab.name} for ${dmg}!${c ? " 🎯 CRIT!" : ""}`, c ? "#ffdd00" : "#ff6060");
                         if (hasPassive("lifesteal")) { fne.hp = Math.min(fne.hp + 5, fne.maxHp); }
@@ -1730,7 +1730,7 @@ export default function App() {
                         const c = isCrit(fne.crit || 5);
                         const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus;
                         const dmg = calcDmg(c ? Math.floor(raw * 1.5 * spdMult) : Math.floor(raw * spdMult), Math.floor(pDef * 0.7));
-                        if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges Soul Rend!`, "#e8e0ff"); break; }
+                        if (fse.dodgeReady) { const isSh = fse.shadowStepActive; fse.dodgeReady = false; fse.shadowStepActive = false; addLog(isSh ? `🌑 Shadow Step dodges Soul Rend!` : `😇 Take Flight dodges Soul Rend!`, "#e8e0ff"); break; }
                         flash("player"); fnp.hp -= dmg; triggerAnim("player", "dark", `${c?"⚡":""}-${dmg}`, c ? "#ffdd00" : "#ff4444");
                         addLog(`💀 ${fne.name} Soul Rend for ${dmg}!${c ? " CRIT!" : ""}`, c ? "#ffdd00" : "#ff6060");
                         break;
@@ -1835,7 +1835,7 @@ export default function App() {
                 const roll2 = rand(1, 100);
                 if (roll2 <= 50) {
                     // Fire Breath: SPD-based dmg + 2-turn burn
-                    if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges Xaroon's Fire Breath!`, "#e8e0ff"); }
+                    if (fse.dodgeReady) { const isSh = fse.shadowStepActive; fse.dodgeReady = false; fse.shadowStepActive = false; addLog(isSh ? `🌑 Shadow Step dodges Xaroon's Fire Breath!` : `😇 Take Flight dodges Xaroon's Fire Breath!`, "#e8e0ff"); }
                     else {
                         const spd = ep.spd + rb.spd; const dmg = Math.max(4, spd * 2);
                         fnp.hp -= dmg; flash("player"); triggerAnim("player", "fire", `-${dmg}🔥`, "#ff6030");
@@ -1871,7 +1871,7 @@ export default function App() {
             if (fne.id === "demon_lord_falaxir" && rand(1, 100) <= 30) {
                 if (rand(1, 100) <= 50) {
                     // Hellblast: magic dmg ignoring DEF
-                    if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges Hellblast!`, "#e8e0ff"); }
+                    if (fse.dodgeReady) { const isSh = fse.shadowStepActive; fse.dodgeReady = false; fse.shadowStepActive = false; addLog(isSh ? `🌑 Shadow Step dodges Hellblast!` : `😇 Take Flight dodges Hellblast!`, "#e8e0ff"); }
                     else {
                         const dmg = Math.max(1, Math.floor(eAtk * 1.3) - magicDR);
                         fnp.hp -= dmg; flash("player"); triggerAnim("player", "fire", `-${dmg}🔥`, "#ff4400");
@@ -1910,7 +1910,7 @@ export default function App() {
                     addLog(`👁️ Abyssal Overlord's Mind Shatter — ATK & DEF -3 for 3 turns!`, "#cc00ff");
                 } else {
                     // Void Pull: dmg scales with player's missing HP
-                    if (fse.dodgeReady) { fse.dodgeReady = false; addLog(`😇 Take Flight dodges Void Pull!`, "#e8e0ff"); }
+                    if (fse.dodgeReady) { const isSh = fse.shadowStepActive; fse.dodgeReady = false; fse.shadowStepActive = false; addLog(isSh ? `🌑 Shadow Step dodges Void Pull!` : `😇 Take Flight dodges Void Pull!`, "#e8e0ff"); }
                     else {
                         const missingHp = fnp.maxHp - fnp.hp; const dmg = Math.max(5, Math.floor(missingHp * 0.2) - magicDR);
                         fnp.hp -= dmg; flash("player"); triggerAnim("player", "arcane", `-${dmg}👁️`, "#cc00ff");
