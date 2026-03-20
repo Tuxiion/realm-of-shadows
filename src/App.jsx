@@ -137,10 +137,10 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "entropy_beast":      { sheetKey: "zone8", col: 1, row: 0, yOffset: 0.08 },
         "soul_binder_z8":     { sheetKey: "zone8", col: 2, row: 0, yOffset: 0.05 },
         "rift_phantom":       { sheetKey: "zone8", col: 0, row: 1, yOffset: 0.05 },
-        "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: -0.20, zoom: 1.3 },
-        "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: -0.15, zoom: 1.3 },
-        "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: -0.25, zoom: 1.3 },
-        "mal_korvax":   { sheetKey: "newbosses", col: 1, row: 1, yOffset: -0.10, zoom: 1.3 },
+        "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: 0.30, zoom: 2.5 },
+        "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: 0.30, zoom: 2.5 },
+        "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: 0.50, zoom: 2.5 },
+        "mal_korvax":   { sheetKey: "newbosses", col: 1, row: 1, yOffset: 0.45, zoom: 2.5 },
     };
     const p = MAP[enemyId];
     if (!p) {
@@ -347,7 +347,7 @@ const ENEMIES_BY_ZONE = [
         { name: "Veltharion the Undying", id: "veltharion", icon: "💀", hp: 200, maxHp: 200, atk: 34, def: 16, xp: 130, gold: 80, style: "magic", crit: 10, affix: "atkCurse", affix2: "healReduction", boss: true, uniqueId: "veltharion", deathMarked: false },
     ],
     [
-        { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", unique: true, uniqueId: "ib", raged: false },
+        { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", elite: true, uniqueId: "ib", raged: false },
         { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", unique: true, uniqueId: "ao" },
         { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "dr", deathMarked: false },
         { name: "Abyssal Ravager", id: "hellfire_imp", icon: "😈", hp: 200, maxHp: 200, atk: 34, def: 10, xp: 120, gold: 70, style: "aggressive", crit: 10, minorSuffix: "venomous" },
