@@ -145,9 +145,9 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "entropy_beast":      { sheetKey: "zone8", col: 1, row: 0, yOffset: 0.05 },
         "soul_binder_z8":     { sheetKey: "zone8", col: 2, row: 0, yOffset: 0.05 },
         "rift_phantom":       { sheetKey: "zone8", col: 0, row: 1, yOffset: 0.10 },
-        "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: -0.24, zoom: 2.5 },
-        "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: -0.20, zoom: 2.5 },
-        "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: -0.26, zoom: 2.5 },
+        "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: -0.24, zoom: 1.9 },
+        "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: -0.20, zoom: 1.9 },
+        "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: -0.26, zoom: 1.9 },
         "mal_korvax":   { sheetKey: "newbosses", col: 1, row: 1, yOffset: -0.18, zoom: 2.5 },
     };
     const p = MAP[enemyId];
