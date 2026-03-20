@@ -126,25 +126,26 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
         "hellfire_imp": { sheetKey: "zone4extra", col: 1, row: 0, yOffset: 0.05 },
         "ashen_knight": { sheetKey: "zone4extra", col: 0, row: 0, yOffset: 0.08 },
-        "mire_stalker":       { sheetKey: "zone5", col: 0, row: 0, yOffset: 0.10 },
-        "rotfang_beast":      { sheetKey: "zone5", col: 1, row: 0, yOffset: 0.00 },
-        "plague_channeler":   { sheetKey: "zone5", col: 2, row: 0, yOffset: 0.10 },
-        "bog_knight":         { sheetKey: "zone5", col: 0, row: 1, yOffset: 0.10 },
-        "swamp_wraith":       { sheetKey: "zone5", col: 1, row: 1, yOffset: 0.08 },
+        "mire_stalker":       { sheetKey: "zone5", col: 0, row: 0, yOffset: 0.15 },
+        "rotfang_beast":      { sheetKey: "zone5", col: 1, row: 0, yOffset: 0.02 },
+        "plague_channeler":   { sheetKey: "zone5", col: 2, row: 0, yOffset: 0.12 },
+        "bog_knight":         { sheetKey: "zone5", col: 0, row: 1, yOffset: 0.12 },
+        "swamp_wraith":       { sheetKey: "zone5", col: 1, row: 1, yOffset: 0.15 },
         "bone_legionnaire":   { sheetKey: "zone6", col: 0, row: 0, yOffset: 0.10 },
         "grave_arcanist":     { sheetKey: "zone6", col: 1, row: 0, yOffset: 0.08 },
-        "crypt_assassin":     { sheetKey: "zone6", col: 2, row: 0, yOffset: 0.10 },
-        "sanctified_fallen":  { sheetKey: "zone6", col: 0, row: 1, yOffset: 0.10 },
-        "soul_binder_z6":     { sheetKey: "zone6", col: 1, row: 1, yOffset: 0.08 },
-        "void_harbinger":     { sheetKey: "zone7", col: 0, row: 0, yOffset: 0.10 },
+        "crypt_assassin":     { sheetKey: "zone6", col: 2, row: 0, yOffset: 0.12 },
+        "sanctified_fallen":  { sheetKey: "zone6", col: 0, row: 1, yOffset: 0.08 },
+        "soul_binder_z6":     { sheetKey: "zone6", col: 1, row: 1, yOffset: 0.10 },
+        "void_harbinger":     { sheetKey: "zone7", col: 0, row: 0, yOffset: 0.12 },
         "timebroken_knight":  { sheetKey: "zone7", col: 1, row: 0, yOffset: 0.08 },
         "void_seraph":        { sheetKey: "zone7", col: 2, row: 0, yOffset: 0.05 },
-        "chrono_beast":       { sheetKey: "zone7", col: 0, row: 1, yOffset: 0.10 },
-        "paradox_shade":      { sheetKey: "zone7", col: 1, row: 1, yOffset: 0.10 },
+        "chrono_beast":       { sheetKey: "zone7", col: 0, row: 1, yOffset: 0.12 },
+        "paradox_shade":      { sheetKey: "zone7", col: 1, row: 1, yOffset: 0.12 },
         "oblivion_knight":    { sheetKey: "zone8", col: 0, row: 0, yOffset: 0.08 },
         "entropy_beast":      { sheetKey: "zone8", col: 1, row: 0, yOffset: 0.05 },
         "soul_binder_z8":     { sheetKey: "zone8", col: 2, row: 0, yOffset: 0.05 },
-        "rift_phantom":       { sheetKey: "zone8", col: 0, row: 1, yOffset: 0.10 },
+        "rift_phantom":       { sheetKey: "zone8", col: 0, row: 1, yOffset: 0.12 },
+        "soul_binder_z8b":    { sheetKey: "zone8", col: 1, row: 1, yOffset: 0.10 },
         "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: -0.24, zoom: 1.9 },
         "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: -0.20, zoom: 1.9 },
         "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: -0.26, zoom: 1.9 },
@@ -2422,17 +2423,7 @@ export default function App() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, background: "#00000070", borderRadius: 10, padding: "5px 10px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         {playerClass && (
-                            <div
-                                onClick={() => {
-                                    if (!combat || !enemy) return;
-                                    const ne = { ...enemy, hp: 0 };
-                                    setEnemy(ne);
-                                    addLog(`💀 [DEV] ${enemy.name} instantly slain.`, "#ff00ff");
-                                    setTimeout(() => resolveVictory({ ...player }, ne, { player: [...buffs.player], enemy: [...buffs.enemy] }, [...inventory], gold, { ...equipped }, { ...se }, [...relics]), 300);
-                                }}
-                                style={{ cursor: combat && enemy ? "crosshair" : "default" }}
-                                title={combat && enemy ? "[DEV] Instant kill" : ""}
-                            >
+                            <div style={{ cursor: "default" }}>
                                 <ClassPortrait className={playerClass} size={32} />
                             </div>
                         )}
