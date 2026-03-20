@@ -721,6 +721,10 @@ function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
         "/realm-of-shadows/assets/sounds/zone2.mp3",
         "/realm-of-shadows/assets/sounds/zone3.mp3",
         "/realm-of-shadows/assets/sounds/zone4.mp3",
+        "/realm-of-shadows/assets/sounds/zone5.mp3",
+        "/realm-of-shadows/assets/sounds/zone6.mp3",
+        "/realm-of-shadows/assets/sounds/zone7.mp3",
+        "/realm-of-shadows/assets/sounds/zone8.mp3",
     ];
     const VICTORY_TRACK = "/realm-of-shadows/assets/sounds/victory.mp3";
 
