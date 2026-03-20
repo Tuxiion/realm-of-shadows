@@ -25,6 +25,13 @@ const SHEETS = {
     zone4: "/realm-of-shadows/assets/images/zone4.png",
     newbosses: "/realm-of-shadows/assets/images/newbosses.png",
     zone4extra: "/realm-of-shadows/assets/images/zone4_extra.png",
+    zone5: "/realm-of-shadows/assets/images/zone5.png",
+    zone6: "/realm-of-shadows/assets/images/zone6.png",
+    zone7: "/realm-of-shadows/assets/images/zone7.png",
+    zone8: "/realm-of-shadows/assets/images/zone8.png",
+    zone6: "/realm-of-shadows/assets/images/zone6.png",
+    zone7: "/realm-of-shadows/assets/images/zone7.png",
+    zone8: "/realm-of-shadows/assets/images/zone8.png",
     equipment: "/realm-of-shadows/assets/images/equipment.png",
     extras: "/realm-of-shadows/assets/images/extras.png",
 };
@@ -37,6 +44,14 @@ const SHEET_META = {
     zone4: { cols: 2, rows: 2, w: 1024, h: 1024 },
     newbosses: { cols: 2, rows: 2, w: 1024, h: 1024 },
     zone4extra: { cols: 2, rows: 1, w: 1535, h: 760 },
+    zone5: { cols: 3, rows: 2, w: 1364, h: 893 },
+    zone6: { cols: 3, rows: 2, w: 1365, h: 900 },
+    zone7: { cols: 3, rows: 2, w: 1365, h: 904 },
+    zone8: { cols: 3, rows: 2, w: 1366, h: 900 },
+    zone5: { cols: 3, rows: 2, w: 1364, h: 893 },
+    zone6: { cols: 3, rows: 2, w: 1365, h: 900 },
+    zone7: { cols: 3, rows: 2, w: 1365, h: 904 },
+    zone8: { cols: 3, rows: 2, w: 1366, h: 900 },
     equipment: { cols: 6, rows: 5, w: 1024, h: 1024 },
     extras: { cols: 2, rows: 2, w: 930, h: 880 },
 };
@@ -103,6 +118,25 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
         "hellfire_imp": { sheetKey: "zone4extra", col: 1, row: 0, yOffset: 0.05 },
         "ashen_knight": { sheetKey: "zone4extra", col: 0, row: 0, yOffset: 0.08 },
+        "mire_stalker":       { sheetKey: "zone5", col: 0, row: 0, yOffset: 0.05 },
+        "rotfang_beast":      { sheetKey: "zone5", col: 1, row: 0, yOffset: 0.08 },
+        "plague_channeler":   { sheetKey: "zone5", col: 2, row: 0, yOffset: 0.05 },
+        "bog_knight":         { sheetKey: "zone5", col: 0, row: 1, yOffset: 0.05 },
+        "swamp_wraith":       { sheetKey: "zone5", col: 1, row: 1, yOffset: 0.05 },
+        "bone_legionnaire":   { sheetKey: "zone6", col: 0, row: 0, yOffset: 0.05 },
+        "grave_arcanist":     { sheetKey: "zone6", col: 1, row: 0, yOffset: 0.05 },
+        "crypt_assassin":     { sheetKey: "zone6", col: 2, row: 0, yOffset: 0.05 },
+        "sanctified_fallen":  { sheetKey: "zone6", col: 0, row: 1, yOffset: 0.05 },
+        "soul_binder_z6":     { sheetKey: "zone6", col: 1, row: 1, yOffset: 0.05 },
+        "void_harbinger":     { sheetKey: "zone7", col: 0, row: 0, yOffset: 0.05 },
+        "timebroken_knight":  { sheetKey: "zone7", col: 1, row: 0, yOffset: 0.05 },
+        "void_seraph":        { sheetKey: "zone7", col: 2, row: 0, yOffset: 0.05 },
+        "chrono_beast":       { sheetKey: "zone7", col: 0, row: 1, yOffset: 0.08 },
+        "paradox_shade":      { sheetKey: "zone7", col: 1, row: 1, yOffset: 0.05 },
+        "oblivion_knight":    { sheetKey: "zone8", col: 0, row: 0, yOffset: 0.05 },
+        "entropy_beast":      { sheetKey: "zone8", col: 1, row: 0, yOffset: 0.08 },
+        "soul_binder_z8":     { sheetKey: "zone8", col: 2, row: 0, yOffset: 0.05 },
+        "rift_phantom":       { sheetKey: "zone8", col: 0, row: 1, yOffset: 0.05 },
         "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: 0.05, zoom: 1.6 },
         "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: 0.05, zoom: 1.6 },
         "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: 0.08, zoom: 1.6 },
@@ -361,6 +395,8 @@ const CONSUMABLES = [
     { id: "gpot", name: "Greater Potion", icon: "🍶", cost: 50, effect: "heal", amount: 150, desc: "Restore 150 HP" },
     { id: "mpot", name: "Mana Elixir", icon: "💧", cost: 15, effect: "mp", amount: 50, desc: "Restore 50 MP" },
     { id: "revive", name: "Revive Gem", icon: "💎", cost: 100, effect: "revive", amount: 150, desc: "Revive: +150 HP, +80 MP" },
+    { id: "gmpot", name: "Greater Mana Potion", icon: "🔮", cost: 40, effect: "mp", amount: 200, desc: "Restore 200 MP" },
+    { id: "rpot", name: "Restorative Potion", icon: "💜", cost: 200, effect: "restore", amount: 300, mpAmount: 150, desc: "Restore 300 HP + 150 MP", minZone: 4 },
 ];
 
 const MONSTER_RELICS = [
@@ -399,6 +435,44 @@ const EQUIPMENT = [
     { id: "ring1", name: "Ring of Power", icon: "💍", slot: "ring", cost: 55, stats: { atk: 4, crit: 5 }, desc: "+4 ATK, +5% Crit" },
     { id: "ring2", name: "Ring of Vitality", icon: "💍", slot: "ring", cost: 55, stats: { maxHp: 30, manaRegen: 2 }, desc: "+30 HP, +2 MP/turn" },
     { id: "ring3", name: "Ring of the Arcanist", icon: "💍", slot: "ring", cost: 55, stats: { maxMp: 25, manaRegen: 5, spd: 7 }, desc: "+25 MP, +5 MP/turn, +7 SPD" },
+    // Zone 5+ high-end items (locked until zone 4 complete)
+    // Weapons
+    { id: "voidBlade", name: "Void Blade", icon: "🌑", slot: "weapon", cost: 220, stats: { atk: 18, crit: 12 }, desc: "+18 ATK, +12% Crit, +20% Ability Power", passive: "abilityBonus", minZone: 4 },
+    { id: "staffEternity", name: "Staff of Eternity", icon: "✨", slot: "weapon", cost: 240, stats: { manaRegen: 15, maxMp: 60, spd: 18 }, desc: "+15 MP/t, +60 MP, +18 SPD, +25% Ability Power", passive: "abilityBonus", minZone: 4 },
+    { id: "blightFang", name: "Blight Fang", icon: "🦷", slot: "weapon", cost: 200, stats: { atk: 16, crit: 8 }, desc: "+16 ATK, +8% Crit, steals 12 HP", passive: "lifesteal3", minZone: 4 },
+    { id: "timebreakerEdge", name: "Timebreaker Edge", icon: "⌛", slot: "weapon", cost: 260, stats: { atk: 20, spd: 15, crit: 10 }, desc: "+20 ATK, +15 SPD, +10% Crit, +20% Ability Power", passive: "abilityBonus", minZone: 4 },
+    // Helmets
+    { id: "necropolisCrown", name: "Necropolis Crown", icon: "💀", slot: "head", cost: 200, stats: { def: 20, maxHp: 60 }, desc: "+20 DEF, +60 HP, +4 HP/turn", passive: "holyAura2", minZone: 4 },
+    { id: "voidSentinelHelm", name: "Void Sentinel Helm", icon: "👁️", slot: "head", cost: 220, stats: { def: 24, maxHp: 50 }, desc: "+24 DEF, +50 HP, −5 magic DR", passive: "magicDR2", minZone: 4 },
+    { id: "oblivionVisage", name: "Oblivion Visage", icon: "🎭", slot: "head", cost: 240, stats: { def: 22, maxHp: 70 }, desc: "+22 DEF, +70 HP, reflect 15% damage", passive: "reflect2", minZone: 4 },
+    { id: "blightCowl", name: "Blight Cowl", icon: "🧟", slot: "head", cost: 190, stats: { def: 16, maxHp: 45, crit: 6 }, desc: "+16 DEF, +45 HP, +6% Crit", minZone: 4 },
+    // Body Armor
+    { id: "shroudSilence", name: "Shroud of Silence", icon: "🌑", slot: "body", cost: 250, stats: { def: 22, maxHp: 60, spd: 8 }, desc: "+22 DEF, +60 HP, +8 SPD, −6 magic DR", passive: "magicDR3", minZone: 4 },
+    { id: "oblivionPlate", name: "Oblivion Plate", icon: "🛡️", slot: "body", cost: 280, stats: { def: 28, maxHp: 80 }, desc: "+28 DEF, +80 HP, −6 flat DR", passive: "flatDR2", minZone: 4 },
+    { id: "chronoRobe", name: "Chrono Robe", icon: "⏳", slot: "body", cost: 230, stats: { def: 12, maxMp: 80, manaRegen: 12, spd: 14 }, desc: "+12 DEF, +80 MP, +12 MP/t, +14 SPD", minZone: 4 },
+    { id: "abyssCarapace", name: "Carapace of the Abyss", icon: "🌊", slot: "body", cost: 260, stats: { def: 25, maxHp: 70, atk: 14 }, desc: "+25 DEF, +70 HP, +14 ATK, −4 HP/turn", passive: "cursedPlate2", minZone: 4 },
+    // Rings
+    { id: "ringVoid", name: "Ring of the Void", icon: "🌑", slot: "ring", cost: 160, stats: { atk: 10, crit: 10, manaRegen: 6 }, desc: "+10 ATK, +10% Crit, +6 MP/t", minZone: 4 },
+    { id: "eternityBand", name: "Eternity Band", icon: "♾️", slot: "ring", cost: 170, stats: { maxHp: 50, maxMp: 50, manaRegen: 6 }, desc: "+50 HP, +50 MP, +6 MP/t", minZone: 4 },
+    { id: "timebreakerRing", name: "Timebreaker Ring", icon: "⌛", slot: "ring", cost: 180, stats: { spd: 18, crit: 8, manaRegen: 8 }, desc: "+18 SPD, +8% Crit, +8 MP/t", minZone: 4 },
+    { id: "oblivionSeal", name: "Oblivion Seal", icon: "🖤", slot: "ring", cost: 200, stats: { atk: 12, crit: 12, maxHp: 60, manaRegen: 5 }, desc: "+12 ATK, +12% Crit, +60 HP, +5 MP/t", minZone: 4 },
+    // Boots (new slot, unlocked zone 4)
+    { id: "phantomTreads", name: "Phantom Treads", icon: "👟", slot: "boots", cost: 120, stats: { spd: 18, crit: 8 }, desc: "+18 SPD, +8% Crit", minZone: 4 },
+    { id: "voidStriders", name: "Void Striders", icon: "🌑", slot: "boots", cost: 160, stats: { spd: 22, crit: 6, manaRegen: 4 }, desc: "+22 SPD, +6% Crit, +4 MP/t", minZone: 4 },
+    { id: "ironGreaves", name: "Ironclad Greaves", icon: "🦵", slot: "boots", cost: 140, stats: { def: 8, maxHp: 30, spd: 10 }, desc: "+8 DEF, +30 HP, +10 SPD", minZone: 4 },
+    { id: "bootsOblivion", name: "Boots of Oblivion", icon: "💀", slot: "boots", cost: 200, stats: { spd: 28, crit: 10, maxHp: 40 }, desc: "+28 SPD, +10% Crit, +40 HP", minZone: 4 },
+    // Second ring slot
+    { id: "ringVoid2", name: "Ring of the Void II", icon: "🌑", slot: "ring2", cost: 160, stats: { atk: 10, crit: 10, manaRegen: 6 }, desc: "+10 ATK, +10% Crit, +6 MP/t", minZone: 4 },
+    { id: "eternityBand2", name: "Eternity Band II", icon: "♾️", slot: "ring2", cost: 170, stats: { maxHp: 50, maxMp: 50, manaRegen: 6 }, desc: "+50 HP, +50 MP, +6 MP/t", minZone: 4 },
+    { id: "timebreakerRing2", name: "Timebreaker Ring II", icon: "⌛", slot: "ring2", cost: 180, stats: { spd: 18, crit: 8, manaRegen: 8 }, desc: "+18 SPD, +8% Crit, +8 MP/t", minZone: 4 },
+    { id: "oblivionSeal2", name: "Oblivion Seal II", icon: "🖤", slot: "ring2", cost: 200, stats: { atk: 12, crit: 12, maxHp: 60, manaRegen: 5 }, desc: "+12 ATK, +12% Crit, +60 HP, +5 MP/t", minZone: 4 },
+    // ── LEGENDARY DROP-ONLY ITEMS (zone 5+, drop only, no purchase) ──
+    { id: "wraithEdge", name: "Wraith's Edge", icon: "🌑", slot: "weapon", cost: 0, sellPrice: 120, stats: { atk: 24, crit: 15, spd: 10 }, desc: "+24 ATK, +15% Crit, +10 SPD, +25% Ability Power · Steals 15 HP", passive: "abilityBonus", dropOnly: true },
+    { id: "crownOblivion", name: "Crown of Oblivion", icon: "👑", slot: "head", cost: 0, sellPrice: 120, stats: { def: 28, maxHp: 90, crit: 8 }, desc: "+28 DEF, +90 HP, +8% Crit, +6 HP/turn · Reflects 20% damage", passive: "reflect2", dropOnly: true },
+    { id: "voidMantle", name: "Void Mantle", icon: "🌀", slot: "body", cost: 0, sellPrice: 130, stats: { def: 32, maxHp: 100, manaRegen: 10, spd: 10 }, desc: "+32 DEF, +100 HP, +10 MP/t, +10 SPD · −8 magic DR", passive: "magicDR3", dropOnly: true },
+    { id: "sealSovereignty", name: "Seal of Sovereignty", icon: "💎", slot: "ring", cost: 0, sellPrice: 110, stats: { atk: 16, crit: 16, maxHp: 70, manaRegen: 8 }, desc: "+16 ATK, +16% Crit, +70 HP, +8 MP/t", dropOnly: true },
+    { id: "greavesChaos", name: "Greaves of Chaos", icon: "💥", slot: "boots", cost: 0, sellPrice: 100, stats: { spd: 34, crit: 12, maxHp: 50 }, desc: "+34 SPD, +12% Crit, +50 HP · −4 flat DR", passive: "flatDR", dropOnly: true },
+    { id: "sealEternity", name: "Seal of Eternity", icon: "♾️", slot: "ring2", cost: 0, sellPrice: 110, stats: { maxHp: 80, maxMp: 80, manaRegen: 10, spd: 12 }, desc: "+80 HP, +80 MP, +10 MP/t, +12 SPD", dropOnly: true },
     { id: "shadowFang", name: "Shadow Fang", icon: "🦷", slot: "relic", cost: 0, sellPrice: 60, stats: { crit: 5 }, desc: "Passive: +5% Crit Chance", type: "passive" },
     { id: "ring4", name: "Ring of the Abyss", icon: "🖤", slot: "ring", cost: 120, stats: { atk: 6, crit: 6, manaRegen: 3 }, desc: "+6 ATK, +6% Crit, +3 MP/turn" },
 ];
@@ -411,6 +485,13 @@ const MONSTER_LOOT = [
     { type: "trinket", id: "heartFallen", tier: 1, chance: 8 }, { type: "trinket", id: "critRune", tier: 3, chance: 3 }, { type: "equipment", id: "orbHelm", tier: 2, chance: 6 },
     { type: "equipment", id: "axe1", tier: 2, chance: 6 }, { type: "equipment", id: "sword1", tier: 2, chance: 6 },
     { type: "equipment", id: "archArmor", tier: 3, chance: 5 }, { type: "equipment", id: "cursedArmor", tier: 3, chance: 5 }, { type: "relic", id: "shadowFang", tier: 3, chance: 4 },
+    // Legendary drop-only items — tier 4, zone 5+ only
+    { type: "equipment", id: "wraithEdge", tier: 4, chance: 7 },
+    { type: "equipment", id: "crownOblivion", tier: 4, chance: 7 },
+    { type: "equipment", id: "voidMantle", tier: 4, chance: 7 },
+    { type: "equipment", id: "sealSovereignty", tier: 4, chance: 7 },
+    { type: "equipment", id: "greavesChaos", tier: 4, chance: 7 },
+    { type: "equipment", id: "sealEternity", tier: 4, chance: 7 },
 ];
 
 const LOOT_TABLES = [
@@ -418,10 +499,10 @@ const LOOT_TABLES = [
     [{ type: "consumable", id: "hpot", chance: 18 }, { type: "consumable", id: "gpot", chance: 8 }, { type: "consumable", id: "mpot", chance: 14 }, { type: "equipment", id: "helmet2", chance: 10 }, { type: "equipment", id: "armor1", chance: 10 }, { type: "equipment", id: "ring1", chance: 10 }, { type: "equipment", id: "staff1", chance: 8 }, { type: "gold", amount: [20, 40], chance: 8 }, { type: "monsterLoot", tier: 1, chance: 14 }],
     [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 8 }, { type: "equipment", id: "helmet3", chance: 10 }, { type: "equipment", id: "blade2", chance: 10 }, { type: "equipment", id: "staff2", chance: 10 }, { type: "equipment", id: "armor2", chance: 10 }, { type: "equipment", id: "ring4", chance: 10 }, { type: "gold", amount: [40, 70], chance: 10 }, { type: "monsterLoot", tier: 2, chance: 20 }],
     [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 15 }, { type: "equipment", id: "blade2", chance: 12 }, { type: "equipment", id: "staff2", chance: 12 }, { type: "equipment", id: "armor2", chance: 10 }, { type: "equipment", id: "ring4", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 31 }],
-    [{ type: "consumable", id: "gpot", chance: 15 }, { type: "consumable", id: "revive", chance: 15 }, { type: "equipment", id: "sword1", chance: 12 }, { type: "equipment", id: "staff2", chance: 12 }, { type: "equipment", id: "archArmor", chance: 10 }, { type: "equipment", id: "ring4", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 28 }],
-    [{ type: "consumable", id: "gpot", chance: 15 }, { type: "consumable", id: "revive", chance: 18 }, { type: "equipment", id: "orbHelm", chance: 10 }, { type: "equipment", id: "blade2", chance: 10 }, { type: "equipment", id: "archArmor", chance: 10 }, { type: "monsterLoot", tier: 3, chance: 37 }],
-    [{ type: "consumable", id: "gpot", chance: 15 }, { type: "consumable", id: "revive", chance: 18 }, { type: "equipment", id: "sword1", chance: 10 }, { type: "equipment", id: "staff2", chance: 10 }, { type: "monsterLoot", tier: 3, chance: 47 }],
-    [{ type: "consumable", id: "gpot", chance: 15 }, { type: "consumable", id: "revive", chance: 20 }, { type: "equipment", id: "archArmor", chance: 10 }, { type: "equipment", id: "cursedArmor", chance: 10 }, { type: "monsterLoot", tier: 3, chance: 45 }],
+    [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 12 }, { type: "equipment", id: "sword1", chance: 10 }, { type: "equipment", id: "staff2", chance: 10 }, { type: "equipment", id: "archArmor", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 22 }, { type: "monsterLoot", tier: 4, chance: 10 }],
+    [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 15 }, { type: "equipment", id: "orbHelm", chance: 8 }, { type: "equipment", id: "archArmor", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 28 }, { type: "monsterLoot", tier: 4, chance: 12 }],
+    [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 15 }, { type: "equipment", id: "sword1", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 38 }, { type: "monsterLoot", tier: 4, chance: 14 }],
+    [{ type: "consumable", id: "gpot", chance: 12 }, { type: "consumable", id: "revive", chance: 18 }, { type: "equipment", id: "archArmor", chance: 8 }, { type: "monsterLoot", tier: 3, chance: 32 }, { type: "monsterLoot", tier: 4, chance: 16 }],
 ];
 
 const UPGRADES = [
@@ -523,7 +604,7 @@ function Particles() {
 }
 
 const initInv = () => [{ ...CONSUMABLES[0], qty: 2 }, { ...CONSUMABLES[2], qty: 1 }];
-const initEq = () => ({ head: null, weapon: null, body: null, ring: null, trinket: null });
+const initEq = () => ({ head: null, weapon: null, body: null, ring: null, ring2: null, boots: null, trinket: null });
 
 const CSS = `
     *, *::before, *::after { box-sizing: border-box; }
@@ -899,7 +980,7 @@ function VictoryScreen({ player, playerTitle, playerClass, level, gold, encounte
             {playerClass && <ClassPortrait className={playerClass} size={100} style={{ margin: "0 auto 14px" }} />}
             <div style={{ background: "#ffffff08", borderRadius: 10, padding: 12, textAlign: "left", width: "100%", maxWidth: 340, marginBottom: 12 }}>
                 <div style={{ color: "#f0c060", fontWeight: "bold", fontSize: 12, marginBottom: 8 }}>🎽 Final Equipment</div>
-                {["head", "weapon", "body", "ring", "trinket"].map(slot => (
+                {["head", "weapon", "body", "ring", "ring2", "boots", "trinket"].map(slot => (
                     <div key={slot} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, borderBottom: "1px solid #ffffff08", paddingBottom: 6 }}>
                         <span style={{ color: "#555", textTransform: "capitalize", width: 46, flexShrink: 0, fontSize: 10 }}>{slot}:</span>
                         {equipped[slot] ? (
@@ -1474,6 +1555,7 @@ export default function App() {
             dealDmg(dmg, "⚔️ Your attack", c); if (cse.flightBonus > 0) cse.flightBonus--;
             if (hasP(eq, "lifesteal")) { np.hp = clamp(np.hp + 5, 0, np.maxHp); triggerAnim("player", "drain", "+5🩸", "#ff6090"); }
             if (hasP(eq, "lifesteal2")) { np.hp = clamp(np.hp + 8, 0, np.maxHp); triggerAnim("player", "drain", "+8🩸", "#cc2222"); }
+            if (hasP(eq, "lifesteal3")) { np.hp = clamp(np.hp + 12, 0, np.maxHp); triggerAnim("player", "drain", "+12🩸", "#cc2222"); }
             if (ne.minorSuffix === "thorned") { const ref = Math.max(1, Math.floor(dmg * 0.15)); np.hp = clamp(np.hp - ref, 0, np.maxHp); triggerAnim("player", null, `-${ref}🌵`, "#88ff44"); }
         } else if (type === "ability") {
             const ab = payload;
@@ -1551,6 +1633,7 @@ export default function App() {
             np.mp = clamp(np.mp + regen, 0, np.maxMp);
             if (item.effect === "heal") { const h = Math.floor(item.amount * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); playSfx('drink'); triggerAnim("player", "heal", `+${h} HP`, "#60f0a0"); addLog(`You use ${item.icon} ${item.name} — restored ${h} HP`, "#60f0a0"); }
             else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); playSfx('drink'); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); addLog(`You use ${item.icon} ${item.name} — restored ${item.amount} MP`, "#60c0f0"); }
+            else if (item.effect === "restore") { const rh = Math.floor(item.amount * healMult); const rm = item.mpAmount || 0; np.hp = clamp(np.hp + rh, 0, np.maxHp); np.mp = clamp(np.mp + rm, 0, np.maxMp); playSfx('drink'); triggerAnim("player", "heal", `+${rh}HP`, "#cc88ff"); addLog(`You use ${item.icon} ${item.name} — restored ${rh} HP + ${rm} MP`, "#cc88ff"); }
             inv = inventory.map((it, i) => i === payload ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0); setInventory(inv);
         } else if (type === "flee") {
             if (rand(1, 100) > 40) { addLog("🏃 Fled!", "#f0c060"); setCombat(false); setEnemy(null); setPlayer(np); return; }
@@ -1581,7 +1664,7 @@ export default function App() {
         let fnp = { ...np }, fne = { ...ne }, fnb = { player: [...nb.player], enemy: [...nb.enemy] }, fse = { ...cse };
         const ep = effStats(fnp, eq); const rb = getRelicBonus();
         const pDef = ep.def + rb.def + fnb.player.filter(b => b.stat === "def").reduce((s, b) => s + b.amount, 0);
-        const flatDR = hasP(eq, "flatDR") ? 2 : 0; const magicDR = hasP(eq, "magicDR") ? 4 : 0;
+        const flatDR = hasP(eq, "flatDR2") ? 6 : hasP(eq, "flatDR") ? 2 : 0; const magicDR = hasP(eq, "magicDR3") ? 6 : hasP(eq, "magicDR2") ? 5 : hasP(eq, "magicDR") ? 4 : 0;
         const eAtkMod = fnb.enemy.filter(b => b.stat === "atk").reduce((s, b) => s + b.amount, 0);
         let eAtk = fne.atk + eAtkMod;
         if (fne.affix === "infernalRage" && !fne.raged && fne.hp <= (fne.maxHp * 0.5)) { fne = { ...fne, atk: fne.atk + 10, raged: true }; eAtk += 10; triggerAnim("enemy", "fire", "😤RAGE+10ATK", "#ff4400"); addLog(`🔥 Infernal Behemoth RAGES! +10 ATK!`, "#ff4400"); }
@@ -1959,14 +2042,30 @@ export default function App() {
             // Zone 7 boss: Vael'Zyrr — time manipulation, bypasses DEF
             else if (fne.id === "vael_zyrr") {
                 if (!fne.healAuraApplied) { fne.healAuraApplied = true; fse.frailCurse = 99; triggerAnim("player","debuff","⏰TIMEBREAK","#44bbff"); addLog(`🐉 Vael'Zyrr shatters time — healing is disrupted!`,"#44bbff"); }
+                // Time Fracture — once: sets player MP to 0
+                if (!fne.timeFractureUsed && fnp.mp > 20) { fne.timeFractureUsed = true; const lostMp = fnp.mp; fnp.mp = 0; triggerAnim("player","arcane","💥MP→0","#44bbff"); addLog(`💥 Time Fracture — Vael'Zyrr drains ALL your MP (${lostMp})!`,"#44bbff"); }
+                // Paradox Lock — marks player, repeats damage next turn
+                if (fne.paradoxDmg > 0 && !fne.paradoxFired) { fne.paradoxFired = true; fnp.hp -= fne.paradoxDmg; flash("player"); triggerAnim("player","arcane",`-${fne.paradoxDmg}🔄`,"#44bbff"); addLog(`🔄 Paradox Lock triggers — repeating ${fne.paradoxDmg} damage!`,"#44bbff"); fne.paradoxDmg = 0; }
                 if (rand(1,100) <= 35) {
-                    if (rand(1,100) <= 50) { const dmg=Math.max(4,Math.floor(eAtk*1.4)); fnp.hp-=dmg; flash("player"); triggerAnim("player","slash",`-${dmg}⌛`,"#44bbff"); addLog(`⌛ Timebreak Strike — bypasses all DEF for ${dmg}!`,"#44bbff"); }
-                    else { fse.stunned=true; triggerAnim("player","dark","⌛TIMESTOP","#44bbff"); addLog(`⌛ Time Stop — you are frozen in time! Turn lost!`,"#44bbff"); }
+                    const roll2 = rand(1,3);
+                    if (roll2 === 1) { // Chrono Slash — moderate dmg, 50% chance to act again
+                        const dmg = Math.max(4, Math.floor(eAtk * 1.0)); fnp.hp -= dmg; flash("player"); triggerAnim("player","slash",`-${dmg}⌛`,"#44bbff"); addLog(`⌛ Chrono Slash — ${dmg} dmg!`,"#44bbff");
+                        if (rand(1,100) <= 50) { const dmg2 = Math.max(4, Math.floor(eAtk * 0.8)); fnp.hp -= dmg2; flash("player"); triggerAnim("player","slash",`-${dmg2}⌛`,"#44bbff"); addLog(`⌛ Chrono Slash echoes — ${dmg2} additional dmg!`,"#44bbff"); }
+                    } else if (roll2 === 2) { // Rewind Fate — heals 30% of last damage
+                        const healAmt = Math.floor(eAtk * 0.3); fne.hp = Math.min(fne.hp + healAmt, fne.maxHp); triggerAnim("enemy","heal",`+${healAmt}⌛`,"#44bbff"); addLog(`⌛ Rewind Fate — Vael'Zyrr rewinds time, healing ${healAmt} HP!`,"#44bbff");
+                        doHit(eAtk, Math.floor(pDef*0.5), false, true);
+                    } else { // Paradox Lock — marks for damage repeat next turn
+                        const markDmg = Math.floor(eAtk * 0.9); fnp.hp -= markDmg; flash("player"); fne.paradoxDmg = markDmg; fne.paradoxFired = false; triggerAnim("player","arcane",`-${markDmg}🔄`,"#44bbff"); addLog(`🔄 Paradox Lock — ${markDmg} dmg + will repeat next turn!`,"#44bbff");
+                    }
                 } else doHit(eAtk, Math.floor(pDef*0.5), false, true);
             }
             // Zone 8 boss: Mal'Korvax — the most dangerous fight
             else if (fne.id === "mal_korvax") {
-                if (!fne.healAuraApplied) { fne.healAuraApplied = true; fse.frailCurse = 99; triggerAnim("player","debuff","👑OBLIVION","#ff22aa"); addLog(`👑 Mal'Korvax's Oblivion Aura — your healing is obliterated!`,"#ff22aa"); }
+                if (!fne.healAuraApplied) { fne.healAuraApplied = true; fse.frailCurse = 3; triggerAnim("player","debuff","👑OBLIVION","#ff22aa"); addLog(`👑 Mal'Korvax's Oblivion Aura — your healing is 30% less effective!`,"#ff22aa"); }
+                // Final Collapse — once below 30% HP
+                if (!fne.finalCollapseUsed && fne.hp < fne.maxHp * 0.30) { fne.finalCollapseUsed = true; const collapseDmg = Math.max(10, Math.floor(fne.maxHp * 0.35)); fnp.hp -= collapseDmg; flash("player"); triggerAnim("player","dark",`-${collapseDmg}💥`,"#ff22aa"); addLog(`💥 FINAL COLLAPSE — Mal'Korvax unleashes his last power for ${collapseDmg}!`,"#ff22aa"); }
+                // End of All Things — ATK increases every turn
+                if (!fne.turnCount) fne.turnCount = 0; fne.turnCount++; const pressureBonus = Math.floor(fne.turnCount * 2);
                 if (rand(1,100) <= 35) {
                     const roll = rand(1,3);
                     if (roll === 1) { // Void Rupture — double hit
@@ -1982,7 +2081,7 @@ export default function App() {
                         fnb.player.push({stat:"def",amount:-5,turns:3,tag:"oblivionCurse"});
                         triggerAnim("player","dark","👑WITHER","#ff22aa"); addLog(`👑 Oblivion Wither — ATK -6, DEF -5 for 3 turns!`,"#ff22aa");
                     }
-                } else doHit(eAtk+3, Math.floor(pDef*0.6), false, true);
+                } else doHit(eAtk+3+(fne.turnCount?Math.floor(fne.turnCount*2):0), Math.floor(pDef*0.6), false, true);
             }
             // Generic magic fallback for any unhandled magic enemies
             else { doHit(eAtk, Math.floor(pDef * 0.7), false, true); }
@@ -2012,11 +2111,12 @@ export default function App() {
         setEnemy(fne); setPlayer(fnp); setBuffs(fnb); setSe(fse); setTurn("player");
     };
 
-    const useItemOutside = idx => { const item = inventory[idx]; if (!item || item.qty <= 0 || item.effect === "revive") return; let np = { ...player }; if (item.effect === "heal") { np.hp = clamp(np.hp + item.amount, 0, np.maxHp); playSfx('drink'); triggerAnim("player", "heal", `+${item.amount}`, "#60f0a0"); } else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); playSfx('drink'); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); } setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); };
+    const useItemOutside = idx => { const item = inventory[idx]; if (!item || item.qty <= 0 || item.effect === "revive") return; let np = { ...player }; if (item.effect === "heal") { np.hp = clamp(np.hp + item.amount, 0, np.maxHp); playSfx('drink'); triggerAnim("player", "heal", `+${item.amount}`, "#60f0a0"); } else if (item.effect === "mp") { np.mp = clamp(np.mp + item.amount, 0, np.maxMp); playSfx('drink'); triggerAnim("player", "arcane", `+${item.amount} MP`, "#60c0f0"); }
+        else if (item.effect === "restore") { np.hp = clamp(np.hp + item.amount, 0, np.maxHp); np.mp = clamp(np.mp + (item.mpAmount||0), 0, np.maxMp); playSfx('drink'); triggerAnim("player", "heal", `+${item.amount}HP`, "#cc88ff"); } setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); };
     const hasRevive = inventory.some(i => i.id === "revive" && i.qty > 0);
     const useRevive = () => { const idx = inventory.findIndex(i => i.id === "revive" && i.qty > 0); if (idx === -1) return; const e = { ...savedEnemy }; let np = { ...player, hp: clamp(150, 0, player.maxHp), mp: clamp((player.mp || 0) + 80, 0, player.maxMp) }; setInventory(inventory.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setPlayer(np); setEnemy(e); setCombat(true); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: hasP(equipped, "cursedPlate"), frailCurse: 0 }); setTurn("player"); setScreen("explore"); setTrinketUsed(false); addLog(`💎 Revived! ${e.name} has ${Math.max(0, e.hp)} HP!`, "#c060f0"); };
-    const buyConsumable = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } if (item.id === "revive" && hasRevive) { setShopMsg("Already have a Revive Gem!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); setInventory(inv => { const ex = inv.find(i => i.id === item.id && !i.isGear); return ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }]; }); playSfx('buy'); setShopMsg(`Bought ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
-    const buyEquipment = item => { if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); const old = equipped[item.slot]; const { np, newEq } = doEquip(item, equipped, player); setEquipped(newEq); setPlayer(np); if (old) { setInventory(inv => [...inv, { ...old, qty: 1, isGear: true }]); setShopMsg(`Equipped ${item.name}! ${old.name} → bag`); } else { setShopMsg(`Equipped ${item.name}!`); } playSfx('buy'); setTimeout(() => setShopMsg(""), 3000); };
+    const buyConsumable = item => { if ((item.minZone || 0) > zone) { setShopMsg("Available from zone " + item.minZone + "!"); setTimeout(() => setShopMsg(""), 2000); return; } if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } if (item.id === "revive" && hasRevive) { setShopMsg("Already have a Revive Gem!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); setInventory(inv => { const ex = inv.find(i => i.id === item.id && !i.isGear); return ex ? inv.map(i => i.id === item.id && !i.isGear ? { ...i, qty: i.qty + 1 } : i) : [...inv, { ...item, qty: 1 }]; }); playSfx('buy'); setShopMsg(`Bought ${item.name}!`); setTimeout(() => setShopMsg(""), 2000); };
+    const buyEquipment = item => { if (item.dropOnly) { setShopMsg("This item can only drop from monsters!"); setTimeout(() => setShopMsg(""), 2000); return; } if ((item.minZone || 0) > zone) { setShopMsg("Available from zone " + item.minZone + "!"); setTimeout(() => setShopMsg(""), 2000); return; } if (gold < item.cost) { setShopMsg("Not enough gold!"); setTimeout(() => setShopMsg(""), 2000); return; } setGold(g => g - item.cost); const old = equipped[item.slot]; const { np, newEq } = doEquip(item, equipped, player); setEquipped(newEq); setPlayer(np); if (old) { setInventory(inv => [...inv, { ...old, qty: 1, isGear: true }]); setShopMsg(`Equipped ${item.name}! ${old.name} → bag`); } else { setShopMsg(`Equipped ${item.name}!`); } playSfx('buy'); setTimeout(() => setShopMsg(""), 3000); };
     const sellItem = (item, idx) => { const price = item.sellPrice || Math.floor(item.cost / 2); setGold(g => g + price); setInventory(inv => inv.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setShopMsg(`Sold for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellEquipped = slot => { const item = equipped[slot]; if (!item) return; const price = item.sellPrice || Math.floor(item.cost / 2); const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); setGold(g => g + price); setShopMsg(`Sold ${item.name} for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellRelic = idx => { const r = relics[idx]; if (!r) return; setGold(g => g + r.sellPrice); setRelics(rl => rl.filter((_, i) => i !== idx)); setShopMsg(`Sold ${r.name} for ${r.sellPrice}g`); setTimeout(() => setShopMsg(""), 2000); };
@@ -2516,7 +2616,8 @@ export default function App() {
                                 <div style={{ color: "#555", fontSize: 9, fontWeight: "bold", letterSpacing: 1, marginBottom: 4, borderBottom: "1px solid #ffffff08", paddingBottom: 2 }}>🧪 Consumables</div>
                                 <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                                     {CONSUMABLES.map(item => {
-                                        const ro = item.id === "revive" && hasRevive;
+                                        const zoneLocked = (item.minZone || 0) > zone;
+                                        const ro = (item.id === "revive" && hasRevive) || zoneLocked;
                                         const owned = inventory.find(i => i.id === item.id && !i.isGear)?.qty || 0;
                                         return (
                                             <button key={item.id} onClick={() => buyConsumable(item)} disabled={gold < item.cost || ro}
@@ -2526,7 +2627,7 @@ export default function App() {
                                                     {item.name}
                                                     {owned > 0 && <span style={{ color: "#f0c06099", fontSize: 8 }}> ×{owned}</span>}
                                                     <br /><span style={{ fontSize: 9, color: "#aaa" }}>{item.desc}</span>
-                                                    <br /><span style={{ fontSize: 8, color: "#f0c060" }}>{item.cost}g{ro ? " (owned)" : ""}</span>
+                                                    <br /><span style={{ fontSize: 8, color: "#f0c060" }}>{zoneLocked ? `🔒 Zone ${item.minZone}` : `${item.cost}g${item.id === "revive" && hasRevive ? " (owned)" : ""}`}</span>
                                                 </span>
                                             </button>
                                         );
@@ -2536,11 +2637,11 @@ export default function App() {
 
                             {shopTab !== "sell" && (
                                 <div>
-                                    {[["head","🪖 Helmets"],["weapon","⚔️ Weapons"],["body","🥋 Body Armor"],["ring","💍 Rings"]].map(([slot, label]) => (
+                                    {[["head","🪖 Helmets"],["weapon","⚔️ Weapons"],["body","🥋 Body Armor"],["ring","💍 Rings"],["ring2","💍 Ring Slot II"],["boots","👟 Boots"]].map(([slot, label]) => (
                                         <div key={slot} style={{ marginBottom: 8 }}>
                                             <div style={{ color: "#555", fontSize: 9, fontWeight: "bold", letterSpacing: 1, marginBottom: 4, borderBottom: "1px solid #ffffff08", paddingBottom: 2 }}>{label}</div>
                                             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                                                {EQUIPMENT.filter(e => e.slot === slot).map(item => {
+                                                {EQUIPMENT.filter(e => e.slot === slot && !e.dropOnly).map(item => {
                                                     const owned = equipped[item.slot]?.id === item.id;
                                                     return (
                                                         <button key={item.id} onClick={() => buyEquipment(item)} disabled={gold < item.cost || owned}
@@ -2549,7 +2650,7 @@ export default function App() {
                                                             <span style={{ lineHeight: 1.3 }}>
                                                                 {item.name}<br />
                                                                 <span style={{ fontSize: 10, color: "#aaa" }}>{item.desc}</span><br />
-                                                                <span style={{ fontSize: 8, color: "#f0c060" }}>{item.cost}g{owned ? " ✓" : ""}</span>
+                                                                <span style={{ fontSize: 8, color: (item.minZone||0) > zone ? "#cc4444" : "#f0c060" }}>{(item.minZone||0) > zone ? `🔒 Zone ${item.minZone}` : `${item.cost}g${owned ? " ✓" : ""}`}</span>
                                                             </span>
                                                         </button>
                                                     );
@@ -2591,9 +2692,9 @@ export default function App() {
                     {showEquip && (
                         <div style={{ background: "#00000055", border: "1px solid #c060f022", borderRadius: 12, padding: 10, marginBottom: 5 }}>
                             <div style={{ color: "#c060f0", marginBottom: 6, fontWeight: "bold", fontSize: 11 }}>🎽 Equipment</div>
-                            {["head", "weapon", "body", "ring", "trinket"].map(slot => (
+                            {["head", "weapon", "body", "ring", "ring2", "boots", "trinket"].map(slot => (
                                 <div key={slot} style={{ display: "flex", alignItems: "center", marginBottom: 5, gap: 5, fontSize: 10, borderBottom: "1px solid #ffffff06", paddingBottom: 4 }}>
-                                    <span style={{ color: slot === "trinket" ? "#ff88ff" : "#555", textTransform: "capitalize", width: 46, flexShrink: 0 }}>{slot}:</span>
+                                    <span style={{ color: slot === "trinket" ? "#ff88ff" : slot === "ring2" ? "#c088ff" : slot === "boots" ? "#88ccff" : "#555", textTransform: "capitalize", width: 52, flexShrink: 0 }}>{slot === "ring2" ? "Ring II" : slot}:</span>
                                     {equipped[slot] ? (
                                         <div style={{ display: "flex", alignItems: "center", flex: 1, gap: 5 }}>
                                             <ItemPortrait itemId={equipped[slot].id} size={26} />
@@ -2605,7 +2706,7 @@ export default function App() {
                                         </div>
                                     ) : (
                                         <span style={{ color: "#333", fontSize: 9 }}>
-                                            {slot === "trinket" ? "— drops from monsters only —" : "— none equipped —"}
+                                            {slot === "trinket" ? "— drops from monsters only —" : (slot === "ring2" || slot === "boots") && zone < 4 ? <span style={{ color: "#cc4444", fontSize: 9 }}>🔒 Unlocked after Zone 4</span> : "— none equipped —"}
                                         </span>
                                     )}
                                 </div>
