@@ -48,10 +48,6 @@ const SHEET_META = {
     zone6: { cols: 3, rows: 2, w: 1365, h: 900 },
     zone7: { cols: 3, rows: 2, w: 1365, h: 904 },
     zone8: { cols: 3, rows: 2, w: 1366, h: 900 },
-    zone5: { cols: 3, rows: 2, w: 1364, h: 893 },
-    zone6: { cols: 3, rows: 2, w: 1365, h: 900 },
-    zone7: { cols: 3, rows: 2, w: 1365, h: 904 },
-    zone8: { cols: 3, rows: 2, w: 1366, h: 900 },
     equipment: { cols: 6, rows: 5, w: 1024, h: 1024 },
     extras: { cols: 2, rows: 2, w: 930, h: 880 },
 };
@@ -62,20 +58,32 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
     const cellW = meta.w / meta.cols;
     const cellH = meta.h / meta.rows;
     const scale = displaySize / cellW;
-    const scaledSheetW = meta.w * scale;
-    const scaledSheetH = meta.h * scale;
     const scaledCellH = cellH * scale;
-    // zoom: render at a larger internal scale then let overflow:hidden clip it
-    const zoomScale = zoom;
-    const zoomedW = scaledSheetW * zoomScale;
-    const zoomedH = scaledSheetH * zoomScale;
-    const zoomedCellW = (cellW * scale) * zoomScale;
-    const zoomedCellH = scaledCellH * zoomScale;
-    const bpx = -(col * zoomedCellW) + (zoomedCellW - displaySize) / 2;
-    const bpy = -(row * zoomedCellH) - (yOffset * zoomedCellH) + (zoomedCellH - displaySize) / 2;
+
+    let bgW, bgH, bgX, bgY;
+    if (zoom === 1.0) {
+        // Original non-zoom path — proven to work
+        bgW = meta.w * scale;
+        bgH = meta.h * scale;
+        bgX = -(col * displaySize);
+        bgY = -(row * scaledCellH) - (yOffset * scaledCellH);
+    } else {
+        // Zoom path: magnify the sheet, then position so col/row cell is centered
+        // with yOffset shifting vertically within that cell
+        const zW = meta.w * scale * zoom;
+        const zH = meta.h * scale * zoom;
+        const zCellW = cellW * scale * zoom;
+        const zCellH = scaledCellH * zoom;
+        // Center the cell horizontally, apply yOffset vertically from top of cell
+        bgW = zW;
+        bgH = zH;
+        bgX = -(col * zCellW) - (zCellW - displaySize) / 2;
+        bgY = -(row * zCellH) - (zCellH - displaySize) / 2 - (yOffset * zCellH);
+    }
+
     return (
         <div style={{ width: displaySize, height: displaySize, borderRadius: radius, overflow: "hidden", flexShrink: 0, border: `2px solid ${glow}88`, boxShadow: `0 0 10px ${glow}55`, ...style }}>
-            <div style={{ width: zoom === 1.0 ? scaledSheetW : zoomedW, height: zoom === 1.0 ? scaledSheetH : zoomedH, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${zoom === 1.0 ? scaledSheetW : zoomedW}px ${zoom === 1.0 ? scaledSheetH : zoomedH}px`, backgroundPosition: zoom === 1.0 ? `${-(col * displaySize)}px ${-(Math.floor(row * scaledCellH)) - (yOffset * scaledCellH)}px` : `${bpx}px ${bpy}px`, backgroundRepeat: "no-repeat" }} />
+            <div style={{ width: bgW, height: bgH, backgroundImage: `url(${SHEETS[sheetKey]})`, backgroundSize: `${bgW}px ${bgH}px`, backgroundPosition: `${bgX}px ${bgY}px`, backgroundRepeat: "no-repeat" }} />
         </div>
     );
 }
@@ -118,29 +126,29 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
         "hellfire_imp": { sheetKey: "zone4extra", col: 1, row: 0, yOffset: 0.05 },
         "ashen_knight": { sheetKey: "zone4extra", col: 0, row: 0, yOffset: 0.08 },
-        "mire_stalker":       { sheetKey: "zone5", col: 0, row: 0, yOffset: 0.05 },
-        "rotfang_beast":      { sheetKey: "zone5", col: 1, row: 0, yOffset: 0.08 },
-        "plague_channeler":   { sheetKey: "zone5", col: 2, row: 0, yOffset: 0.05 },
-        "bog_knight":         { sheetKey: "zone5", col: 0, row: 1, yOffset: 0.05 },
-        "swamp_wraith":       { sheetKey: "zone5", col: 1, row: 1, yOffset: 0.05 },
-        "bone_legionnaire":   { sheetKey: "zone6", col: 0, row: 0, yOffset: 0.05 },
-        "grave_arcanist":     { sheetKey: "zone6", col: 1, row: 0, yOffset: 0.05 },
-        "crypt_assassin":     { sheetKey: "zone6", col: 2, row: 0, yOffset: 0.05 },
-        "sanctified_fallen":  { sheetKey: "zone6", col: 0, row: 1, yOffset: 0.05 },
-        "soul_binder_z6":     { sheetKey: "zone6", col: 1, row: 1, yOffset: 0.05 },
-        "void_harbinger":     { sheetKey: "zone7", col: 0, row: 0, yOffset: 0.05 },
-        "timebroken_knight":  { sheetKey: "zone7", col: 1, row: 0, yOffset: 0.05 },
+        "mire_stalker":       { sheetKey: "zone5", col: 0, row: 0, yOffset: 0.10 },
+        "rotfang_beast":      { sheetKey: "zone5", col: 1, row: 0, yOffset: 0.00 },
+        "plague_channeler":   { sheetKey: "zone5", col: 2, row: 0, yOffset: 0.10 },
+        "bog_knight":         { sheetKey: "zone5", col: 0, row: 1, yOffset: 0.10 },
+        "swamp_wraith":       { sheetKey: "zone5", col: 1, row: 1, yOffset: 0.08 },
+        "bone_legionnaire":   { sheetKey: "zone6", col: 0, row: 0, yOffset: 0.10 },
+        "grave_arcanist":     { sheetKey: "zone6", col: 1, row: 0, yOffset: 0.08 },
+        "crypt_assassin":     { sheetKey: "zone6", col: 2, row: 0, yOffset: 0.10 },
+        "sanctified_fallen":  { sheetKey: "zone6", col: 0, row: 1, yOffset: 0.10 },
+        "soul_binder_z6":     { sheetKey: "zone6", col: 1, row: 1, yOffset: 0.08 },
+        "void_harbinger":     { sheetKey: "zone7", col: 0, row: 0, yOffset: 0.10 },
+        "timebroken_knight":  { sheetKey: "zone7", col: 1, row: 0, yOffset: 0.08 },
         "void_seraph":        { sheetKey: "zone7", col: 2, row: 0, yOffset: 0.05 },
-        "chrono_beast":       { sheetKey: "zone7", col: 0, row: 1, yOffset: 0.08 },
-        "paradox_shade":      { sheetKey: "zone7", col: 1, row: 1, yOffset: 0.05 },
-        "oblivion_knight":    { sheetKey: "zone8", col: 0, row: 0, yOffset: 0.05 },
-        "entropy_beast":      { sheetKey: "zone8", col: 1, row: 0, yOffset: 0.08 },
+        "chrono_beast":       { sheetKey: "zone7", col: 0, row: 1, yOffset: 0.10 },
+        "paradox_shade":      { sheetKey: "zone7", col: 1, row: 1, yOffset: 0.10 },
+        "oblivion_knight":    { sheetKey: "zone8", col: 0, row: 0, yOffset: 0.08 },
+        "entropy_beast":      { sheetKey: "zone8", col: 1, row: 0, yOffset: 0.05 },
         "soul_binder_z8":     { sheetKey: "zone8", col: 2, row: 0, yOffset: 0.05 },
-        "rift_phantom":       { sheetKey: "zone8", col: 0, row: 1, yOffset: 0.05 },
-        "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: 0.30, zoom: 2.5 },
-        "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: 0.30, zoom: 2.5 },
-        "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: 0.50, zoom: 2.5 },
-        "mal_korvax":   { sheetKey: "newbosses", col: 1, row: 1, yOffset: 0.45, zoom: 2.5 },
+        "rift_phantom":       { sheetKey: "zone8", col: 0, row: 1, yOffset: 0.10 },
+        "lord_threxil": { sheetKey: "newbosses", col: 0, row: 0, yOffset: -0.24, zoom: 2.5 },
+        "aurelion":     { sheetKey: "newbosses", col: 1, row: 0, yOffset: -0.20, zoom: 2.5 },
+        "vael_zyrr":    { sheetKey: "newbosses", col: 0, row: 1, yOffset: -0.26, zoom: 2.5 },
+        "mal_korvax":   { sheetKey: "newbosses", col: 1, row: 1, yOffset: -0.18, zoom: 2.5 },
     };
     const p = MAP[enemyId];
     if (!p) {
@@ -733,6 +741,7 @@ function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
         if (sc === "duelVictory") return MUSIC[0];
         if (sc === "gameover") return MUSIC[0];
         if (sc === "challengeIntro") return MUSIC[0];
+        if (sc === "title" || sc === "naming" || sc === "hall") return MUSIC[0];
         return MUSIC[z] || MUSIC[0];
     };
 
