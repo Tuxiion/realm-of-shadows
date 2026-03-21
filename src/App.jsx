@@ -37,7 +37,7 @@ const SHEETS = {
 };
 
 const SHEET_META = {
-    classes: { cols: 3, rows: 2, w: 1024, h: 1024 },
+    classes: { cols: 4, rows: 2, w: 1357, h: 1023 },
     zone1: { cols: 3, rows: 2, w: 1019, h: 945 },
     zone2: { cols: 3, rows: 2, w: 1024, h: 1024 },
     zone3: { cols: 3, rows: 1, w: 1023, h: 926 },
@@ -90,12 +90,13 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
 
 function ClassPortrait({ className, size = 56, style = {} }) {
     const MAP = {
-        "Holy Knight": { sheetKey: "classes", col: 0, row: 0 },
-        "Demonic Beast": { sheetKey: "classes", col: 1, row: 0 },
+        "Holy Knight":     { sheetKey: "classes", col: 0, row: 0 },
+        "Demonic Beast":   { sheetKey: "classes", col: 1, row: 0 },
         "Arcane Magician": { sheetKey: "classes", col: 2, row: 0 },
+        "Infernal Warden": { sheetKey: "classes", col: 3, row: 0 },
         "Ranged Assassin": { sheetKey: "classes", col: 0, row: 1 },
-        "Arch Angel": { sheetKey: "classes", col: 1, row: 1 },
-        "Death Knight": { sheetKey: "classes", col: 2, row: 1 },
+        "Arch Angel":      { sheetKey: "classes", col: 1, row: 1 },
+        "Death Knight":    { sheetKey: "classes", col: 2, row: 1 },
     };
     const p = MAP[className];
     if (!p) return <div style={{ width: size, height: size, ...style }} />;
@@ -249,6 +250,12 @@ const CLASS_NAMES = {
         "Wraithbane", "Coldvein", "Marrowthane", "Skullvex", "Grimdark",
         "Hexbane", "Deathveil", "Blightmore", "Soulcrown", "Ravenmort",
     ],
+    "Infernal Warden": [
+        "Ignareth", "Cindrax", "Pyrovel", "Ashenwrath", "Moltenkar",
+        "Embervorn", "Scorchbane", "Infernoth", "Blazesworn", "Charmark",
+        "Hellveil", "Cindermaw", "Asharuk", "Flamecrest", "Pyrethis",
+        "Scorchveil", "Embermort", "Blazerak", "Hellcrown", "Infernis",
+    ],
 };
 
 const CLASSES = {
@@ -295,6 +302,15 @@ const CLASSES = {
             { name: "Divine Wrath", cost: 18, desc: "Max HP · 20% as holy dmg", damage: [0, 0], type: "divineWrath" , scale: "Max HP · Holy"},
             { name: "Take Flight", cost: 30, desc: "Dodge next hit · +30% ATK x2", damage: [0, 0], type: "takeFlight" , scale: "DEF + Counter"},
             { name: "Celestial Heal", cost: 20, desc: "Max HP · Heal 15-22% + 10 MP", damage: [0.15, 0.22], type: "celestialHeal" , scale: "Max HP · Restore"},
+        ]
+    },
+    "Infernal Warden": {
+        icon: "🔥", color: "#ff6600", desc: "Unbreakable Infernal warrior. Burning enemies, absorbs heat into a molten armor.",
+        stats: { hp: 115, maxHp: 115, mp: 60, maxMp: 60, atk: 20, def: 12, spd: 8, crit: 5, manaRegen: 0 },
+        abilities: [
+            { name: "Searing Grasp", cost: 12, desc: "Deal 30% of Max HP as fire dmg", damage: [0,0], type: "searingGrasp", scale: "Max HP · Fire dmg" },
+            { name: "Inferno Aegis", cost: 20, desc: "30% dmg reduction · Reflect Armor as burn for 6 turns", damage: [0,0], type: "infernoAegis", scale: "DEF · Absorb + Reflect" },
+            { name: "Hellbreaker", cost: 25, desc: "150% ATK burst · Enemy ATK −70% for 3 turns · Once per battle", damage: [0,0], type: "hellbreaker", scale: "ATK · Burst + Weaken" },
         ]
     },
     "Death Knight": {
@@ -905,6 +921,11 @@ const FOURTH_ABILITIES = {
         { name: "Seraph's Grace", cost: 25, desc: "Heal 30% Max HP + cleanse all debuffs", damage: [0.28,0.35], type: "celestialHeal", scale: "Max HP · Purify" },
         { name: "Angelic Shield", cost: 20, desc: "Absorb next 3 hits entirely", damage: [0,0], type: "takeFlight", scale: "DEF · Full absorb" },
     ],
+    "Infernal Warden": [
+        { name: "Molten Resilience", cost: 25, desc: "Immune to Stun · Regen 8% Max HP/turn × 6 turns", damage: [0,0], type: "moltenResilience", scale: "DEF · Stun Immune + HoT" },
+        { name: "Pyroclasm", cost: 25, desc: "Ignite enemy: 8% Max HP burn/turn × 6 turns", damage: [0,0], type: "pyroclasm", scale: "Max HP · Fire DoT" },
+        { name: "Hellfire Surge", cost: 0, desc: "Spend all MP: deal 50% of MP as fire dmg", damage: [0,0], type: "hellfireSurge", scale: "All MP · MP Nuke" },
+    ],
     "Death Knight": [
         { name: "Apocalypse", cost: 0, desc: "Pay 35% HP: deal ATK × 2.5, ignores all DEF", damage: [45,65], type: "apocalypse", scale: "HP Cost · Ignores all DEF" },
         { name: "Undying Rage", cost: 18, desc: "+80% ATK & +40% SPD for 3 turns", damage: [0,0], type: "undyingRage", scale: "ATK + SPD · Berserk" },
@@ -1244,7 +1265,7 @@ export default function App() {
     const [xp, setXp] = useState(0);
     const [level, setLevel] = useState(1);
     const [buffs, setBuffs] = useState({ player: [], enemy: [] });
-    const [se, setSe] = useState({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0, shadowStepActive: false });
+    const [se, setSe] = useState({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0, shadowStepActive: false, infernoAegis: 0, infernoAegisBurn: 0, hellbreakerUsed: false, moltenActive: false, pyroclasmDot: 0, stunImmune: false });
     const [encounters, setEncounters] = useState(0);
     const [defeatedUniques, setDefeatedUniques] = useState([]);
     const [showShop, setShowShop] = useState(false);
@@ -1357,7 +1378,7 @@ export default function App() {
         setLootQueue(q => [...q, { msg, icon, desc, type: type || "item" }]);
     };
 
-    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0, shadowStepActive: false }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setTrinketUsed(false); setHitFlash(null); setCombatAnim(null); setDefeatedEnemy(null); setPendingVictory(null); setDuelVictory(null); setFourthAbilityUnlocked(false); setPickingFourth(false); setExtraAbility(null); };
+    const reset = () => { setScreen("title"); setPendingCls(null); setCharName(""); setPlayerClass(null); setPlayerTitle(""); setPlayer(null); setEnemy(null); setSavedEnemy(null); setZone(0); setLog([]); setFinalLog([]); setTurn("player"); setCombat(false); setInventory(initInv()); setEquipped(initEq()); setRelics([]); setGold(50); setXp(0); setLevel(1); setBuffs({ player: [], enemy: [] }); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0, shadowStepActive: false, infernoAegis: 0, infernoAegisBurn: 0, hellbreakerUsed: false, moltenActive: false, pyroclasmDot: 0, stunImmune: false }); setEncounters(0); setDefeatedUniques([]); setLvlUp(false); setLootNotif(null); setLootQueue([]); setShopMsg(""); setShowShop(false); setShowEquip(false); setTrinketUsed(false); setHitFlash(null); setCombatAnim(null); setDefeatedEnemy(null); setPendingVictory(null); setDuelVictory(null); setFourthAbilityUnlocked(false); setPickingFourth(false); setExtraAbility(null); };
 
     const selectClass = cls => { setPendingCls(cls); setCharName(""); setScreen("naming"); };
     const randomName = () => { const n = CLASS_NAMES[pendingCls]; setCharName(n[rand(0, n.length - 1)]); };
@@ -1485,7 +1506,7 @@ export default function App() {
         const newEnc = encounters + 1; setEncounters(newEnc); setXp(earnedXp); setGold(fg); setInventory(finv); setRelics(frl);
         // Keep the dead enemy visible (grayed out) while loot popups show
         setDefeatedEnemy({ ...ne });
-        setCombat(false); setEnemy(null); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0, shadowStepActive: false });
+        setCombat(false); setEnemy(null); setSe({ burn: 0, stunned: false, dodgeReady: false, flightBonus: 0, enemyDot: 0, playerPoison: 0, plagueDot: 0, enemyBlind: 0, demonPactBonus: 0, cursedPlateOn: false, frailCurse: 0, braceActive: 0, sacredBarrier: 0, timeWarpActive: false, arcaneMirror: 0, shadowStepActive: false, infernoAegis: 0, infernoAegisBurn: 0, hellbreakerUsed: false, moltenActive: false, pyroclasmDot: 0, stunImmune: false });
         setFinalLog(l => l.length ? l : [...log]);
         setPlayer(fnp); setBuffs(nb);
         // Store what should happen after all loot popups are dismissed
@@ -1524,7 +1545,7 @@ export default function App() {
         if (turn !== "player" || !combat) return;
         if (actionLockRef.current) return;
         actionLockRef.current = true;
-        if (se.stunned) { addLog("💀 Stunned — turn lost!", "#ff4444"); setSe(s => ({ ...s, stunned: false })); setTurn("enemy"); actionLockRef.current = false; setTimeout(() => enemyTurn({ ...player }, { ...enemy }, { player: [...buffs.player], enemy: [...buffs.enemy] }, [...inventory], gold, { ...equipped }, { ...se, stunned: false }, [...relics]), 900); return; }
+        if (se.stunned && !se.stunImmune) { addLog("💀 Stunned — turn lost!", "#ff4444"); setSe(s => ({ ...s, stunned: false })); setTurn("enemy"); actionLockRef.current = false; setTimeout(() => enemyTurn({ ...player }, { ...enemy }, { player: [...buffs.player], enemy: [...buffs.enemy] }, [...inventory], gold, { ...equipped }, { ...se, stunned: false }, [...relics]), 900); return; }
         let np = { ...player }, ne = { ...enemy }, nb = { player: [...buffs.player], enemy: [...buffs.enemy] };
         let inv = [...inventory], g = gold, eq = { ...equipped }, cse = { ...se }, rl = [...relics];
         const ep = effStats(np, eq); const rb = getRelicBonus();
@@ -1539,6 +1560,16 @@ export default function App() {
         if (cse.braceActive > 0) cse.braceActive = Math.max(0, cse.braceActive - 1);
         if (cse.sacredBarrier > 0) cse.sacredBarrier = Math.max(0, cse.sacredBarrier - 1);
         if (cse.arcaneMirror > 0) cse.arcaneMirror = Math.max(0, cse.arcaneMirror - 1);
+        if (cse.infernoAegis > 0) cse.infernoAegis = Math.max(0, cse.infernoAegis - 1);
+        // Pyroclasm DoT: 15% enemy max HP/turn
+        if (cse.pyroclasmDot > 0) {
+            const pyroDmg = Math.max(1, Math.floor(fne.maxHp * 0.08));
+            fne.hp = Math.max(0, fne.hp - pyroDmg);
+            cse.pyroclasmDot--;
+            triggerAnim("enemy", "fire", `-${pyroDmg}🔥`, "#ff6600");
+            addLog(`🔥 Pyroclasm burns ${fne.name} for ${pyroDmg}! (${cse.pyroclasmDot} turns left)`, "#ff6600");
+            if (fne.hp <= 0) { fnb.player = fnb.player.map(b => ({ ...b, turns: b.turns - 1 })).filter(b => b.turns > 0); setSavedEnemy({...fne}); resolveVictory(fnp, fne, fnb, inv, g, eq, fse, rl); return; }
+        }
         if (cse.burn > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.burn--; triggerAnim("player", "fire", "-3🔥", "#ff6030"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
         if (cse.playerPoison > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.playerPoison--; triggerAnim("player", "poison", "-3🐍", "#80ff80"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
         if (cse.plagueDot > 0) { const pd = Math.max(1, Math.floor(np.maxHp * 0.15)); np.hp = clamp(np.hp - pd, 0, np.maxHp); cse.plagueDot--; triggerAnim("player", "poison", `-${pd}☣️`, "#cc44ff"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
@@ -1640,6 +1671,61 @@ export default function App() {
             }
             else if (ab.type === "sacredBarrier") { if (cse.sacredBarrier > 0) { addLog("🔮 Sacred Barrier already active!", "#f0c060"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.sacredBarrier = 3; triggerAnim("player", "shield", "🔮 Barrier!", "#f0c060"); addLog("🔮 Sacred Barrier! 40% dmg reduction for 3 turns!", "#f0c060"); }
             else if (ab.type === "arcaneMirror") { if (cse.arcaneMirror > 0) { addLog("🪞 Arcane Mirror already active!", "#60c0f0"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.arcaneMirror = 3; triggerAnim("player", "arcane", "🪞 Mirror!", "#60c0f0"); addLog("🪞 Arcane Mirror! 50% of damage reflected for 3 turns!", "#60c0f0"); }
+            // ── Infernal Warden Abilities ──
+            else if (ab.type === "searingGrasp") {
+                np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
+                const c = isCrit(totalCrit);
+                const base = Math.floor(np.maxHp * 0.30);
+                const dmg = calcDmg(c ? Math.floor(base * 1.5 * abilBonus * spdMult * demonMult) : Math.floor(base * abilBonus * spdMult * demonMult), 0);
+                dealDmg(dmg, "🔥 Your Searing Grasp", c, "fire");
+            }
+            else if (ab.type === "infernoAegis") {
+                if (cse.infernoAegis > 0) { addLog("🛡️ Inferno Aegis already active!", "#ff6600"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; }
+                np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
+                const armorReflect = Math.floor((ep.def + rb.def) * 0.5);
+                cse.infernoAegis = 6; cse.infernoAegisBurn = armorReflect;
+                triggerAnim("player", "fire", "🔥 Aegis!", "#ff6600");
+                addLog(`🛡️🔥 Inferno Aegis! 30% dmg reduction + reflects ${armorReflect} burn when hit for 6 turns!`, "#ff6600");
+            }
+            else if (ab.type === "hellbreaker") {
+                if (cse.hellbreakerUsed) { addLog("💀 Hellbreaker already used this battle!", "#ff6600"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; }
+                np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
+                cse.hellbreakerUsed = true;
+                const c = isCrit(totalCrit);
+                const burstDmg = Math.max(1, Math.floor(totalAtk * 1.5 * (c ? 1.5 : 1) * abilBonus * spdMult * demonMult));
+                dealDmg(burstDmg, "💥 Your Hellbreaker", c, "fire");
+                const atkReduction = Math.floor(ne.atk * 0.70);
+                nb.enemy.push({ stat: "atk", amount: -atkReduction, turns: 6, tag: "hellbreaker" });
+                triggerAnim("enemy", "debuff", `🔥-${atkReduction}ATK`, "#ff6600");
+                addLog(`💥 Hellbreaker! ${ne.name}'s ATK crushed by ${atkReduction} for 3 turns!`, "#ff6600");
+            }
+            else if (ab.type === "moltenResilience") {
+                if (cse.moltenActive) { addLog("🌋 Molten Resilience already active!", "#ff8800"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; }
+                np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
+                const hotAmt = Math.floor(np.maxHp * 0.08);
+                nb.player.push({ stat: "hp", amount: hotAmt, turns: 6, tag: "moltenResilience" });
+                cse.stunImmune = true; cse.moltenActive = true;
+                triggerAnim("player", "fire", "🌋 Molten!", "#ff8800");
+                addLog(`🌋 Molten Resilience! Immune to Stun + ${hotAmt} HP/turn × 6 turns!`, "#ff8800");
+                nb.player = nb.player.map(b => { if (b.tag === "moltenResilience") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
+                setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return;
+            }
+            else if (ab.type === "pyroclasm") {
+                if (cse.pyroclasmDot > 0) { addLog("🔥 Pyroclasm already burning!", "#ff6600"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; }
+                np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
+                cse.pyroclasmDot = 6;
+                triggerAnim("enemy", "fire", "🔥PYROCLASM", "#ff6600");
+                addLog(`🔥 Pyroclasm! ${ne.name} ignited — 8% Max HP burn/turn × 6 turns!`, "#ff6600");
+            }
+            else if (ab.type === "hellfireSurge") {
+                const mpSpent = np.mp;
+                if (mpSpent < 10) { addLog("⚠️ Not enough MP for Hellfire Surge!", "#ff6060"); actionLockRef.current = false; setPlayer(np); return; }
+                np.mp = 0; np.mp = clamp(np.mp + regen, 0, np.maxMp);
+                const c = isCrit(totalCrit);
+                const surgeDmg = Math.max(1, Math.floor(mpSpent * 0.5 * (c ? 1.5 : 1) * abilBonus * spdMult * demonMult));
+                dealDmg(surgeDmg, "🔥 Your Hellfire Surge", c, "fire");
+                addLog(`🔥 Hellfire Surge! ${mpSpent} MP → ${surgeDmg} fire dmg!`, "#ff6600");
+            }
 
             else if (ab.type === "celestialHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); np.mp = clamp(np.mp + 10, 0, np.maxMp); triggerAnim("player", "holy", `+${h}`, "#e8e0ff"); addLog(`😇 Your Celestial Heal restores ${h} HP (${Math.round(pct*100)}%) and +10 MP`, "#e8e0ff"); }
         } else if (type === "item") {
@@ -1699,9 +1785,22 @@ export default function App() {
             const eStyle = fne.style || "aggressive";
             const eAnimType = isMagic ? "arcane" : eStyle === "plague" ? "poison" : "slash";
             const eAnimEmoji = { slash: "⚔️", arcane: "🔮", poison: "☣️", fire: "🔥" }[eAnimType] || "⚔️";
-            flash("player"); fnp.hp -= dmg;
-            triggerAnim("player", eAnimType, `${eAnimEmoji}${c ? "⚡" : ""}-${dmg}`, c ? "#ff2200" : "#ff6060");
-            addLog(`${fne.icon || ""} ${fne.name} hits you for ${dmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#ff6060"); return dmg;
+            let finalDmg = dmg;
+            // Inferno Aegis: 30% damage reduction
+            if (fse.infernoAegis > 0) {
+                finalDmg = Math.max(0, Math.floor(finalDmg * 0.70));
+            }
+            flash("player"); fnp.hp -= finalDmg;
+            triggerAnim("player", eAnimType, `${eAnimEmoji}${c ? "⚡" : ""}-${finalDmg}`, c ? "#ff2200" : "#ff6060");
+            addLog(`${fne.icon || ""} ${fne.name} hits you for ${finalDmg}!${c ? " ☠️ CRIT!" : ""}`, c ? "#ff2200" : "#ff6060");
+            // Inferno Aegis: reflect armor as burn damage
+            if (fse.infernoAegis > 0 && fse.infernoAegisBurn > 0 && finalDmg > 0) {
+                const burnReflect = Math.floor(fse.infernoAegisBurn * (1 + (fse.totalSpd || 0) * 0.01));
+                fne.hp = Math.max(0, fne.hp - burnReflect);
+                triggerAnim("enemy", "fire", `-${burnReflect}🔥`, "#ff6600");
+                addLog(`🔥 Inferno Aegis reflects ${burnReflect} burn back!`, "#ff6600");
+            }
+            return finalDmg;
         };
         if (fne.style === "duel") {
             const champClass = fne.champClass || "";
@@ -2116,7 +2215,7 @@ export default function App() {
         if (fnp.hp > 0) {
             if (fne.affix === "burn" && isCrit(20)) { fse.burn = 2; triggerAnim("player", "fire"); addLog(`🔥 Hellbound! Burning 2 turns!`, "#ff6030"); }
             if (fne.affix === "atkCurse" && isCrit(15)) { fnb.player.push({ stat: "atk", amount: -4, turns: 2 }); triggerAnim("player", "debuff", "💀-4ATK", "#aa44ff"); addLog(`💀 Undying Curse! ATK -4 x 2!`, "#aa44ff"); }
-            if (fne.affix === "soulStun" && isCrit(20)) { fse.stunned = true; triggerAnim("player", "dark", "💀STUNNED", "#cc44cc"); addLog(`💀 SOUL STUN!`, "#cc44cc"); }
+            if (fne.affix === "soulStun" && isCrit(20)) { if (fse.stunImmune) { addLog(`🌋 Molten Resilience blocks the Soul Stun!`, "#ff8800"); } else { fse.stunned = true; triggerAnim("player", "dark", "💀STUNNED", "#cc44cc"); addLog(`💀 SOUL STUN!`, "#cc44cc"); } }
             if (fne.minorSuffix === "venomous" && isCrit(35)) { fse.playerPoison = 2; triggerAnim("player", "poison", "🐍POISON", "#80ff80"); addLog(`🐍 Poisoned!`, "#80ff80"); }
         }
         if (fse.enemyBlind > 0) fse.enemyBlind--;
@@ -2156,6 +2255,10 @@ export default function App() {
     const StatusPills = () => {
         const pills = [];
         if (se.burn > 0) pills.push(<StatusPill key="burn" label={`🔥 Burn(${se.burn})`} color="#ff6030" />);
+        if (se.infernoAegis > 0) pills.push(<StatusPill key="ia" label={`🛡️🔥 Aegis(${se.infernoAegis})`} color="#ff6600" />);
+        if (se.hellbreakerUsed) pills.push(<StatusPill key="hb" label="💥 Hellbreaker✓" color="#ff4400" />);
+        if (se.stunImmune) pills.push(<StatusPill key="si" label="🌋 Stun Immune" color="#ff8800" />);
+        if (se.pyroclasmDot > 0) pills.push(<StatusPill key="pyr" label={`🔥 Pyro(${se.pyroclasmDot})`} color="#ff6600" />);
         if (se.playerPoison > 0) pills.push(<StatusPill key="p" label={`🐍 Poison(${se.playerPoison})`} color="#80ff80" />);
         if (se.plagueDot > 0) pills.push(<StatusPill key="pl" label={`☣️ Plague(${se.plagueDot})`} color="#cc44ff" />);
         if (se.stunned) pills.push(<StatusPill key="st" label="💀 Stunned" color="#cc44cc" />);
@@ -2245,7 +2348,7 @@ export default function App() {
             <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ fontSize: 48, animation: "pulse 2s infinite", filter: "drop-shadow(0 0 14px #f0c06099)" }}>⚔️</div>
                 <h1 style={{ fontSize: 26, margin: "6px 0 2px", animation: "glow 2.5s infinite", background: "linear-gradient(90deg,#f0c060,#fff8e0,#f0c060)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>Realm of Shadows</h1>
-                <p style={{ color: "#555", marginBottom: 10, fontSize: 10, letterSpacing: 2 }}>8 ZONES · 24 BATTLES · 6 CLASSES</p>
+                <p style={{ color: "#555", marginBottom: 10, fontSize: 10, letterSpacing: 2 }}>8 ZONES · 24 BATTLES · 7 CLASSES</p>
                 <button onClick={() => setScreen("hall")} style={{ marginBottom: 16, padding: "6px 20px", background: "#ffffff08", color: "#f0c060", border: "1px solid #f0c06044", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "Georgia", letterSpacing: 1 }}>🏛️ Hall of Champions</button>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
                     {Object.entries(CLASSES).map(([cls, data]) => (
