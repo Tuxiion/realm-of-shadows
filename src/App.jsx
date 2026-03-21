@@ -52,7 +52,7 @@ const SHEET_META = {
     extras: { cols: 2, rows: 2, w: 930, h: 880 },
 };
 
-function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888", yOffset = 0, zoom = 1.0 }) {
+function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888", yOffset = 0, xOffset = 0, zoom = 1.0 }) {
     const meta = SHEET_META[sheetKey];
     if (!meta) return <div style={{ width: displaySize, height: displaySize, ...style }} />;
     const cellW = meta.w / meta.cols;
@@ -62,22 +62,18 @@ function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style 
 
     let bgW, bgH, bgX, bgY;
     if (zoom === 1.0) {
-        // Original non-zoom path — proven to work
         bgW = meta.w * scale;
         bgH = meta.h * scale;
-        bgX = -(col * displaySize);
+        bgX = -(col * displaySize) - (xOffset * displaySize);
         bgY = -(row * scaledCellH) - (yOffset * scaledCellH);
     } else {
-        // Zoom path: magnify the sheet, then position so col/row cell is centered
-        // with yOffset shifting vertically within that cell
         const zW = meta.w * scale * zoom;
         const zH = meta.h * scale * zoom;
         const zCellW = cellW * scale * zoom;
         const zCellH = scaledCellH * zoom;
-        // Center the cell horizontally, apply yOffset vertically from top of cell
         bgW = zW;
         bgH = zH;
-        bgX = -(col * zCellW) - (zCellW - displaySize) / 2;
+        bgX = -(col * zCellW) - (zCellW - displaySize) / 2 - (xOffset * zCellW);
         bgY = -(row * zCellH) - (zCellH - displaySize) / 2 - (yOffset * zCellH);
     }
 
@@ -93,7 +89,7 @@ function ClassPortrait({ className, size = 56, style = {} }) {
         "Holy Knight":     { sheetKey: "classes", col: 0, row: 0 },
         "Demonic Beast":   { sheetKey: "classes", col: 1, row: 0 },
         "Arcane Magician": { sheetKey: "classes", col: 2, row: 0 },
-        "Infernal Warden": { sheetKey: "classes", col: 3, row: 0, yOffset: 0.05 },
+        "Infernal Warden": { sheetKey: "classes", col: 3, row: 0, yOffset: 0.12, xOffset: 0.03 },
         "Ranged Assassin": { sheetKey: "classes", col: 0, row: 1 },
         "Arch Angel":      { sheetKey: "classes", col: 1, row: 1 },
         "Death Knight":    { sheetKey: "classes", col: 2, row: 1 },
@@ -101,7 +97,7 @@ function ClassPortrait({ className, size = 56, style = {} }) {
     const p = MAP[className];
     if (!p) return <div style={{ width: size, height: size, ...style }} />;
     const color = CLASSES[className]?.color || "#888";
-    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} glow={color} style={style} yOffset={p.yOffset || 0} />;
+    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} glow={color} style={style} yOffset={p.yOffset || 0} xOffset={p.xOffset || 0} />;
 }
 
 function EnemyPortrait({ enemyId, size = 56, style = {} }) {
