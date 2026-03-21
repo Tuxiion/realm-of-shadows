@@ -124,8 +124,8 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
         "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
-        "hellfire_imp": { sheetKey: "zone4extra", col: 1, row: 0, yOffset: -0.10, zoom: 1.8 },
-        "ashen_knight": { sheetKey: "zone4extra", col: 0, row: 0, yOffset: -0.08, zoom: 1.8 },
+        "hellfire_imp": { sheetKey: "zone4extra", col: 1, row: 0, yOffset: -0.10, zoom: 1.4 },
+        "ashen_knight": { sheetKey: "zone4extra", col: 0, row: 0, yOffset: -0.08, zoom: 1.4 },
         "mire_stalker":       { sheetKey: "zone5", col: 0, row: 0, yOffset: 0.15 },
         "rotfang_beast":      { sheetKey: "zone5", col: 1, row: 0, yOffset: 0.02 },
         "plague_channeler":   { sheetKey: "zone5", col: 2, row: 0, yOffset: 0.12 },
@@ -1524,7 +1524,7 @@ export default function App() {
         if (turn !== "player" || !combat) return;
         if (actionLockRef.current) return;
         actionLockRef.current = true;
-        if (se.stunned) { addLog("💀 Stunned — turn lost!", "#ff4444"); setSe(s => ({ ...s, stunned: false })); setTurn("enemy"); setTimeout(() => enemyTurn({ ...player }, { ...enemy }, { player: [...buffs.player], enemy: [...buffs.enemy] }, [...inventory], gold, { ...equipped }, { ...se, stunned: false }, [...relics]), 900); return; }
+        if (se.stunned) { addLog("💀 Stunned — turn lost!", "#ff4444"); setSe(s => ({ ...s, stunned: false })); setTurn("enemy"); actionLockRef.current = false; setTimeout(() => enemyTurn({ ...player }, { ...enemy }, { player: [...buffs.player], enemy: [...buffs.enemy] }, [...inventory], gold, { ...equipped }, { ...se, stunned: false }, [...relics]), 900); return; }
         let np = { ...player }, ne = { ...enemy }, nb = { player: [...buffs.player], enemy: [...buffs.enemy] };
         let inv = [...inventory], g = gold, eq = { ...equipped }, cse = { ...se }, rl = [...relics];
         const ep = effStats(np, eq); const rb = getRelicBonus();
