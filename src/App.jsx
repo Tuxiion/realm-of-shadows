@@ -301,8 +301,8 @@ const CLASSES = {
         ]
     },
     "Infernal Warden": {
-        icon: "🔥", color: "#ff6600", desc: "Unbreakable Infernal warrior. Burning enemies, absorbs heat into a molten armor.",
-        stats: { hp: 115, maxHp: 115, mp: 60, maxMp: 60, atk: 20, def: 12, spd: 8, crit: 5, manaRegen: 0 },
+        icon: "🔥", color: "#ff6600", desc: "Unbreakable Infernal warrior. Burning enemies, absorbs heat into a molten armor. Low mana regeneration.",
+        stats: { hp: 115, maxHp: 115, mp: 60, maxMp: 60, atk: 20, def: 12, spd: 8, crit: 5, manaRegen: 3 },
         abilities: [
             { name: "Searing Grasp", cost: 12, desc: "Deal 30% of Max HP as fire dmg", damage: [0,0], type: "searingGrasp", scale: "Max HP · Fire dmg" },
             { name: "Inferno Aegis", cost: 20, desc: "30% dmg reduction · Reflect Armor as burn for 6 turns", damage: [0,0], type: "infernoAegis", scale: "DEF · Absorb + Reflect" },
@@ -347,67 +347,67 @@ const AFFIX_LABELS = {
 
 const ENEMIES_BY_ZONE = [
     [
-        { name: "Forest Wraith", id: "forest_wraith", icon: "👻", hp: 50, maxHp: 50, atk: 12, def: 3, xp: 20, gold: 10, style: "aggressive", crit: 5 },
-        { name: "Dark Treant", id: "dark_treant", icon: "🌲", hp: 72, maxHp: 72, atk: 10, def: 9, xp: 30, gold: 15, style: "defensive", crit: 5 },
-        { name: "Shadow Wolf", id: "shadow_wolf", icon: "🐺", hp: 55, maxHp: 55, atk: 16, def: 4, xp: 25, gold: 12, style: "aggressive", crit: 5 },
-        { name: "Bog Lurker", id: "bog_lurker", icon: "🐸", hp: 60, maxHp: 60, atk: 13, def: 5, xp: 22, gold: 11, style: "defensive", crit: 5, minorSuffix: "venomous" },
-        { name: "Venomfang Spider", id: "venomfang_spider", icon: "🕷️", hp: 44, maxHp: 44, atk: 17, def: 2, xp: 24, gold: 13, style: "aggressive", crit: 8, minorSuffix: "venomous" },
-        { name: "Cursed Scarecrow", id: "cursed_scarecrow", icon: "🎃", hp: 65, maxHp: 65, atk: 11, def: 7, xp: 28, gold: 14, style: "magic", crit: 5, minorSuffix: "thorned" },
+        { name: "Forest Wraith", id: "forest_wraith", icon: "👻", hp: 50, maxHp: 50, atk: 12, def: 3, xp: 60, gold: 10, style: "aggressive", crit: 5 },
+        { name: "Dark Treant", id: "dark_treant", icon: "🌲", hp: 72, maxHp: 72, atk: 10, def: 9, xp: 65, gold: 15, style: "defensive", crit: 5 },
+        { name: "Shadow Wolf", id: "shadow_wolf", icon: "🐺", hp: 55, maxHp: 55, atk: 16, def: 4, xp: 65, gold: 12, style: "aggressive", crit: 5 },
+        { name: "Bog Lurker", id: "bog_lurker", icon: "🐸", hp: 60, maxHp: 60, atk: 13, def: 5, xp: 65, gold: 11, style: "defensive", crit: 5, minorSuffix: "venomous" },
+        { name: "Venomfang Spider", id: "venomfang_spider", icon: "🕷️", hp: 44, maxHp: 44, atk: 17, def: 2, xp: 60, gold: 13, style: "aggressive", crit: 8, minorSuffix: "venomous" },
+        { name: "Cursed Scarecrow", id: "cursed_scarecrow", icon: "🎃", hp: 65, maxHp: 65, atk: 11, def: 7, xp: 70, gold: 14, style: "magic", crit: 5, minorSuffix: "thorned" },
     ],
     [
-        { name: "Dungeon Troll", id: "dungeon_troll", icon: "👾", hp: 90, maxHp: 90, atk: 18, def: 11, xp: 45, gold: 25, style: "defensive", crit: 5 },
-        { name: "Skeleton Mage", id: "skeleton_mage", icon: "💀", hp: 68, maxHp: 68, atk: 23, def: 4, xp: 50, gold: 30, style: "magic", crit: 5 },
-        { name: "Cursed Knight", id: "cursed_knight", icon: "🗡️", hp: 82, maxHp: 82, atk: 21, def: 9, xp: 55, gold: 28, style: "aggressive", crit: 5 },
-        { name: "Stone Golem", id: "stone_golem", icon: "🪨", hp: 110, maxHp: 110, atk: 16, def: 16, xp: 48, gold: 27, style: "defensive", crit: 5, minorSuffix: "armored" },
-        { name: "Shadow Assassin", id: "shadow_assassin", icon: "🌑", hp: 65, maxHp: 65, atk: 26, def: 3, xp: 52, gold: 32, style: "aggressive", crit: 12, minorSuffix: "shadowed" },
-        { name: "Plague Priest", id: "plague_priest", icon: "☣️", hp: 75, maxHp: 75, atk: 20, def: 6, xp: 55, gold: 30, style: "plague", crit: 5, minorSuffix: "cursed" },
+        { name: "Dungeon Troll", id: "dungeon_troll", icon: "👾", hp: 90, maxHp: 90, atk: 18, def: 11, xp: 275, gold: 25, style: "defensive", crit: 5 },
+        { name: "Skeleton Mage", id: "skeleton_mage", icon: "💀", hp: 68, maxHp: 68, atk: 23, def: 4, xp: 280, gold: 30, style: "magic", crit: 5 },
+        { name: "Cursed Knight", id: "cursed_knight", icon: "🗡️", hp: 82, maxHp: 82, atk: 21, def: 9, xp: 280, gold: 28, style: "aggressive", crit: 5 },
+        { name: "Stone Golem", id: "stone_golem", icon: "🪨", hp: 110, maxHp: 110, atk: 16, def: 16, xp: 285, gold: 27, style: "defensive", crit: 5, minorSuffix: "armored" },
+        { name: "Shadow Assassin", id: "shadow_assassin", icon: "🌑", hp: 65, maxHp: 65, atk: 26, def: 3, xp: 285, gold: 32, style: "aggressive", crit: 12, minorSuffix: "shadowed" },
+        { name: "Plague Priest", id: "plague_priest", icon: "☣️", hp: 75, maxHp: 75, atk: 20, def: 6, xp: 295, gold: 30, style: "plague", crit: 5, minorSuffix: "cursed" },
     ],
     [
-        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", icon: "👿", hp: 190, maxHp: 190, atk: 25, def: 19, xp: 100, gold: 60, style: "magic", crit: 8, affix: "burn", elite: true, uniqueId: "falaxir" },
-        { name: "Xaroon the Dragon", id: "xaroon_dragon", icon: "🐉", hp: 230, maxHp: 230, atk: 29, def: 22, xp: 120, gold: 80, style: "aggressive", crit: 8, affix: "defBypass", elite: true, uniqueId: "xaroon" },
-        { name: "Veltharion the Undying", id: "veltharion", icon: "💀", hp: 200, maxHp: 200, atk: 34, def: 16, xp: 130, gold: 80, style: "magic", crit: 10, affix: "atkCurse", affix2: "healReduction", boss: true, uniqueId: "veltharion", deathMarked: false },
+        { name: "Demon Lord Falaxir", id: "demon_lord_falaxir", icon: "👿", hp: 190, maxHp: 190, atk: 25, def: 19, xp: 570, gold: 60, style: "magic", crit: 8, affix: "burn", elite: true, uniqueId: "falaxir" },
+        { name: "Xaroon the Dragon", id: "xaroon_dragon", icon: "🐉", hp: 230, maxHp: 230, atk: 29, def: 22, xp: 620, gold: 80, style: "aggressive", crit: 8, affix: "defBypass", elite: true, uniqueId: "xaroon" },
+        { name: "Veltharion the Undying", id: "veltharion", icon: "💀", hp: 200, maxHp: 200, atk: 34, def: 16, xp: 570, gold: 80, style: "magic", crit: 10, affix: "atkCurse", affix2: "healReduction", boss: true, uniqueId: "veltharion", deathMarked: false },
     ],
     [
-        { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", elite: true, uniqueId: "ib", raged: false },
-        { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", elite: true, uniqueId: "ao" },
-        { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "dr", deathMarked: false },
-        { name: "Abyssal Ravager", id: "hellfire_imp", icon: "😈", hp: 260, maxHp: 260, atk: 44, def: 14, xp: 145, gold: 85, style: "aggressive", crit: 14, minorSuffix: "venomous", affix: "infernalRage" },
-        { name: "Ashen Knight", id: "ashen_knight", icon: "🗡️", hp: 290, maxHp: 290, atk: 38, def: 24, xp: 155, gold: 90, style: "defensive", crit: 8, minorSuffix: "armored", affix: "defBypass" },
+        { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 895, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", elite: true, uniqueId: "ib", raged: false },
+        { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 1025, gold: 130, style: "magic", crit: 8, affix: "voidRupture", elite: true, uniqueId: "ao" },
+        { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 1540, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "dr", deathMarked: false },
+        { name: "Abyssal Ravager", id: "hellfire_imp", icon: "😈", hp: 260, maxHp: 260, atk: 44, def: 14, xp: 895, gold: 85, style: "aggressive", crit: 14, minorSuffix: "venomous", affix: "infernalRage" },
+        { name: "Ashen Knight", id: "ashen_knight", icon: "🗡️", hp: 290, maxHp: 290, atk: 38, def: 24, xp: 1025, gold: 90, style: "defensive", crit: 8, minorSuffix: "armored", affix: "defBypass" },
     ],
     // Zone 5 — Cursed Marshes (relief after zone 4, but still dangerous)
     [
-        { name: "Mire Stalker", id: "mire_stalker", icon: "🕷️", hp: 290, maxHp: 290, atk: 56, def: 16, xp: 185, gold: 85, style: "aggressive", crit: 14, minorSuffix: "venomous", desc: "Strikes from stealth with venom" },
-        { name: "Rotfang Beast", id: "rotfang_beast", icon: "🐗", hp: 330, maxHp: 330, atk: 60, def: 14, xp: 192, gold: 92, style: "aggressive", crit: 10, minorSuffix: "frenzied", desc: "Frenzies below 50% HP" },
-        { name: "Plague Channeler", id: "plague_channeler", icon: "☣️", hp: 250, maxHp: 250, atk: 52, def: 12, xp: 178, gold: 86, style: "plague", crit: 8, minorSuffix: "cursed", desc: "Spreads stacking disease" },
-        { name: "Bog Knight", id: "bog_knight", icon: "🛡️", hp: 390, maxHp: 390, atk: 46, def: 30, xp: 205, gold: 102, style: "defensive", crit: 6, minorSuffix: "armored", elite: true, affix: "atkCurse", desc: "Tanky lifesteal warrior" },
-        { name: "Swamp Wraith", id: "swamp_wraith", icon: "👻", hp: 265, maxHp: 265, atk: 58, def: 14, xp: 188, gold: 90, style: "magic", crit: 10, minorSuffix: "shadowed", affix: "voidRupture", elite: true, desc: "Drains mana, phases through hits" },
-        { name: "Lord Threxil, the Blight Tyrant", id: "lord_threxil", icon: "🧪", hp: 580, maxHp: 580, atk: 70, def: 26, xp: 460, gold: 290, style: "plague", crit: 14, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "threxil", deathMarked: false },
+        { name: "Mire Stalker", id: "mire_stalker", icon: "🕷️", hp: 290, maxHp: 290, atk: 56, def: 16, xp: 975, gold: 85, style: "aggressive", crit: 14, minorSuffix: "venomous", desc: "Strikes from stealth with venom" },
+        { name: "Rotfang Beast", id: "rotfang_beast", icon: "🐗", hp: 330, maxHp: 330, atk: 60, def: 14, xp: 975, gold: 92, style: "aggressive", crit: 10, minorSuffix: "frenzied", desc: "Frenzies below 50% HP" },
+        { name: "Plague Channeler", id: "plague_channeler", icon: "☣️", hp: 250, maxHp: 250, atk: 52, def: 12, xp: 975, gold: 86, style: "plague", crit: 8, minorSuffix: "cursed", desc: "Spreads stacking disease" },
+        { name: "Bog Knight", id: "bog_knight", icon: "🛡️", hp: 390, maxHp: 390, atk: 46, def: 30, xp: 1050, gold: 102, style: "defensive", crit: 6, minorSuffix: "armored", elite: true, affix: "atkCurse", desc: "Tanky lifesteal warrior" },
+        { name: "Swamp Wraith", id: "swamp_wraith", icon: "👻", hp: 265, maxHp: 265, atk: 58, def: 14, xp: 1050, gold: 90, style: "magic", crit: 10, minorSuffix: "shadowed", affix: "voidRupture", elite: true, desc: "Drains mana, phases through hits" },
+        { name: "Lord Threxil, the Blight Tyrant", id: "lord_threxil", icon: "🧪", hp: 580, maxHp: 580, atk: 70, def: 26, xp: 2360, gold: 290, style: "plague", crit: 14, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "threxil", deathMarked: false },
     ],
     // Zone 6 — Eternal Necropolis
     [
-        { name: "Bone Legionnaire", id: "bone_legionnaire", icon: "💀", hp: 340, maxHp: 340, atk: 72, def: 28, xp: 225, gold: 112, style: "defensive", crit: 8, minorSuffix: "armored", desc: "Undead shield wall fighter" },
-        { name: "Grave Arcanist", id: "grave_arcanist", icon: "🔮", hp: 290, maxHp: 290, atk: 80, def: 14, xp: 232, gold: 116, style: "magic", crit: 12, desc: "Casts soul-shattering spells" },
-        { name: "Sanctified Fallen", id: "sanctified_fallen", icon: "😇", hp: 310, maxHp: 310, atk: 76, def: 24, xp: 242, gold: 122, style: "magic", crit: 10, affix: "atkCurse", elite: true, desc: "Corrupted Arch Angel, curses ATK" },
-        { name: "Crypt Assassin", id: "crypt_assassin", icon: "🗡️", hp: 265, maxHp: 265, atk: 90, def: 10, xp: 238, gold: 120, style: "aggressive", crit: 20, minorSuffix: "shadowed", desc: "Extreme crit, dodge chance" },
-        { name: "Soul Binder", id: "soul_binder_z6", icon: "⛓️", hp: 350, maxHp: 350, atk: 74, def: 22, xp: 228, gold: 114, style: "magic", crit: 10, minorSuffix: "cursed", affix: "deathMark", elite: true, desc: "Binds souls, marks for death" },
-        { name: "Aurelion, Warden of Silence", id: "aurelion", icon: "🦅", hp: 700, maxHp: 700, atk: 86, def: 34, xp: 560, gold: 350, style: "magic", crit: 12, affix: "voidRupture", affix2: "atkCurse", affix3: "healReduction", boss: true, uniqueId: "aurelion" },
+        { name: "Bone Legionnaire", id: "bone_legionnaire", icon: "💀", hp: 340, maxHp: 340, atk: 72, def: 28, xp: 1205, gold: 112, style: "defensive", crit: 8, minorSuffix: "armored", desc: "Undead shield wall fighter" },
+        { name: "Grave Arcanist", id: "grave_arcanist", icon: "🔮", hp: 290, maxHp: 290, atk: 80, def: 14, xp: 1205, gold: 116, style: "magic", crit: 12, desc: "Casts soul-shattering spells" },
+        { name: "Sanctified Fallen", id: "sanctified_fallen", icon: "😇", hp: 310, maxHp: 310, atk: 76, def: 24, xp: 1205, gold: 122, style: "magic", crit: 10, affix: "atkCurse", elite: true, desc: "Corrupted Arch Angel, curses ATK" },
+        { name: "Crypt Assassin", id: "crypt_assassin", icon: "🗡️", hp: 265, maxHp: 265, atk: 90, def: 10, xp: 1180, gold: 120, style: "aggressive", crit: 20, minorSuffix: "shadowed", desc: "Extreme crit, dodge chance" },
+        { name: "Soul Binder", id: "soul_binder_z6", icon: "⛓️", hp: 350, maxHp: 350, atk: 74, def: 22, xp: 1180, gold: 114, style: "magic", crit: 10, minorSuffix: "cursed", affix: "deathMark", elite: true, desc: "Binds souls, marks for death" },
+        { name: "Aurelion, Warden of Silence", id: "aurelion", icon: "🦅", hp: 700, maxHp: 700, atk: 86, def: 34, xp: 2870, gold: 350, style: "magic", crit: 12, affix: "voidRupture", affix2: "atkCurse", affix3: "healReduction", boss: true, uniqueId: "aurelion" },
     ],
     // Zone 7 — Abyss Beyond Time
     [
-        { name: "Void Harbinger", id: "void_harbinger", icon: "🌀", hp: 370, maxHp: 370, atk: 90, def: 24, xp: 272, gold: 136, style: "magic", crit: 12, affix: "voidRupture", desc: "Tears rifts in reality" },
-        { name: "Timebroken Knight", id: "timebroken_knight", icon: "⌛", hp: 420, maxHp: 420, atk: 86, def: 32, xp: 284, gold: 142, style: "defensive", crit: 8, minorSuffix: "armored", affix: "soulStun", elite: true, desc: "Frozen in time, unstoppable" },
-        { name: "Void Seraph", id: "void_seraph", icon: "😈", hp: 350, maxHp: 350, atk: 98, def: 20, xp: 278, gold: 139, style: "magic", crit: 14, affix: "atkCurse", affix2: "healReduction", elite: true, desc: "Corrupted Arch Angel, silences" },
-        { name: "Chrono Beast", id: "chrono_beast", icon: "🐲", hp: 460, maxHp: 460, atk: 92, def: 24, xp: 288, gold: 144, style: "aggressive", crit: 10, minorSuffix: "frenzied", affix: "defBypass", desc: "Bends time, bypasses armor" },
-        { name: "Paradox Shade", id: "paradox_shade", icon: "🌑", hp: 330, maxHp: 330, atk: 104, def: 16, xp: 276, gold: 138, style: "aggressive", crit: 18, minorSuffix: "shadowed", desc: "Exists in two timelines at once" },
-        { name: "Vael'Zyrr, The Timebreaker", id: "vael_zyrr", icon: "🐉", hp: 850, maxHp: 850, atk: 104, def: 32, xp: 670, gold: 420, style: "aggressive", crit: 14, affix: "defBypass", affix2: "soulStun", affix3: "healReduction", boss: true, uniqueId: "vaelzyrr" },
+        { name: "Void Harbinger", id: "void_harbinger", icon: "🌀", hp: 370, maxHp: 370, atk: 90, def: 24, xp: 1435, gold: 136, style: "magic", crit: 12, affix: "voidRupture", desc: "Tears rifts in reality" },
+        { name: "Timebroken Knight", id: "timebroken_knight", icon: "⌛", hp: 420, maxHp: 420, atk: 86, def: 32, xp: 1435, gold: 142, style: "defensive", crit: 8, minorSuffix: "armored", affix: "soulStun", elite: true, desc: "Frozen in time, unstoppable" },
+        { name: "Void Seraph", id: "void_seraph", icon: "😈", hp: 350, maxHp: 350, atk: 98, def: 20, xp: 1435, gold: 139, style: "magic", crit: 14, affix: "atkCurse", affix2: "healReduction", elite: true, desc: "Corrupted Arch Angel, silences" },
+        { name: "Chrono Beast", id: "chrono_beast", icon: "🐲", hp: 460, maxHp: 460, atk: 92, def: 24, xp: 1425, gold: 144, style: "aggressive", crit: 10, minorSuffix: "frenzied", affix: "defBypass", desc: "Bends time, bypasses armor" },
+        { name: "Paradox Shade", id: "paradox_shade", icon: "🌑", hp: 330, maxHp: 330, atk: 104, def: 16, xp: 1425, gold: 138, style: "aggressive", crit: 18, minorSuffix: "shadowed", desc: "Exists in two timelines at once" },
+        { name: "Vael'Zyrr, The Timebreaker", id: "vael_zyrr", icon: "🐉", hp: 850, maxHp: 850, atk: 104, def: 32, xp: 3435, gold: 420, style: "aggressive", crit: 14, affix: "defBypass", affix2: "soulStun", affix3: "healReduction", boss: true, uniqueId: "vaelzyrr" },
     ],
     // Zone 8 — Throne of Oblivion
     [
-        { name: "Rift Phantom", id: "rift_phantom", icon: "👁️", hp: 400, maxHp: 400, atk: 110, def: 22, xp: 325, gold: 162, style: "magic", crit: 14, minorSuffix: "shadowed", affix: "voidRupture", desc: "Bleeds through dimensions" },
-        { name: "Oblivion Knight", id: "oblivion_knight", icon: "🛡️", hp: 480, maxHp: 480, atk: 105, def: 40, xp: 335, gold: 168, style: "defensive", crit: 8, minorSuffix: "armored", affix: "infernalRage", elite: true, desc: "Sworn guardian of the throne" },
-        { name: "Soul Binder", id: "soul_binder_z8", icon: "⛓️", hp: 420, maxHp: 420, atk: 115, def: 28, xp: 330, gold: 165, style: "magic", crit: 12, minorSuffix: "cursed", affix: "deathMark", desc: "Chains souls to Oblivion" },
-        { name: "Entropy Beast", id: "entropy_beast", icon: "💥", hp: 520, maxHp: 520, atk: 120, def: 22, xp: 345, gold: 172, style: "aggressive", crit: 12, minorSuffix: "frenzied", affix: "infernalRage", elite: true, desc: "Pure chaos given form" },
-        { name: "Mal'Korvax, The Oblivion King", id: "mal_korvax", icon: "👑", hp: 1000, maxHp: 1000, atk: 130, def: 42, xp: 820, gold: 520, style: "magic", crit: 15, affix: "soulStun", affix2: "voidRupture", affix3: "healReduction", boss: true, uniqueId: "malkorvax", deathMarked: false },
+        { name: "Rift Phantom", id: "rift_phantom", icon: "👁️", hp: 400, maxHp: 400, atk: 110, def: 22, xp: 1720, gold: 162, style: "magic", crit: 14, minorSuffix: "shadowed", affix: "voidRupture", desc: "Bleeds through dimensions" },
+        { name: "Oblivion Knight", id: "oblivion_knight", icon: "🛡️", hp: 480, maxHp: 480, atk: 105, def: 40, xp: 1720, gold: 168, style: "defensive", crit: 8, minorSuffix: "armored", affix: "infernalRage", elite: true, desc: "Sworn guardian of the throne" },
+        { name: "Soul Binder", id: "soul_binder_z8", icon: "⛓️", hp: 420, maxHp: 420, atk: 115, def: 28, xp: 1720, gold: 165, style: "magic", crit: 12, minorSuffix: "cursed", affix: "deathMark", desc: "Chains souls to Oblivion" },
+        { name: "Entropy Beast", id: "entropy_beast", icon: "💥", hp: 520, maxHp: 520, atk: 120, def: 22, xp: 1770, gold: 172, style: "aggressive", crit: 12, minorSuffix: "frenzied", affix: "infernalRage", elite: true, desc: "Pure chaos given form" },
+        { name: "Mal'Korvax, The Oblivion King", id: "mal_korvax", icon: "👑", hp: 1000, maxHp: 1000, atk: 130, def: 42, xp: 4485, gold: 520, style: "magic", crit: 15, affix: "soulStun", affix2: "voidRupture", affix3: "healReduction", boss: true, uniqueId: "malkorvax", deathMarked: false },
     ],
 ];
 
@@ -1507,7 +1507,7 @@ export default function App() {
         setPlayer(fnp); setBuffs(nb);
         // Store what should happen after all loot popups are dismissed
         let afterLoot = null;
-        if (earnedXp >= level * 100) afterLoot = "levelup";
+        if (earnedXp >= level * 130) afterLoot = "levelup";
         else if (newEnc >= 24) afterLoot = "victory";
         else if (newEnc % 3 === 0) {
             const nz = Math.min(7, zone + 1); setZone(nz);
@@ -2233,7 +2233,7 @@ export default function App() {
     const sellItem = (item, idx) => { const price = item.sellPrice || Math.floor(item.cost / 2); setGold(g => g + price); setInventory(inv => inv.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setShopMsg(`Sold for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellEquipped = slot => { const item = equipped[slot]; if (!item) return; const price = item.sellPrice || Math.floor(item.cost / 2); const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); setGold(g => g + price); setShopMsg(`Sold ${item.name} for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellRelic = idx => { const r = relics[idx]; if (!r) return; setGold(g => g + r.sellPrice); setRelics(rl => rl.filter((_, i) => i !== idx)); setShopMsg(`Sold ${r.name} for ${r.sellPrice}g`); setTimeout(() => setShopMsg(""), 2000); };
-    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setXp(x => Math.max(0, x - level * 60)); setLvlUp(false); playSfx('levelup'); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 24) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(7, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz >= 3 ? "#ff4400" : "#60c0f0"); if (nz === 4 && !fourthAbilityUnlocked) { setPickingFourth(true); } } };
+    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setXp(x => Math.max(0, x - level * 130)); setLvlUp(false); playSfx('levelup'); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 24) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(7, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz >= 3 ? "#ff4400" : "#60c0f0"); if (nz === 4 && !fourthAbilityUnlocked) { setPickingFourth(true); } } };
 
     const ep = player ? effStats(player, equipped) : null;
     const rb = getRelicBonus();
@@ -2540,9 +2540,9 @@ export default function App() {
                 {/* XP bar */}
                 {player && <div style={{ marginBottom: 3 }}>
                     <div style={{ background: "#111", borderRadius: 3, height: 3, boxShadow: "inset 0 1px 2px #000" }}>
-                        <div style={{ width: `${Math.min(100, (xp / (level * 100)) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#8080ff,#60f0ff)", borderRadius: 3, transition: "width 0.5s", boxShadow: "0 0 4px #60f0ff88" }} />
+                        <div style={{ width: `${Math.min(100, (xp / (level * 130)) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#8080ff,#60f0ff)", borderRadius: 3, transition: "width 0.5s", boxShadow: "0 0 4px #60f0ff88" }} />
                     </div>
-                    <div style={{ textAlign: "right", fontSize: 8, color: "#444", marginTop: 1 }}>{xp}/{level * 100} XP</div>
+                    <div style={{ textAlign: "right", fontSize: 8, color: "#444", marginTop: 1 }}>{xp}/{level * 130} XP</div>
                 </div>}
                 {/* Player HP/MP bars + stats */}
                 {player && ep && (
