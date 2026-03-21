@@ -124,8 +124,8 @@ function EnemyPortrait({ enemyId, size = 56, style = {} }) {
         "infernal_behemoth_raged": { sheetKey: "zone4", col: 1, row: 0 },
         "abyssal_overlord": { sheetKey: "zone4", col: 0, row: 1 },
         "doomreaper": { sheetKey: "zone4", col: 1, row: 1 },
-        "hellfire_imp": { sheetKey: "zone4extra", col: 1, row: 0, yOffset: 0.05 },
-        "ashen_knight": { sheetKey: "zone4extra", col: 0, row: 0, yOffset: 0.08 },
+        "hellfire_imp": { sheetKey: "zone4extra", col: 1, row: 0, yOffset: -0.10, zoom: 1.8 },
+        "ashen_knight": { sheetKey: "zone4extra", col: 0, row: 0, yOffset: -0.08, zoom: 1.8 },
         "mire_stalker":       { sheetKey: "zone5", col: 0, row: 0, yOffset: 0.15 },
         "rotfang_beast":      { sheetKey: "zone5", col: 1, row: 0, yOffset: 0.02 },
         "plague_channeler":   { sheetKey: "zone5", col: 2, row: 0, yOffset: 0.12 },
@@ -357,10 +357,10 @@ const ENEMIES_BY_ZONE = [
     ],
     [
         { name: "Infernal Behemoth", id: "infernal_behemoth", icon: "🔥", hp: 260, maxHp: 260, atk: 36, def: 16, xp: 150, gold: 90, style: "aggressive", crit: 8, affix: "infernalRage", elite: true, uniqueId: "ib", raged: false },
-        { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", unique: true, uniqueId: "ao" },
+        { name: "The Abyssal Overlord", id: "abyssal_overlord", icon: "👁️", hp: 300, maxHp: 300, atk: 44, def: 20, xp: 200, gold: 130, style: "magic", crit: 8, affix: "voidRupture", elite: true, uniqueId: "ao" },
         { name: "Doomreaper, the Eternal", id: "doomreaper", icon: "☠️", hp: 420, maxHp: 420, atk: 52, def: 18, xp: 300, gold: 200, style: "magic", crit: 12, affix: "soulStun", affix2: "deathMark", affix3: "healReduction", boss: true, uniqueId: "dr", deathMarked: false },
-        { name: "Abyssal Ravager", id: "hellfire_imp", icon: "😈", hp: 200, maxHp: 200, atk: 34, def: 10, xp: 120, gold: 70, style: "aggressive", crit: 10, minorSuffix: "venomous" },
-        { name: "Ashen Knight", id: "ashen_knight", icon: "🗡️", hp: 220, maxHp: 220, atk: 30, def: 18, xp: 130, gold: 75, style: "defensive", crit: 8, minorSuffix: "armored" },
+        { name: "Abyssal Ravager", id: "hellfire_imp", icon: "😈", hp: 260, maxHp: 260, atk: 44, def: 14, xp: 145, gold: 85, style: "aggressive", crit: 14, minorSuffix: "venomous", affix: "infernalRage" },
+        { name: "Ashen Knight", id: "ashen_knight", icon: "🗡️", hp: 290, maxHp: 290, atk: 38, def: 24, xp: 155, gold: 90, style: "defensive", crit: 8, minorSuffix: "armored", affix: "defBypass" },
     ],
     // Zone 5 — Cursed Marshes (relief after zone 4, but still dangerous)
     [
