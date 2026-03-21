@@ -322,7 +322,7 @@ const CLASSES = {
         ]
     },
     "Infernal Warden": {
-        icon: "🔥", color: "#ff6600", desc: "Unbreakable Infernal warrior. Burning enemies, absorbs heat into a molten armor. Low mana regeneration.",
+        icon: "🔥", color: "#ff6600", desc: "Unbreakable Infernal warrior. Burning enemies, absorbs heat into a molten armor.",
         stats: { hp: 115, maxHp: 115, mp: 60, maxMp: 60, atk: 20, def: 12, spd: 8, crit: 5, manaRegen: 3 },
         abilities: [
             { name: "Searing Grasp", cost: 12, desc: "Deal 30% of Max HP as fire dmg", damage: [0,0], type: "searingGrasp", scale: "Max HP · Fire dmg" },
