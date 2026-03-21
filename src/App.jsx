@@ -246,6 +246,18 @@ const CLASS_NAMES = {
         "Wraithbane", "Coldvein", "Marrowthane", "Skullvex", "Grimdark",
         "Hexbane", "Deathveil", "Blightmore", "Soulcrown", "Ravenmort",
     ],
+    "Death Knight": [
+        "Morthis", "Gravenbane", "Duskravel", "Soulcleave", "Vorn",
+        "Ashgrasp", "Necrath", "Dreadmaw", "Korvel", "Bonesworn",
+        "Wraithbane", "Coldvein", "Marrowthane", "Skullvex", "Grimdark",
+        "Hexbane", "Deathveil", "Blightmore", "Soulcrown", "Ravenmort",
+    ],
+    "Infernal Warden": [
+        "Ignareth", "Cindrax", "Pyrovel", "Ashenwrath", "Moltenkar",
+        "Embervorn", "Scorchbane", "Infernoth", "Blazesworn", "Charmark",
+        "Hellveil", "Cindermaw", "Asharuk", "Flamecrest", "Pyrethis",
+        "Scorchveil", "Embermort", "Blazerak", "Hellcrown", "Infernis",
+    ],
     "Infernal Warden": [
         "Ignareth", "Cindrax", "Pyrovel", "Ashenwrath", "Moltenkar",
         "Embervorn", "Scorchbane", "Infernoth", "Blazesworn", "Charmark",
@@ -300,15 +312,6 @@ const CLASSES = {
             { name: "Celestial Heal", cost: 20, desc: "Max HP · Heal 15-22% + 10 MP", damage: [0.15, 0.22], type: "celestialHeal" , scale: "Max HP · Restore"},
         ]
     },
-    "Infernal Warden": {
-        icon: "🔥", color: "#ff6600", desc: "Unbreakable Infernal warrior. Burning enemies, absorbs heat into a molten armor. Low mana regeneration.",
-        stats: { hp: 115, maxHp: 115, mp: 60, maxMp: 60, atk: 20, def: 12, spd: 8, crit: 5, manaRegen: 3 },
-        abilities: [
-            { name: "Searing Grasp", cost: 12, desc: "Deal 30% of Max HP as fire dmg", damage: [0,0], type: "searingGrasp", scale: "Max HP · Fire dmg" },
-            { name: "Inferno Aegis", cost: 20, desc: "30% dmg reduction · Reflect Armor as burn for 6 turns", damage: [0,0], type: "infernoAegis", scale: "DEF · Absorb + Reflect" },
-            { name: "Hellbreaker", cost: 25, desc: "150% ATK burst · Enemy ATK −70% for 3 turns · Once per battle", damage: [0,0], type: "hellbreaker", scale: "ATK · Burst + Weaken" },
-        ]
-    },
     "Death Knight": {
         icon: "☠️", color: "#cc2222", desc: "Dark warrior who trades life for power.",
         stats: { hp: 115, maxHp: 115, mp: 50, maxMp: 50, atk: 20, def: 6, spd: 8, crit: 8, manaRegen: 4 },
@@ -316,6 +319,15 @@ const CLASSES = {
             { name: "Dark Sacrifice", cost: 0, desc: "HP Cost · +50% ATK & DEF x6", damage: [0, 0], type: "darkSacrifice" , scale: "HP Cost · Flat buff"},
             { name: "Soul Rend", cost: 15, desc: "ATK + SPD · Ignores 30% DEF", damage: [25, 38], type: "soulRend" , scale: "ATK + SPD · Ignores DEF"},
             { name: "Death's Suffering", cost: 18, desc: "Enemy Max HP · 8% DoT x4", damage: [0, 0], type: "deathSuffering" , scale: "Max HP · DoT"},
+        ]
+    },
+    "Infernal Warden": {
+        icon: "🔥", color: "#ff6600", desc: "Unbreakable Infernal warrior. Burning enemies, absorbs heat into a molten armor. Low mana regeneration.",
+        stats: { hp: 115, maxHp: 115, mp: 60, maxMp: 60, atk: 20, def: 12, spd: 8, crit: 5, manaRegen: 3 },
+        abilities: [
+            { name: "Searing Grasp", cost: 12, desc: "Deal 30% of Max HP as fire dmg", damage: [0,0], type: "searingGrasp", scale: "Max HP · Fire dmg" },
+            { name: "Inferno Aegis", cost: 20, desc: "30% dmg reduction · Reflect Armor as burn for 6 turns", damage: [0,0], type: "infernoAegis", scale: "DEF · Absorb + Reflect" },
+            { name: "Hellbreaker", cost: 25, desc: "150% ATK burst · Enemy ATK −70% for 3 turns · Once per battle", damage: [0,0], type: "hellbreaker", scale: "ATK · Burst + Weaken" },
         ]
     },
 };
@@ -917,15 +929,15 @@ const FOURTH_ABILITIES = {
         { name: "Seraph's Grace", cost: 25, desc: "Heal 30% Max HP + cleanse all debuffs", damage: [0.28,0.35], type: "celestialHeal", scale: "Max HP · Purify" },
         { name: "Angelic Shield", cost: 20, desc: "Absorb next 3 hits entirely", damage: [0,0], type: "takeFlight", scale: "DEF · Full absorb" },
     ],
-    "Infernal Warden": [
-        { name: "Molten Resilience", cost: 25, desc: "Immune to Stun · Regen 8% Max HP/turn × 6 turns", damage: [0,0], type: "moltenResilience", scale: "DEF · Stun Immune + HoT" },
-        { name: "Pyroclasm", cost: 25, desc: "Ignite enemy: 8% Max HP burn/turn × 6 turns", damage: [0,0], type: "pyroclasm", scale: "Max HP · Fire DoT" },
-        { name: "Hellfire Surge", cost: 0, desc: "Spend all MP: deal 50% of MP as fire dmg", damage: [0,0], type: "hellfireSurge", scale: "All MP · MP Nuke" },
-    ],
     "Death Knight": [
         { name: "Apocalypse", cost: 0, desc: "Pay 35% HP: deal ATK × 2.5, ignores all DEF", damage: [45,65], type: "apocalypse", scale: "HP Cost · Ignores all DEF" },
         { name: "Undying Rage", cost: 18, desc: "+80% ATK & +40% SPD for 3 turns", damage: [0,0], type: "undyingRage", scale: "ATK + SPD · Berserk" },
         { name: "Soul Harvest", cost: 20, desc: "Drain 25% of enemy current HP as HP", damage: [20,30], type: "drain", scale: "Enemy HP · Lifesteal" },
+    ],
+    "Infernal Warden": [
+        { name: "Molten Resilience", cost: 25, desc: "Immune to Stun · Regen 8% Max HP/turn × 6 turns", damage: [0,0], type: "moltenResilience", scale: "DEF · Stun Immune + HoT" },
+        { name: "Pyroclasm", cost: 25, desc: "Ignite enemy: 8% Max HP burn/turn × 6 turns", damage: [0,0], type: "pyroclasm", scale: "Max HP · Fire DoT" },
+        { name: "Hellfire Surge", cost: 0, desc: "Spend all MP: deal 50% of MP as fire dmg", damage: [0,0], type: "hellfireSurge", scale: "All MP · MP Nuke" },
     ],
 };
 function buildChampion(playerTitle, playerClass, level, gold, encounters, player, equipped, relics, effStatsFn, getRelicBonusFn) {
