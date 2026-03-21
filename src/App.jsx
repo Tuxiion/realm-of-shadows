@@ -93,7 +93,7 @@ function ClassPortrait({ className, size = 56, style = {} }) {
         "Holy Knight":     { sheetKey: "classes", col: 0, row: 0 },
         "Demonic Beast":   { sheetKey: "classes", col: 1, row: 0 },
         "Arcane Magician": { sheetKey: "classes", col: 2, row: 0 },
-        "Infernal Warden": { sheetKey: "classes", col: 3, row: 0 },
+        "Infernal Warden": { sheetKey: "classes", col: 3, row: 0, yOffset: 0.05 },
         "Ranged Assassin": { sheetKey: "classes", col: 0, row: 1 },
         "Arch Angel":      { sheetKey: "classes", col: 1, row: 1 },
         "Death Knight":    { sheetKey: "classes", col: 2, row: 1 },
@@ -101,7 +101,7 @@ function ClassPortrait({ className, size = 56, style = {} }) {
     const p = MAP[className];
     if (!p) return <div style={{ width: size, height: size, ...style }} />;
     const color = CLASSES[className]?.color || "#888";
-    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} glow={color} style={style} />;
+    return <Portrait sheetKey={p.sheetKey} col={p.col} row={p.row} displaySize={size} glow={color} style={style} yOffset={p.yOffset || 0} />;
 }
 
 function EnemyPortrait({ enemyId, size = 56, style = {} }) {
