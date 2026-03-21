@@ -1490,7 +1490,7 @@ export default function App() {
         setPlayer(fnp); setBuffs(nb);
         // Store what should happen after all loot popups are dismissed
         let afterLoot = null;
-        if (earnedXp >= level * 60) afterLoot = "levelup";
+        if (earnedXp >= level * 100) afterLoot = "levelup";
         else if (newEnc >= 24) afterLoot = "victory";
         else if (newEnc % 3 === 0) {
             const nz = Math.min(7, zone + 1); setZone(nz);
@@ -2138,7 +2138,7 @@ export default function App() {
     const sellItem = (item, idx) => { const price = item.sellPrice || Math.floor(item.cost / 2); setGold(g => g + price); setInventory(inv => inv.map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it).filter(it => it.qty > 0)); setShopMsg(`Sold for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellEquipped = slot => { const item = equipped[slot]; if (!item) return; const price = item.sellPrice || Math.floor(item.cost / 2); const { np, newEq } = doUnequip(slot, equipped, player); setEquipped(newEq); setPlayer(np); setGold(g => g + price); setShopMsg(`Sold ${item.name} for ${price}g`); setTimeout(() => setShopMsg(""), 2000); };
     const sellRelic = idx => { const r = relics[idx]; if (!r) return; setGold(g => g + r.sellPrice); setRelics(rl => rl.filter((_, i) => i !== idx)); setShopMsg(`Sold ${r.name} for ${r.sellPrice}g`); setTimeout(() => setShopMsg(""), 2000); };
-    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setLvlUp(false); playSfx('levelup'); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 24) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(7, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz >= 3 ? "#ff4400" : "#60c0f0"); if (nz === 4 && !fourthAbilityUnlocked) { setPickingFourth(true); } } };
+    const pickUpgrade = upg => { const np = upg.apply({ ...player }); setPlayer(np); setLevel(l => l + 1); setXp(x => Math.max(0, x - level * 60)); setLvlUp(false); playSfx('levelup'); addLog(`🌟 Level Up! ${upg.label}`, "#f0f060"); if (encounters >= 24) { setScreen("victory"); return; } if (encounters > 0 && encounters % 3 === 0) { const nz = Math.min(7, zone + 1); setZone(nz); addLog(`🗺️ Into ${ZONES[nz].name}...`, nz >= 3 ? "#ff4400" : "#60c0f0"); if (nz === 4 && !fourthAbilityUnlocked) { setPickingFourth(true); } } };
 
     const ep = player ? effStats(player, equipped) : null;
     const rb = getRelicBonus();
@@ -2441,9 +2441,9 @@ export default function App() {
                 {/* XP bar */}
                 {player && <div style={{ marginBottom: 3 }}>
                     <div style={{ background: "#111", borderRadius: 3, height: 3, boxShadow: "inset 0 1px 2px #000" }}>
-                        <div style={{ width: `${Math.min(100, (xp / (level * 60)) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#8080ff,#60f0ff)", borderRadius: 3, transition: "width 0.5s", boxShadow: "0 0 4px #60f0ff88" }} />
+                        <div style={{ width: `${Math.min(100, (xp / (level * 100)) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#8080ff,#60f0ff)", borderRadius: 3, transition: "width 0.5s", boxShadow: "0 0 4px #60f0ff88" }} />
                     </div>
-                    <div style={{ textAlign: "right", fontSize: 8, color: "#444", marginTop: 1 }}>{xp}/{level * 60} XP</div>
+                    <div style={{ textAlign: "right", fontSize: 8, color: "#444", marginTop: 1 }}>{xp}/{level * 100} XP</div>
                 </div>}
                 {/* Player HP/MP bars + stats */}
                 {player && ep && (
