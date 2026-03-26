@@ -34,6 +34,7 @@ const SHEETS = {
     zone8: "/realm-of-shadows/assets/images/zone8.png",
     equipment: "/realm-of-shadows/assets/images/equipment.png",
     extras: "/realm-of-shadows/assets/images/extras.png",
+    equipment2: "/realm-of-shadows/assets/images/equipment2.png",
 };
 
 const SHEET_META = {
@@ -50,6 +51,7 @@ const SHEET_META = {
     zone8: { cols: 3, rows: 2, w: 1366, h: 900 },
     equipment: { cols: 6, rows: 5, w: 1024, h: 1024 },
     extras: { cols: 2, rows: 2, w: 930, h: 880 },
+    equipment2: { cols: 5, rows: 7, w: 867, h: 1112 },
 };
 
 function Portrait({ sheetKey, col, row, displaySize = 56, radius = "50%", style = {}, glow = "#888", yOffset = 0, xOffset = 0, zoom = 1.0 }) {
@@ -187,7 +189,7 @@ function ItemPortrait({ itemId, size = 32, style = {} }) {
         "ring3":       { col: 2, row: 3, yOffset: 0.200 },
         "ring4":       { col: 3, row: 3, yOffset: 0.200 },
         "hpot":        { col: 4, row: 3, yOffset: 0.300 },
-        "revive":      { col: 5, row: 3, yOffset: 0.150 },
+        "revive":      { col: 5, row: 3, yOffset: 0.250 },
         // Row 4 — relics, mana elixir, greater potion
         "boneFrag":    { col: 0, row: 4, yOffset: 0.150 },
         "cursedRoot":  { col: 1, row: 4, yOffset: 0.175 },
@@ -195,6 +197,46 @@ function ItemPortrait({ itemId, size = 32, style = {} }) {
         "voidShard":   { col: 3, row: 4, yOffset: 0.175 },
         "mpot":        { col: 4, row: 4, yOffset: 0.200 },
         "gpot":        { col: 5, row: 4, yOffset: 0.200 },
+        // equipment2 sheet — 5×7, row0=helmets, row1=weapons, row2=armor, row3=rings, row4=rings2, row5=boots, row6=potions
+        // Row 0 — helmets
+        "necropolisCrown":   { col: 0, row: 0, sheetKey: "equipment2", yOffset: 0.10 },
+        "voidSentinelHelm":  { col: 1, row: 0, sheetKey: "equipment2", yOffset: 0.10 },
+        "oblivionVisage":    { col: 2, row: 0, sheetKey: "equipment2", yOffset: 0.10 },
+        "blightCowl":        { col: 3, row: 0, sheetKey: "equipment2", yOffset: 0.10 },
+        "crownOblivion":     { col: 4, row: 0, sheetKey: "equipment2", yOffset: 0.10 },
+        // Row 1 — weapons
+        "voidBlade":         { col: 0, row: 1, sheetKey: "equipment2", yOffset: 0.10 },
+        "staffEternity":     { col: 1, row: 1, sheetKey: "equipment2", yOffset: 0.10 },
+        "blightFang":        { col: 2, row: 1, sheetKey: "equipment2", yOffset: 0.10 },
+        "timebreakerEdge":   { col: 3, row: 1, sheetKey: "equipment2", yOffset: 0.10 },
+        "wraithEdge":        { col: 4, row: 1, sheetKey: "equipment2", yOffset: 0.10 },
+        // Row 2 — body armor
+        "shroudSilence":     { col: 0, row: 2, sheetKey: "equipment2", yOffset: 0.10 },
+        "oblivionPlate":     { col: 1, row: 2, sheetKey: "equipment2", yOffset: 0.10 },
+        "chronoRobe":        { col: 2, row: 2, sheetKey: "equipment2", yOffset: 0.10 },
+        "abyssCarapace":     { col: 3, row: 2, sheetKey: "equipment2", yOffset: 0.10 },
+        "voidMantle":        { col: 4, row: 2, sheetKey: "equipment2", yOffset: 0.10 },
+        // Row 3 — rings
+        "ringVoid":          { col: 0, row: 3, sheetKey: "equipment2", yOffset: 0.15 },
+        "eternityBand":      { col: 1, row: 3, sheetKey: "equipment2", yOffset: 0.15 },
+        "timebreakerRing":   { col: 2, row: 3, sheetKey: "equipment2", yOffset: 0.15 },
+        "oblivionSeal":      { col: 3, row: 3, sheetKey: "equipment2", yOffset: 0.15 },
+        "sealSovereignty":   { col: 4, row: 3, sheetKey: "equipment2", yOffset: 0.15 },
+        // Row 4 — rings II / legendary variants
+        "ringVoid2":         { col: 0, row: 4, sheetKey: "equipment2", yOffset: 0.10 },
+        "eternityBand2":     { col: 1, row: 4, sheetKey: "equipment2", yOffset: 0.10 },
+        "timebreakerRing2":  { col: 2, row: 4, sheetKey: "equipment2", yOffset: 0.10 },
+        "oblivionSeal2":     { col: 3, row: 4, sheetKey: "equipment2", yOffset: 0.10 },
+        "sealEternity":      { col: 4, row: 4, sheetKey: "equipment2", yOffset: 0.10 },
+        // Row 5 — boots (col3 undesigned, greavesChaos reuses col4)
+        "phantomTreads":     { col: 0, row: 5, sheetKey: "equipment2", yOffset: 0.20 },
+        "voidStriders":      { col: 1, row: 5, sheetKey: "equipment2", yOffset: 0.20 },
+        "ironGreaves":       { col: 2, row: 5, sheetKey: "equipment2", yOffset: 0.20 },
+        "bootsOblivion":     { col: 4, row: 5, sheetKey: "equipment2", yOffset: 0.20 },
+        "greavesChaos":      { col: 4, row: 5, sheetKey: "equipment2", yOffset: 0.20 },
+        // Row 6 — potions
+        "gmpot":             { col: 0, row: 6, sheetKey: "equipment2", yOffset: 0.20 },
+        "rpot":              { col: 1, row: 6, sheetKey: "equipment2", yOffset: 0.20 },
         // extras sheet — square cells, no yOffset needed
         "bloodVial":    { col: 0, row: 0, sheetKey: "extras" },
         "veilShadows":  { col: 1, row: 0, sheetKey: "extras" },
@@ -747,7 +789,9 @@ function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
     const trackRef = useRef(null);
     const volumeRef = useRef(musicVolume);
     const fadersRef = useRef([]);
+    const volMultRef = useRef(1);
     volumeRef.current = musicVolume;
+    const ZONE_VOL_MULT = [1, 1, 0.6, 1, 1, 1, 1, 1];
 
     const MUSIC = [
         "/realm-of-shadows/assets/sounds/zone1.mp3",
@@ -772,8 +816,11 @@ function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
 
     const clearFaders = () => { fadersRef.current.forEach(clearInterval); fadersRef.current = []; };
 
-    const fadeAndSwitch = (newTrack, muted) => {
+    const getVolMult = (sc, z) => ['title','naming','hall','gameover','victory','duelVictory','challengeIntro'].includes(sc) ? 1 : (ZONE_VOL_MULT[z] ?? 1);
+
+    const fadeAndSwitch = (newTrack, muted, volMult = 1) => {
         clearFaders();
+        volMultRef.current = volMult;
         const old = audioRef.current;
         if (old) {
             const startVol = old.volume;
@@ -812,7 +859,7 @@ function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
         }
         audioRef.current = audio;
         trackRef.current = newTrack;
-        const target = volumeRef.current;
+        const target = volumeRef.current * volMult;
         let ticks = 0;
         const fadeIn = setInterval(() => {
             ticks++;
@@ -825,7 +872,7 @@ function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
     // Zone or screen change → crossfade
     useEffect(() => {
         const desired = getTrack(screen, zone);
-        if (desired !== trackRef.current) fadeAndSwitch(desired, muteMusic);
+        if (desired !== trackRef.current) fadeAndSwitch(desired, muteMusic, getVolMult(screen, zone));
     }, [zone, screen]);
 
     // Mute toggle
@@ -835,14 +882,14 @@ function useMusicPlayer(zone, screen, muteMusic, musicVolume) {
             if (audioRef.current) { try { audioRef.current.pause(); } catch(e){} audioRef.current = null; trackRef.current = null; }
         } else {
             const desired = getTrack(screen, zone);
-            if (!audioRef.current) fadeAndSwitch(desired, false);
+            if (!audioRef.current) fadeAndSwitch(desired, false, getVolMult(screen, zone));
         }
     }, [muteMusic]);
 
     // Volume change — apply live without restarting track
     useEffect(() => {
         if (audioRef.current && !muteMusic) {
-            audioRef.current.volume = Math.min(1, Math.max(0, musicVolume));
+            audioRef.current.volume = Math.min(1, Math.max(0, musicVolume * volMultRef.current));
         }
     }, [musicVolume]);
 
@@ -1563,7 +1610,7 @@ export default function App() {
         const totalSpd = (ep.spd || 0) + rb.spd + nb.player.filter(b => b.stat === "spd" && b.amount > 0).reduce((s, b) => s + b.amount, 0);
         const spdMult = 1 + totalSpd * 0.015;
         const totalCrit = (ep.crit || 2) + rb.crit;
-        if (hasP(eq, "holyAura")) { np.hp = clamp(np.hp + 2, 0, np.maxHp); triggerAnim("player", "heal", "+2✨", "#f0f060"); }
+        const commitHolyAura = () => { if (hasP(eq, "holyAura")) { np.hp = clamp(np.hp + 2, 0, np.maxHp); triggerAnim("player", "heal", "+2✨", "#f0f060"); } };
         if (cse.cursedPlateOn) { np.hp = clamp(np.hp - 3, 0, np.maxHp); triggerAnim("player", "dark", "-3💀", "#cc2222"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
         if (cse.braceActive > 0) cse.braceActive = Math.max(0, cse.braceActive - 1);
         if (cse.sacredBarrier > 0) cse.sacredBarrier = Math.max(0, cse.sacredBarrier - 1);
@@ -1571,23 +1618,23 @@ export default function App() {
         if (cse.infernoAegis > 0) cse.infernoAegis = Math.max(0, cse.infernoAegis - 1);
         // Pyroclasm DoT: 15% enemy max HP/turn
         if (cse.pyroclasmDot > 0) {
-            const pyroDmg = Math.max(1, Math.floor(fne.maxHp * 0.08));
-            fne.hp = Math.max(0, fne.hp - pyroDmg);
+            const pyroDmg = Math.max(1, Math.floor(ne.maxHp * 0.08));
+            ne.hp = Math.max(0, ne.hp - pyroDmg);
             cse.pyroclasmDot--;
             triggerAnim("enemy", "fire", `-${pyroDmg}🔥`, "#ff6600");
-            addLog(`🔥 Pyroclasm burns ${fne.name} for ${pyroDmg}! (${cse.pyroclasmDot} turns left)`, "#ff6600");
-            if (fne.hp <= 0) { fnb.player = fnb.player.map(b => ({ ...b, turns: b.turns - 1 })).filter(b => b.turns > 0); setSavedEnemy({...fne}); resolveVictory(fnp, fne, fnb, inv, g, eq, fse, rl); return; }
+            addLog(`🔥 Pyroclasm burns ${ne.name} for ${pyroDmg}! (${cse.pyroclasmDot} turns left)`, "#ff6600");
+            if (ne.hp <= 0) { nb.player = nb.player.map(b => ({ ...b, turns: b.turns - 1 })).filter(b => b.turns > 0); setSavedEnemy({...ne}); actionLockRef.current = false; resolveVictory(np, ne, nb, inv, g, eq, cse, rl); return; }
         }
         if (cse.burn > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.burn--; triggerAnim("player", "fire", "-3🔥", "#ff6030"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
         if (cse.playerPoison > 0) { np.hp = clamp(np.hp - 3, 0, np.maxHp); cse.playerPoison--; triggerAnim("player", "poison", "-3🐍", "#80ff80"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
         if (cse.plagueDot > 0) { const pd = Math.max(1, Math.floor(np.maxHp * 0.15)); np.hp = clamp(np.hp - pd, 0, np.maxHp); cse.plagueDot--; triggerAnim("player", "poison", `-${pd}☣️`, "#cc44ff"); if (np.hp <= 0) { setPlayer(np); setFinalLog([...log]); playSfx('gameover'); setScreen("gameover"); return; } }
-        if (cse.enemyDot > 0 && ne.hp > 0) { const dd = Math.max(1, Math.floor(ne.maxHp * 0.08)); ne.hp -= dd; cse.enemyDot--; triggerAnim("enemy", "dark", `-${dd}💀`, "#a0ffa0"); if (ne.hp <= 0) { setEnemy(ne); setPlayer(np); setTimeout(() => resolveVictory(np, ne, nb, inv, g, eq, cse, rl), 700); return; } }
+        if (cse.enemyDot > 0 && ne.hp > 0) { const dd = Math.max(1, Math.floor(ne.maxHp * 0.08)); ne.hp -= dd; cse.enemyDot--; triggerAnim("enemy", "dark", `-${dd}💀`, "#a0ffa0"); if (ne.hp <= 0) { setEnemy(ne); setPlayer(np); actionLockRef.current = false; setTimeout(() => resolveVictory(np, ne, nb, inv, g, eq, cse, rl), 700); return; } }
         const regenBuff = nb.player.filter(b => b.stat === "manaRegen" && b.amount > 0).reduce((s, b) => s + b.amount, 0);
         const regen = (ep.manaRegen || 5) + rb.manaRegen + regenBuff;
         // NOTE: regen is applied below only after a valid action completes — not on failed/cancelled actions
         const abilBonus = hasP(eq, "abilityBonus") ? 1.15 : 1.0;
         const healReduced = ne.affix3 === "healReduction" || ne.affix === "healReduction";
-        const healMult = ne.minorSuffix === "cursed" ? 0.5 : (cse.frailCurse > 0 ? 0.5 : healReduced ? 0.4 : 1.0);
+        const healMult = ne.minorSuffix === "cursed" ? 0.75 : (cse.frailCurse > 0 ? 0.75 : healReduced ? 0.75 : 1.0);
         const demonMult = 1 + (cse.demonPactBonus || 0);
 
         const dealDmg = (dmg, label, critHit, animType = "slash") => {
@@ -1612,9 +1659,9 @@ export default function App() {
             if (ne.minorSuffix === "thorned") { const ref = Math.max(1, Math.floor(dmg * 0.15)); np.hp = clamp(np.hp - ref, 0, np.maxHp); triggerAnim("player", null, `-${ref}🌵`, "#88ff44"); }
         } else if (type === "ability") {
             const ab = payload;
-            if (ab.type === "brace") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); actionLockRef.current = false; setPlayer(np); return; } if (cse.braceActive > 0) { addLog("🛡️ Holy Shield already active!", "#f0c060"); actionLockRef.current = false; setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseDefB = ep.def + rb.def; const db = Math.max(1, Math.floor(baseDefB * 0.5)); cse.braceActive = 6; nb.player.push({ stat: "def", amount: db, turns: 6, tag: "brace" }); triggerAnim("player", "shield", `🛡️+${db}DEF`, "#f0c060"); addLog(`🛡️ Holy Shield! +${db} DEF for 6 turns!`, "#f0c060"); nb.player = nb.player.map(b => { if (b.tag === "brace" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
-            if (ab.type === "darkSacrifice") { const hc = Math.floor(np.hp * 0.20); if (np.hp - hc <= 0) { addLog("⚠️ Not enough HP!", "#ff6060"); actionLockRef.current = false; setPlayer(np); return; } if (nb.player.some(b => b.tag === "darkSacrifice")) { addLog("💀 Dark Sacrifice already active!", "#cc2222"); actionLockRef.current = false; setPlayer(np); return; } np.hp -= hc; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseAtkForSac = ep.atk + rb.atk; const baseDefForSac = ep.def + rb.def; const ab2 = Math.floor(baseAtkForSac * 0.5); const db2 = Math.floor(baseDefForSac * 0.5); nb.player.push({ stat: "atk", amount: ab2, turns: 6, tag: "darkSacrifice" }); nb.player.push({ stat: "def", amount: db2, turns: 6, tag: "darkSacrifice" }); triggerAnim("player", "power", `💀+${ab2}ATK`, "#cc2222"); addLog(`💀 Dark Sacrifice! -${hc} HP => ATK+${ab2}, DEF+${db2} x 6!`, "#cc2222"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
-            if (ab.type === "demonPact") { if (cse.demonPactBonus > 0) { addLog("👹 Demon Pact already active!", "#c060f0"); actionLockRef.current = false; setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 6, tag: "demonPact" }); triggerAnim("player", "dark", "👹+30%DMG", "#c060f0"); addLog(`👹 Demon Pact! +30% dmg x 6 turns!`, "#c060f0"); nb.player = nb.player.map(b => { if (b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            if (ab.type === "brace") { if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); actionLockRef.current = false; setPlayer(np); return; } if (cse.braceActive > 0) { addLog("🛡️ Holy Shield already active!", "#f0c060"); actionLockRef.current = false; setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseDefB = ep.def + rb.def; const db = Math.max(1, Math.floor(baseDefB * 0.5)); cse.braceActive = 6; nb.player.push({ stat: "def", amount: db, turns: 6, tag: "brace" }); triggerAnim("player", "shield", `🛡️+${db}DEF`, "#f0c060"); addLog(`🛡️ Holy Shield! +${db} DEF for 6 turns!`, "#f0c060"); nb.player = nb.player.map(b => { if (b.tag === "brace" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); commitHolyAura(); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            if (ab.type === "darkSacrifice") { const hc = Math.floor(np.hp * 0.20); if (np.hp - hc <= 0) { addLog("⚠️ Not enough HP!", "#ff6060"); actionLockRef.current = false; setPlayer(np); return; } if (nb.player.some(b => b.tag === "darkSacrifice")) { addLog("💀 Dark Sacrifice already active!", "#cc2222"); actionLockRef.current = false; setPlayer(np); return; } np.hp -= hc; np.mp = clamp(np.mp + regen, 0, np.maxMp); const baseAtkForSac = ep.atk + rb.atk; const baseDefForSac = ep.def + rb.def; const ab2 = Math.floor(baseAtkForSac * 0.5); const db2 = Math.floor(baseDefForSac * 0.5); nb.player.push({ stat: "atk", amount: ab2, turns: 6, tag: "darkSacrifice" }); nb.player.push({ stat: "def", amount: db2, turns: 6, tag: "darkSacrifice" }); triggerAnim("player", "power", `💀+${ab2}ATK`, "#cc2222"); addLog(`💀 Dark Sacrifice! -${hc} HP => ATK+${ab2}, DEF+${db2} x 6!`, "#cc2222"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); commitHolyAura(); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            if (ab.type === "demonPact") { if (cse.demonPactBonus > 0) { addLog("👹 Demon Pact already active!", "#c060f0"); actionLockRef.current = false; setPlayer(np); return; } np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp); cse.demonPactBonus = 0.30; nb.player.push({ stat: "atk", amount: 0, turns: 6, tag: "demonPact" }); triggerAnim("player", "dark", "👹+30%DMG", "#c060f0"); addLog(`👹 Demon Pact! +30% dmg x 6 turns!`, "#c060f0"); nb.player = nb.player.map(b => { if (b.tag === "demonPact") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); commitHolyAura(); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             if (np.mp < ab.cost) { addLog("Not enough MP!", "#ff9060"); actionLockRef.current = false; setPlayer(np); return; }
             np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
             if (ab.type === "atk") { const c = isCrit(totalCrit); const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const fb = cse.flightBonus > 0 ? Math.floor(raw * 0.3) : 0; const dmg = calcDmg(c ? Math.floor((raw + fb) * 1.5 * abilBonus * spdMult * demonMult) : Math.floor((raw + fb) * abilBonus * spdMult * demonMult), effEnemyDef); const animMap = { "Divine Strike": "holy", "Hellfire": "fire", "Arcane Bolt": "arcane", "Mana Burst": "arcane", "Snipe": "arrow" }; const animType = animMap[ab.name] || "slash"; dealDmg(dmg, `✨ Your ${ab.name}`, c, animType); }
@@ -1623,7 +1670,7 @@ export default function App() {
             else if (ab.type === "heal") { const h = Math.floor(rand(-ab.damage[1], -ab.damage[0]) * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP`, "#60f0a0"); }
             else if (ab.type === "scaleHeal") { const pct = rand(Math.floor(ab.damage[0]*100), Math.floor(ab.damage[1]*100)) / 100; const h = Math.floor(np.maxHp * pct * healMult); np.hp = clamp(np.hp + h, 0, np.maxHp); triggerAnim("player", "heal", `+${h}`, "#60f0a0"); addLog(`💚 Your ${ab.name} restores ${h} HP (${Math.round(pct*100)}% MaxHP)`, "#60f0a0"); }
             else if (ab.type === "drain") { const atkBonus = Math.floor(totalAtk * 0.4); const raw = rand(ab.damage[0], ab.damage[1]) + atkBonus; const dmg = calcDmg(Math.floor(raw * abilBonus * spdMult * demonMult), ne.def); if (!miss()) { ne.hp -= dmg; flash("enemy"); const heal = Math.floor(dmg * healMult); np.hp = clamp(np.hp + heal, 0, np.maxHp); triggerAnim("enemy", "drain", `-${dmg}`, "#c060f0"); triggerAnim("player", null, `+${heal}`, "#c060f0"); addLog(`🩸 Your Soul Drain deals ${dmg} and steals ${heal} HP`, "#c060f0"); } else addLog("Your Soul Drain missed!", "#888"); }
-            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 6, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 6, tag: "arcaneBoost" }); triggerAnim("player", "arcane", "🔮+14SPD +5MP/t", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 6!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
+            else if (ab.type === "arcaneBoost") { if (nb.player.some(b => b.tag === "arcaneBoost")) { addLog("🔮 Arcane Surge already active!", "#60c0f0"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; } nb.player.push({ stat: "spd", amount: 14, turns: 6, tag: "arcaneBoost" }); nb.player.push({ stat: "manaRegen", amount: 5, turns: 6, tag: "arcaneBoost" }); triggerAnim("player", "arcane", "🔮+14SPD +5MP/t", "#60c0f0"); addLog(`🔮 Arcane Surge! +14 SPD, +5 MP/turn x 6!`, "#60c0f0"); nb.player = nb.player.map(b => { if (b.tag === "holyShield" || b.tag === "demonPact" || b.tag === "darkSacrifice" || b.tag === "arcaneBoost") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0); commitHolyAura(); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return; }
             else if (ab.type === "buff") { nb.player.push({ ...ab.buff }); addLog(`✨ ${ab.name}!`, "#f0f060"); }
             else if (ab.type === "debuff") { nb.enemy.push({ ...ab.debuff }); addLog(`💨 ${ab.name}! Enemy ATK reduced.`, "#60f0a0"); }
             else if (ab.type === "smokeBomb") { if (nb.enemy.some(b => b.tag === "smokeBomb")) { addLog("💨 Smoke Bomb already active!", "#60f0a0"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; } const reduction = Math.floor(ne.atk * 0.30); nb.enemy.push({ stat: "atk", amount: -reduction, turns: 12, tag: "smokeBomb" }); triggerAnim("enemy", "smoke", `💨-${reduction}ATK`, "#60f0a0"); addLog(`💨 Your Smoke Bomb reduces ${ne.name}'s ATK by ${reduction} for 6 turns`, "#60f0a0"); }
@@ -1655,7 +1702,7 @@ export default function App() {
                 triggerAnim("player", "power", `☠️+${rageAtk}ATK`, "#cc2222");
                 addLog(`☠️ Undying Rage! ATK+${rageAtk}, SPD+${rageSpd} for 3 turns!`, "#cc2222");
                 nb.player = nb.player.map(b => { if (b.tag === "undyingRage") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
-                setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return;
+                commitHolyAura(); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return;
             }
             else if (ab.type === "bloodRitual") {
                 const hcBR = Math.floor(np.hp * 0.30);
@@ -1668,7 +1715,7 @@ export default function App() {
                 triggerAnim("player", "heal", `🩸HoT+${hotAmount}/t`, "#cc44ff");
                 addLog(`🩸 Blood Ritual! -${hcBR} HP → heal ${hotAmount} HP/turn × 6 turns!`, "#cc44ff");
                 nb.player = nb.player.map(b => { if (b.tag === "bloodRitual") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
-                setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return;
+                commitHolyAura(); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return;
             }
             else if (ab.type === "consecrate") {
                 np.mp -= ab.cost; np.mp = clamp(np.mp + regen, 0, np.maxMp);
@@ -1716,7 +1763,7 @@ export default function App() {
                 triggerAnim("player", "fire", "🌋 Molten!", "#ff8800");
                 addLog(`🌋 Molten Resilience! Immune to Stun + ${hotAmt} HP/turn × 6 turns!`, "#ff8800");
                 nb.player = nb.player.map(b => { if (b.tag === "moltenResilience") return b; return { ...b, turns: b.turns - 1 }; }).filter(b => b.turns > 0);
-                setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return;
+                commitHolyAura(); setSe(cse); setPlayer(np); setBuffs(nb); actionLockRef.current = false; setTurn("enemy"); setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900); return;
             }
             else if (ab.type === "pyroclasm") {
                 if (cse.pyroclasmDot > 0) { addLog("🔥 Pyroclasm already burning!", "#ff6600"); np.mp = clamp(np.mp + ab.cost - regen, 0, np.maxMp); actionLockRef.current = false; setPlayer(np); return; }
@@ -1748,7 +1795,7 @@ export default function App() {
             else { np.mp = clamp(np.mp + regen, 0, np.maxMp); addLog("Couldn't escape!", "#ff6060"); }
         }
         // Consume Time Warp — if active, skip enemy turn this action
-        if (cse.timeWarpActive) { cse.timeWarpActive = false; setSe(cse); setPlayer(np); setEnemy(ne); setBuffs(nb); return; }
+        if (cse.timeWarpActive) { cse.timeWarpActive = false; commitHolyAura(); setSe(cse); setPlayer(np); setEnemy(ne); setBuffs(nb); actionLockRef.current = false; return; }
 
         // Tick flightBonus every player action (not just on attack)
         if (cse.flightBonus > 0) cse.flightBonus--;
@@ -1767,7 +1814,7 @@ export default function App() {
             setTimeout(() => { actionLockRef.current = false; resolveVictory(np, ne, nb, inv, g, eq, cse, rl); }, 700);
             return;
         }
-        actionLockRef.current = false;
+        commitHolyAura(); actionLockRef.current = false;
         setPlayer(np); setEnemy(ne); setBuffs(nb); setTurn("enemy");
         setTimeout(() => enemyTurn(np, ne, nb, inv, g, eq, cse, rl), 900);
     };
