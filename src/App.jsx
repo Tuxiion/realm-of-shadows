@@ -323,7 +323,7 @@ const CLASSES = {
         stats: { hp: 90, maxHp: 90, mp: 70, maxMp: 70, atk: 18, def: 5, spd: 9, crit: 5, manaRegen: 5 },
         abilities: [
             { name: "Hellfire", cost: 15, desc: "ATK + SPD · Fire dmg", damage: [22, 35], type: "atk" , scale: "Fire · ATK + SPD"},
-            { name: "Soul Drain", cost: 12, desc: "ATK · Steals 50% as HP", damage: [15, 25], type: "drain" , scale: "ATK · Lifesteal"},
+            { name: "Soul Drain", cost: 12, desc: "ATK + SPD + Demon Pact · Steals dmg as HP", damage: [15, 25], type: "drain" , scale: "ATK + SPD + Demon Pact · Lifesteal"},
             { name: "Demon Pact", cost: 20, desc: "+30% dmg for 6 turns", damage: [0, 0], type: "demonPact" , scale: "Global DMG boost"},
         ]
     },
